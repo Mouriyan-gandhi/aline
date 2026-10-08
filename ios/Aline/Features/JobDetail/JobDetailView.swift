@@ -13,8 +13,14 @@ struct JobDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.openURL) private var openURL
     @Query private var savedJobs: [SavedJob]
+    @Query(sort: \ResumeDocument.updatedAt, order: .reverse) private var resumeDocuments: [ResumeDocument]
     @State private var askedIfApplied = false
     @State private var summary: JobSummaryResult?
+    @State private var isShowingTailorSheet = false
+
+    private var defaultResumeDocument: ResumeDocument? {
+        resumeDocuments.first { $0.isDefault } ?? resumeDocuments.first
+    }
 
     private var savedJob: SavedJob? {
         savedJobs.first { $0.jobID == job.id }
@@ -32,6 +38,7 @@ struct JobDetailView: View {
                 if !match.missingSkills.isEmpty {
                     missingSection
                 }
+                tailorResumeButton
                 applyButton
             }
             .padding(16)
@@ -51,6 +58,15 @@ struct JobDetailView: View {
         .alert("Did you apply?", isPresented: $askedIfApplied) {
             Button("Yes") { markApplied() }
             Button("Not yet", role: .cancel) {}
+        }
+        .sheet(isPresented: $isShowingTailorSheet) {
+            if let defaultResumeDocument {
+                NavigationStack {
+                    ResumeDetailView(document: defaultResumeDocument, targetJob: job)
+                }
+            } else {
+                NoResumeYetView()
+            }
         }
         .task(id: job.id) {
             summary = await JobSummarizer.summarize(job: job)
@@ -194,6 +210,23 @@ struct JobDetailView: View {
         }
     }
 
+    // The JD-driven tailoring entry point: tapping this hands the job's own extracted
+    // skills into ResumeDetailView's keyword-gap section (see missingSkills(for:) there) —
+    // "that job information is being circulated into the pipeline" is this parameter, not a
+    // separate system. Uses the default resume if one exists; if the person has never built
+    // one yet, nudges them to the Resume tab rather than failing silently.
+    private var tailorResumeButton: some View {
+        Button {
+            isShowingTailorSheet = true
+        } label: {
+            Label("Tailor Resume for This Job", systemImage: "sparkles").frame(maxWidth: .infinity)
+        }
+        .font(AlineFont.body(15, weight: .medium))
+        .foregroundStyle(AlineColor.inkNavy)
+        .padding(.vertical, 12)
+        .overlay(RoundedRectangle(cornerRadius: AlineRadius.card).stroke(AlineColor.creamBorder))
+    }
+
     private var applyButton: some View {
         Button {
             if let url = URL(string: job.applyURL) {
@@ -220,5 +253,22 @@ struct JobDetailView: View {
         } else {
             modelContext.insert(SavedJob(job: job, isApplied: true))
         }
+    }
+}
+
+private struct NoResumeYetView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "doc.text").font(.system(size: 36)).foregroundStyle(AlineColor.stone)
+            Text("No resume yet").font(AlineFont.body(16, weight: .medium)).foregroundStyle(AlineColor.inkNavy)
+            Text("Build a resume in the Resume tab first, then come back here to tailor it for this job.")
+                .font(AlineFont.body(14)).foregroundStyle(AlineColor.stone)
+                .multilineTextAlignment(.center)
+            Button("Got it") { dismiss() }
+                .buttonStyle(AlinePrimaryButtonStyle())
+        }
+        .padding(32)
     }
 }

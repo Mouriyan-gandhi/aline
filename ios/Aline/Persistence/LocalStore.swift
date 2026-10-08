@@ -21,3 +21,35 @@ final class SavedJob {
         self.savedAt = Date()
     }
 }
+
+/// A saved, structured resume plus which fixed template it's rendered with. Stored as
+/// encoded JSON (`profileData`), not as native SwiftData relationships — ResumeProfile's
+/// nested arrays-of-structs (education/experience/projects/skillCategories) are exactly the
+/// shape SwiftData's own docs call out as unreliable across OS versions when modeled as
+/// native relationships; a single JSON blob with a typed computed accessor sidesteps that
+/// entirely and is the same pattern CareerProfile already uses for @AppStorage persistence.
+@Model
+final class ResumeDocument {
+    @Attribute(.unique) var id: String
+    var displayName: String
+    var templateID: String
+    var isDefault: Bool
+    var createdAt: Date
+    var updatedAt: Date
+    private var profileData: Data
+
+    var profile: ResumeProfile {
+        get { (try? JSONDecoder().decode(ResumeProfile.self, from: profileData)) ?? .empty }
+        set { profileData = (try? JSONEncoder().encode(newValue)) ?? Data() }
+    }
+
+    init(displayName: String, templateID: String, profile: ResumeProfile, isDefault: Bool = false) {
+        self.id = UUID().uuidString
+        self.displayName = displayName
+        self.templateID = templateID
+        self.isDefault = isDefault
+        self.createdAt = Date()
+        self.updatedAt = Date()
+        self.profileData = (try? JSONEncoder().encode(profile)) ?? Data()
+    }
+}

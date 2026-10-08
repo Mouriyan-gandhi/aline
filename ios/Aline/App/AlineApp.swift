@@ -20,7 +20,7 @@ struct AlineApp: App {
             }
             .tint(AlineColor.electricCobalt)
         }
-        .modelContainer(for: SavedJob.self)
+        .modelContainer(for: [SavedJob.self, ResumeDocument.self])
     }
 
     private func loadProfile() -> CareerProfile? {

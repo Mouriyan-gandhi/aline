@@ -10,25 +10,41 @@
 		0C9D2174C35ED6F079B6D42C /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CE613CEB0F9D5C5FECD3E26 /* ProfileView.swift */; };
 		0FEFB324EC9E7FC40B534507 /* CommunityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74B5EE002B2995F448A251A2 /* CommunityView.swift */; };
 		1DA0FABF7A427C9402EA1911 /* CareerProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = B306FF767545EDD22D04B739 /* CareerProfile.swift */; };
+		206502D5FD1C61FAC51A72C0 /* ResumeStructurer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B02EECD574EAF6D0B405237 /* ResumeStructurer.swift */; };
 		25283366AB2BFEAEC3BE69F7 /* RoleCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B1DE1C965CBE9321E0ED644 /* RoleCategory.swift */; };
 		33E37B3FA6D13ADFB829E4A9 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 079CD6868EEBD7D3365CBDD6 /* Theme.swift */; };
+		36A2E9ADE3AAC53A1530778A /* ModernResumeTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3BA12DEE2DC9EF4D3FF2712 /* ModernResumeTemplate.swift */; };
 		3F67A16DAEA6613AF31EF9F5 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35B9B780AC2BF41ECC1A15E7 /* OnboardingView.swift */; };
+		40F0BFA8AF58E5D8DFB19D10 /* ResumeDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22FEBC99D8DFCBFCDD18BC23 /* ResumeDetailView.swift */; };
+		419CE1821AE37A52ACFD708D /* ResumeProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CBEF79AEAA1F0ED3F6A1CE5 /* ResumeProfile.swift */; };
 		41D0BBF33F30CDD95F76A0B2 /* PDFTextExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017E7DB8100203E1681E25A2 /* PDFTextExtractor.swift */; };
+		462B96C245A139CF79B62064 /* ChooseTemplateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6760EC976C274E2C91BE13 /* ChooseTemplateView.swift */; };
 		47A4F015CF91B36C7599FB55 /* LocalStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3205BA28C58D5D383D44EB7 /* LocalStore.swift */; };
+		4EB05D9A40A77CDB5C3510A8 /* ResumeDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863ADE915A623325DCE0CD48 /* ResumeDashboardView.swift */; };
+		52CBE344D05236AAADB46B92 /* ResumeRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81A7B75B6A50D29AF0BE7641 /* ResumeRenderer.swift */; };
+		567912CF2EBBCA9B2C2F64CA /* ResumeAIEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CE500911295895F0D942C8E /* ResumeAIEditor.swift */; };
 		5A63F717F61F4D840BCE9CE2 /* DiscoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560A210693B5BAB3E0BC09BF /* DiscoverView.swift */; };
 		5B127ED17268D17A02183BAF /* FilterSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70141C5998C1EB66D6B2B136 /* FilterSheetView.swift */; };
 		652DA88A33330B67ACBD4A02 /* JobSummarizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C18AB4024C3A7001EEA8400 /* JobSummarizer.swift */; };
 		6BDF3CC87E2E3B0D9725F176 /* DiscoverViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF2FDA2342963450194B3E81 /* DiscoverViewModel.swift */; };
 		6C2F0EF82D8E3BF7EF29DD27 /* JobDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FE1DE9322616A5C3BFFB759 /* JobDetailView.swift */; };
+		6D3C2922EA34D6BE87345AE0 /* ManualProfileEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31A27BDC4FFB270E0AFE1BE6 /* ManualProfileEditorView.swift */; };
 		71DE78859368591FB470800F /* ResumeParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F67D5173F262491534F08E4 /* ResumeParser.swift */; };
 		80B205507279D0F986D7A08B /* MatchEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14FA01312441BC77ED2551E /* MatchEngine.swift */; };
 		8C17C94EDE3F2059B3E4BFB6 /* JobsAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40CC00089EB0F134A1CF4F27 /* JobsAPI.swift */; };
+		9188A8FDFC16512C913F6B40 /* ResumeGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6A10F237C8F6E6087DFFF8F /* ResumeGeometry.swift */; };
+		99E9B6CD46BE4D98830CCD62 /* AddResumeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B65A08DEA35D1118662A671 /* AddResumeView.swift */; };
+		9FCE664AE4B0C288C64E9196 /* StandardResumeTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35E9A8775B79DA4ED7B67A27 /* StandardResumeTemplate.swift */; };
 		A22A020909E5232B13290638 /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37EB470AC25CF5E682416F92 /* RootTabView.swift */; };
+		AAE5F1A3F040E83C8EC4B7CE /* ResumeTemplateComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13B54D66F7EAF2A5F67BE29A /* ResumeTemplateComponents.swift */; };
 		B2F8EB2B3C602492A381D86A /* Job.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DCA32AB518648779AAF71A4 /* Job.swift */; };
 		B794B6E8C22FD4CC2DE69703 /* JobCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B44B6FBBA6C540275A23F0A2 /* JobCardView.swift */; };
+		BA2EA27E3D44586D7618D5AD /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23A74941F0C793C5EAE86A6C /* ShareSheet.swift */; };
 		CA42B7EE0DADC464971B5A70 /* ResumeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA3B65BFF1399EB70504F62 /* ResumeView.swift */; };
 		CA5BDE391400CA307315FF92 /* Inter.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 72DCAD931CC4A41D62979174 /* Inter.ttf */; };
 		CFB8BDDF73761BAEC11DBF2E /* OnboardingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD09731C5DA5ABE28D2727FB /* OnboardingViewModel.swift */; };
+		E78BF777BE19BF8B3C5625F8 /* ResumeTemplateID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3770D8460C8DA761C17A8AC4 /* ResumeTemplateID.swift */; };
+		EA77CCD262B941476F5377E9 /* ProfessionalResumeTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51AF7711B0EAC47BC53282D9 /* ProfessionalResumeTemplate.swift */; };
 		EF873AD9FD78B4300AE6519E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B87CC95B094DCD7AD7F64A7B /* Assets.xcassets */; };
 		FAF1CF035169CA1A04B280DF /* AlineApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D07198F2B3890E0C2695670 /* AlineApp.swift */; };
 /* End PBXBuildFile section */
@@ -37,23 +53,39 @@
 		017E7DB8100203E1681E25A2 /* PDFTextExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFTextExtractor.swift; sourceTree = "<group>"; };
 		079CD6868EEBD7D3365CBDD6 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		0C18AB4024C3A7001EEA8400 /* JobSummarizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobSummarizer.swift; sourceTree = "<group>"; };
+		13B54D66F7EAF2A5F67BE29A /* ResumeTemplateComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeTemplateComponents.swift; sourceTree = "<group>"; };
+		22FEBC99D8DFCBFCDD18BC23 /* ResumeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeDetailView.swift; sourceTree = "<group>"; };
+		23A74941F0C793C5EAE86A6C /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
 		2B1DE1C965CBE9321E0ED644 /* RoleCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoleCategory.swift; sourceTree = "<group>"; };
+		31A27BDC4FFB270E0AFE1BE6 /* ManualProfileEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualProfileEditorView.swift; sourceTree = "<group>"; };
 		35B9B780AC2BF41ECC1A15E7 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		35E9A8775B79DA4ED7B67A27 /* StandardResumeTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StandardResumeTemplate.swift; sourceTree = "<group>"; };
+		3770D8460C8DA761C17A8AC4 /* ResumeTemplateID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeTemplateID.swift; sourceTree = "<group>"; };
 		37EB470AC25CF5E682416F92 /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
 		40CC00089EB0F134A1CF4F27 /* JobsAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobsAPI.swift; sourceTree = "<group>"; };
 		4F67D5173F262491534F08E4 /* ResumeParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeParser.swift; sourceTree = "<group>"; };
+		51AF7711B0EAC47BC53282D9 /* ProfessionalResumeTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfessionalResumeTemplate.swift; sourceTree = "<group>"; };
 		560A210693B5BAB3E0BC09BF /* DiscoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoverView.swift; sourceTree = "<group>"; };
+		5B6760EC976C274E2C91BE13 /* ChooseTemplateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChooseTemplateView.swift; sourceTree = "<group>"; };
+		6B02EECD574EAF6D0B405237 /* ResumeStructurer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeStructurer.swift; sourceTree = "<group>"; };
+		6B65A08DEA35D1118662A671 /* AddResumeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddResumeView.swift; sourceTree = "<group>"; };
 		6CE613CEB0F9D5C5FECD3E26 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		6FE1DE9322616A5C3BFFB759 /* JobDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobDetailView.swift; sourceTree = "<group>"; };
 		70141C5998C1EB66D6B2B136 /* FilterSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterSheetView.swift; sourceTree = "<group>"; };
 		72DCAD931CC4A41D62979174 /* Inter.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Inter.ttf; sourceTree = "<group>"; };
 		74B5EE002B2995F448A251A2 /* CommunityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityView.swift; sourceTree = "<group>"; };
+		7CE500911295895F0D942C8E /* ResumeAIEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeAIEditor.swift; sourceTree = "<group>"; };
+		81A7B75B6A50D29AF0BE7641 /* ResumeRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeRenderer.swift; sourceTree = "<group>"; };
+		863ADE915A623325DCE0CD48 /* ResumeDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeDashboardView.swift; sourceTree = "<group>"; };
+		8CBEF79AEAA1F0ED3F6A1CE5 /* ResumeProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeProfile.swift; sourceTree = "<group>"; };
 		8D07198F2B3890E0C2695670 /* AlineApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlineApp.swift; sourceTree = "<group>"; };
 		90909FFBEA791B60910CEE69 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		9AA3B65BFF1399EB70504F62 /* ResumeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeView.swift; sourceTree = "<group>"; };
 		9DCA32AB518648779AAF71A4 /* Job.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Job.swift; sourceTree = "<group>"; };
+		A3BA12DEE2DC9EF4D3FF2712 /* ModernResumeTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModernResumeTemplate.swift; sourceTree = "<group>"; };
 		B306FF767545EDD22D04B739 /* CareerProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CareerProfile.swift; sourceTree = "<group>"; };
 		B44B6FBBA6C540275A23F0A2 /* JobCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobCardView.swift; sourceTree = "<group>"; };
+		B6A10F237C8F6E6087DFFF8F /* ResumeGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeGeometry.swift; sourceTree = "<group>"; };
 		B87CC95B094DCD7AD7F64A7B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		CD09731C5DA5ABE28D2727FB /* OnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewModel.swift; sourceTree = "<group>"; };
 		CF2FDA2342963450194B3E81 /* DiscoverViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoverViewModel.swift; sourceTree = "<group>"; };
@@ -63,6 +95,20 @@
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
+		142EA34EDFF344AA25AEAA4A /* Templates */ = {
+			isa = PBXGroup;
+			children = (
+				A3BA12DEE2DC9EF4D3FF2712 /* ModernResumeTemplate.swift */,
+				51AF7711B0EAC47BC53282D9 /* ProfessionalResumeTemplate.swift */,
+				B6A10F237C8F6E6087DFFF8F /* ResumeGeometry.swift */,
+				81A7B75B6A50D29AF0BE7641 /* ResumeRenderer.swift */,
+				13B54D66F7EAF2A5F67BE29A /* ResumeTemplateComponents.swift */,
+				3770D8460C8DA761C17A8AC4 /* ResumeTemplateID.swift */,
+				35E9A8775B79DA4ED7B67A27 /* StandardResumeTemplate.swift */,
+			);
+			path = Templates;
+			sourceTree = "<group>";
+		};
 		195A470FA7FA253F67F11DC1 /* App */ = {
 			isa = PBXGroup;
 			children = (
@@ -100,6 +146,7 @@
 			children = (
 				B306FF767545EDD22D04B739 /* CareerProfile.swift */,
 				9DCA32AB518648779AAF71A4 /* Job.swift */,
+				8CBEF79AEAA1F0ED3F6A1CE5 /* ResumeProfile.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -168,7 +215,14 @@
 		A05176ECB65E814D7135819C /* Resume */ = {
 			isa = PBXGroup;
 			children = (
+				6B65A08DEA35D1118662A671 /* AddResumeView.swift */,
+				5B6760EC976C274E2C91BE13 /* ChooseTemplateView.swift */,
+				31A27BDC4FFB270E0AFE1BE6 /* ManualProfileEditorView.swift */,
+				863ADE915A623325DCE0CD48 /* ResumeDashboardView.swift */,
+				22FEBC99D8DFCBFCDD18BC23 /* ResumeDetailView.swift */,
 				9AA3B65BFF1399EB70504F62 /* ResumeView.swift */,
+				23A74941F0C793C5EAE86A6C /* ShareSheet.swift */,
+				142EA34EDFF344AA25AEAA4A /* Templates */,
 			);
 			path = Resume;
 			sourceTree = "<group>";
@@ -186,7 +240,9 @@
 			children = (
 				0C18AB4024C3A7001EEA8400 /* JobSummarizer.swift */,
 				017E7DB8100203E1681E25A2 /* PDFTextExtractor.swift */,
+				7CE500911295895F0D942C8E /* ResumeAIEditor.swift */,
 				4F67D5173F262491534F08E4 /* ResumeParser.swift */,
+				6B02EECD574EAF6D0B405237 /* ResumeStructurer.swift */,
 			);
 			path = AI;
 			sourceTree = "<group>";
@@ -319,8 +375,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				99E9B6CD46BE4D98830CCD62 /* AddResumeView.swift in Sources */,
 				FAF1CF035169CA1A04B280DF /* AlineApp.swift in Sources */,
 				1DA0FABF7A427C9402EA1911 /* CareerProfile.swift in Sources */,
+				462B96C245A139CF79B62064 /* ChooseTemplateView.swift in Sources */,
 				0FEFB324EC9E7FC40B534507 /* CommunityView.swift in Sources */,
 				5A63F717F61F4D840BCE9CE2 /* DiscoverView.swift in Sources */,
 				6BDF3CC87E2E3B0D9725F176 /* DiscoverViewModel.swift in Sources */,
@@ -331,15 +389,29 @@
 				652DA88A33330B67ACBD4A02 /* JobSummarizer.swift in Sources */,
 				8C17C94EDE3F2059B3E4BFB6 /* JobsAPI.swift in Sources */,
 				47A4F015CF91B36C7599FB55 /* LocalStore.swift in Sources */,
+				6D3C2922EA34D6BE87345AE0 /* ManualProfileEditorView.swift in Sources */,
 				80B205507279D0F986D7A08B /* MatchEngine.swift in Sources */,
+				36A2E9ADE3AAC53A1530778A /* ModernResumeTemplate.swift in Sources */,
 				3F67A16DAEA6613AF31EF9F5 /* OnboardingView.swift in Sources */,
 				CFB8BDDF73761BAEC11DBF2E /* OnboardingViewModel.swift in Sources */,
 				41D0BBF33F30CDD95F76A0B2 /* PDFTextExtractor.swift in Sources */,
+				EA77CCD262B941476F5377E9 /* ProfessionalResumeTemplate.swift in Sources */,
 				0C9D2174C35ED6F079B6D42C /* ProfileView.swift in Sources */,
+				567912CF2EBBCA9B2C2F64CA /* ResumeAIEditor.swift in Sources */,
+				4EB05D9A40A77CDB5C3510A8 /* ResumeDashboardView.swift in Sources */,
+				40F0BFA8AF58E5D8DFB19D10 /* ResumeDetailView.swift in Sources */,
+				9188A8FDFC16512C913F6B40 /* ResumeGeometry.swift in Sources */,
 				71DE78859368591FB470800F /* ResumeParser.swift in Sources */,
+				419CE1821AE37A52ACFD708D /* ResumeProfile.swift in Sources */,
+				52CBE344D05236AAADB46B92 /* ResumeRenderer.swift in Sources */,
+				206502D5FD1C61FAC51A72C0 /* ResumeStructurer.swift in Sources */,
+				AAE5F1A3F040E83C8EC4B7CE /* ResumeTemplateComponents.swift in Sources */,
+				E78BF777BE19BF8B3C5625F8 /* ResumeTemplateID.swift in Sources */,
 				CA42B7EE0DADC464971B5A70 /* ResumeView.swift in Sources */,
 				25283366AB2BFEAEC3BE69F7 /* RoleCategory.swift in Sources */,
 				A22A020909E5232B13290638 /* RootTabView.swift in Sources */,
+				BA2EA27E3D44586D7618D5AD /* ShareSheet.swift in Sources */,
+				9FCE664AE4B0C288C64E9196 /* StandardResumeTemplate.swift in Sources */,
 				33E37B3FA6D13ADFB829E4A9 /* Theme.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
