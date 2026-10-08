@@ -7,7 +7,7 @@ import httpx
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.adapters import ashby, greenhouse, lever, smartrecruiters, workable, workday
+from app.adapters import ashby, greenhouse, lever, smartrecruiters, workable, workday, workday_sitemap
 from app.companies import COMPANIES, NEEDS_REVIEW
 from app.schemas import Job
 
@@ -27,29 +27,30 @@ ADAPTERS = {
     "greenhouse": greenhouse.scrape,
     "lever": lever.scrape,
     "ashby": ashby.scrape,
-    "workday": workday.scrape,
+    "workday": workday.scrape,  # legacy, blocked-endpoint based — unused, no companies route here
+    "workday_sitemap": workday_sitemap.scrape,  # active Workday path — see its module docstring
     "smartrecruiters": smartrecruiters.scrape,
     "workable": workable.scrape,
 }
 
 # Workable rate-limits aggressively (429 after a couple of back-to-back requests from one
 # IP — confirmed live during Milestone 0). Everything else can run with more headroom.
-# Workday is handled completely separately (see WORKDAY_INTER_COMPANY_DELAY_SECONDS below) —
-# it is NOT in this concurrency map because concurrent/rapid requests to it, even spaced
-# per-company-pagination, were found live to trigger an escalating block tied to cumulative
-# request volume across the whole myworkdayjobs.com surface from one IP (not per-tenant,
-# not fixable by Referer/Origin headers alone — confirmed by testing: a single isolated
-# request to any tenant succeeds reliably; a burst across multiple tenants within a short
-# window does not, even with 2-3s spacing between them).
+#
+# workday_sitemap gets real but deliberately moderate concurrency: each company already paces
+# itself internally (1.5s between its own job-page fetches — see workday_sitemap.py), so this
+# number controls how many DIFFERENT companies' sitemap+job-page loops run at once, not
+# per-request speed. Verified live (2026-10-08): zero blocking across dozens of requests to
+# this endpoint at light-to-moderate concurrency, a completely different code path from the
+# old `wday/cxs/.../jobs` search API that got blocked (see workday.py's module docstring) —
+# but 40 companies is still new territory for this method, so staying moderate (8) rather than
+# matching the other fast platforms' 15, until a full production cycle is observed.
+#
+# "workday" (legacy) is NOT in this map — no companies route to it (see companies.py), kept
+# only for reference/history.
 PLATFORM_CONCURRENCY = {
     "greenhouse": 15, "lever": 15, "ashby": 15,
-    "smartrecruiters": 15, "workable": 3,
+    "smartrecruiters": 15, "workable": 3, "workday_sitemap": 8,
 }
-
-# Real, conservative spacing between *every* Workday request across *all* companies in a
-# scrape cycle — this is what actually keeps us under the block, not per-company concurrency
-# limiting (which still allows bursts). Workday also runs with concurrency=1 (see scrape_all).
-WORKDAY_INTER_COMPANY_DELAY_SECONDS = 8.0
 
 CACHE_TTL_SECONDS = 10 * 60  # periodic refresh, not re-scraped on every request
 
@@ -73,8 +74,14 @@ class JobsCache:
 cache = JobsCache()
 
 
-async def scrape_fast_platforms(companies: list[dict]) -> list[Job]:
-    """Greenhouse/Lever/Ashby/SmartRecruiters/Workable — all tolerate real concurrency."""
+async def scrape_all() -> list[Job]:
+    """
+    Every active platform (including workday_sitemap) tolerates real concurrency — see
+    PLATFORM_CONCURRENCY above for per-platform limits and why. The old fully-serial,
+    heavily-spaced Workday path is gone: no companies route to the legacy "workday" adapter
+    that needed it (see companies.py) — workday_sitemap hits a fundamentally different,
+    unblocked endpoint.
+    """
     sems = {platform: asyncio.Semaphore(n) for platform, n in PLATFORM_CONCURRENCY.items()}
 
     async def scrape_one(company: dict, client: httpx.AsyncClient) -> list[Job]:
@@ -90,39 +97,9 @@ async def scrape_fast_platforms(companies: list[dict]) -> list[Job]:
                 return []
 
     async with httpx.AsyncClient(follow_redirects=True) as client:
-        results = await asyncio.gather(*(scrape_one(c, client) for c in companies))
+        results = await asyncio.gather(*(scrape_one(c, client) for c in COMPANIES))
 
     return [job for company_jobs in results for job in company_jobs]
-
-
-async def scrape_workday_serially(companies: list[dict]) -> list[Job]:
-    """
-    Fully serial, heavily spaced — see WORKDAY_INTER_COMPANY_DELAY_SECONDS docstring above
-    for why. Each company gets its own fresh client (not strictly required, but keeps
-    cookie state cleanly scoped per-tenant rather than accumulating across many tenants in
-    one session, which may itself be a contributing factor to the cumulative block).
-    """
-    all_jobs: list[Job] = []
-    for i, company in enumerate(companies):
-        if i > 0:
-            await asyncio.sleep(WORKDAY_INTER_COMPANY_DELAY_SECONDS)
-        async with httpx.AsyncClient(follow_redirects=True) as client:
-            try:
-                jobs = await workday.scrape(company, client)
-                all_jobs.extend(jobs)
-            except Exception as exc:  # noqa: BLE001
-                logger.warning("Workday scrape failed for %s: %s", company["name"], exc)
-    return all_jobs
-
-
-async def scrape_all() -> list[Job]:
-    fast_companies = [c for c in COMPANIES if c["platform"] != "workday"]
-    workday_companies = [c for c in COMPANIES if c["platform"] == "workday"]
-
-    fast_jobs = await scrape_fast_platforms(fast_companies)
-    workday_jobs = await scrape_workday_serially(workday_companies)
-
-    return fast_jobs + workday_jobs
 
 
 async def refresh_cache():

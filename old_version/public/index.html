@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JobPulse — Fortune 500 Job Notifier</title>
+  <meta name="description" content="Real-time job notifications from Fortune 500 tech companies for new grad, intern, and entry-level roles in software and AI." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">JobPulse</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" id="nav-dashboard" onclick="setView('dashboard')">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">Dashboard</span>
+      </button>
+      <button class="nav-item" id="nav-companies" onclick="setView('companies')">
+        <span class="nav-icon">🏢</span>
+        <span class="nav-label">Companies</span>
+        <span class="nav-badge" id="companies-count">—</span>
+      </button>
+      <button class="nav-item" id="nav-log" onclick="setView('log')">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label">Scrape Log</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-section-label">COMPANIES</div>
+    <div class="company-list" id="company-list">
+      <!-- Populated by JS -->
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+        <div class="header-title">
+          <h1 id="view-title">Job Notifications</h1>
+          <span id="view-subtitle" class="view-subtitle">Monitoring Fortune 500 companies</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="scrape-status" id="scrape-status">
+          <span class="status-dot idle" id="status-dot"></span>
+          <span id="status-text">Idle</span>
+        </div>
+        <button class="btn-scan" id="scan-btn" onclick="triggerScrape()">
+          <span id="scan-btn-icon">🔍</span> Scan Now
+        </button>
+      </div>
+    </header>
+
+    <!-- Stats Row -->
+    <section class="stats-row" id="stats-row">
+      <div class="stat-card">
+        <span class="stat-value" id="stat-unread">—</span>
+        <span class="stat-label">🔔 Unread</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value" id="stat-today">—</span>
+        <span class="stat-label">📅 Today</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value" id="stat-total">—</span>
+        <span class="stat-label">💼 Total Jobs</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value" id="stat-companies">—</span>
+        <span class="stat-label">🏢 Companies</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value" id="stat-saved">—</span>
+        <span class="stat-label">⭐ Saved</span>
+      </div>
+    </section>
+
+    <!-- Scrape Progress Bar -->
+    <div class="progress-wrap" id="progress-wrap" style="display:none">
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progress-bar-fill"></div>
+      </div>
+      <span class="progress-text" id="progress-text">Starting scan...</span>
+    </div>
+
+    <!-- Dashboard View -->
+    <section class="view active" id="view-dashboard">
+      <!-- Filters -->
+      <div class="filter-bar">
+        <div class="filter-tabs">
+          <button class="filter-tab active" id="tab-all" onclick="setFilter('all')">All Jobs</button>
+          <button class="filter-tab" id="tab-unread" onclick="setFilter('unread')">🔔 Unread</button>
+          <button class="filter-tab" id="tab-saved" onclick="setFilter('saved')">⭐ Saved</button>
+        </div>
+        <div class="filter-right">
+          <input class="search-input" id="search-input" type="text" placeholder="🔎 Search jobs..." oninput="debounceSearch()" />
+          <button class="btn-read-all" onclick="markAllRead()">Mark All Read</button>
+        </div>
+      </div>
+
+      <!-- Job Grid -->
+      <div class="jobs-grid" id="jobs-grid">
+        <!-- Populated by JS -->
+      </div>
+
+      <div class="empty-state" id="empty-state" style="display:none">
+        <div class="empty-icon">🔍</div>
+        <h3>No jobs found yet</h3>
+        <p>Hit <strong>Scan Now</strong> to fetch the latest job postings from 70+ companies.</p>
+      </div>
+    </section>
+
+    <!-- Companies View -->
+    <section class="view" id="view-companies">
+      <div class="companies-grid" id="companies-grid">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+    <!-- Log View -->
+    <section class="view" id="view-log">
+      <div class="log-table-wrap">
+        <table class="log-table" id="log-table">
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Platform</th>
+              <th>Status</th>
+              <th>Jobs Found</th>
+              <th>New</th>
+              <th>Time</th>
+              <th>Error</th>
+            </tr>
+          </thead>
+          <tbody id="log-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Toast container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Job detail modal -->
+  <div class="modal-overlay" id="modal-overlay" onclick="closeModal()" style="display:none">
+    <div class="modal" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
