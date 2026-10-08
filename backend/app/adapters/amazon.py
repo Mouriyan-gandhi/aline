@@ -22,7 +22,7 @@ reason):
 """
 import httpx
 
-from app.adapters.common import HTTP_TIMEOUT, USER_AGENT
+from app.adapters.common import HTTP_TIMEOUT, USER_AGENT, html_to_text
 from app.schemas import Job
 from app.filters import is_relevant_job, is_senior_excluded, extract_skills
 
@@ -58,8 +58,10 @@ async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:
         # this endpoint doesn't mix in non-India results the way a global sitemap does.
         location = job.get("normalized_location") or job.get("location") or "India"
 
-        description = job.get("description") or ""
-        qualifications = job.get("basic_qualifications") or ""
+        # Confirmed live (2026-10-08): amazon.jobs's description/qualifications fields embed
+        # inline HTML (e.g. "<br/>"), same risk as Greenhouse/Ashby — see html_to_text.
+        description = html_to_text(job.get("description") or "")
+        qualifications = html_to_text(job.get("basic_qualifications") or "")
         full_text = f"{description} {qualifications}"
         if is_senior_excluded(title, full_text):
             continue

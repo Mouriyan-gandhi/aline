@@ -35,7 +35,7 @@ from urllib.parse import urljoin, urlparse
 import httpx
 from urllib.robotparser import RobotFileParser
 
-from app.adapters.common import HTTP_TIMEOUT, USER_AGENT
+from app.adapters.common import HTTP_TIMEOUT, USER_AGENT, html_to_text
 from app.schemas import Job
 from app.filters import (
     is_relevant_job, is_india_location, is_senior_excluded, is_senior_excluded_in_slug,
@@ -173,7 +173,11 @@ async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:
             continue  # page didn't carry structured data this time; skip rather than guess
 
         title = (ld_json.get("title") or "").strip()
-        description = ld_json.get("description") or ""
+        # schema.org JobPosting's description is conventionally HTML (it's meant for a
+        # browser/search-engine renderer), same risk as Greenhouse's content/Ashby's
+        # descriptionHtml — see html_to_text's docstring for the live false-positive this
+        # caused.
+        description = html_to_text(ld_json.get("description") or "")
         if not is_relevant_job(title, ""):
             continue
 

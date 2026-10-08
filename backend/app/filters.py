@@ -85,10 +85,18 @@ def _phrase_pattern(phrase: str) -> re.Pattern:
     word/non-word transition, and a symbol followed by whitespace/end-of-string is
     non-word-to-non-word, no transition, so "C++" would only ever match its "C" prefix and
     never match as itself. A negative lookahead for "not immediately followed by another
-    alphanumeric character" fixes this for every case \\b handles plus this one."""
+    alphanumeric character" fixes this for every case \\b handles plus this one.
+
+    That lookahead alone still isn't enough for short phrases that are themselves a PREFIX
+    of a longer tech term differing only by a trailing symbol — found live: a JD's "Java,
+    Scala, C++, or similar" credited both "C++" (correct) AND "C" (wrong), since "C" followed
+    by "+" passes a lookahead that only blocks letters/digits. "+" and "#" are the only two
+    symbols that extend a bare letter into a different, unrelated skill name in our own
+    vocabulary (C++, C#) — excluding them here is specific to this real collision, not a
+    general symbol allowlist."""
     if phrase not in _PHRASE_PATTERN_CACHE:
         _PHRASE_PATTERN_CACHE[phrase] = re.compile(
-            r"\b" + re.escape(phrase) + r"(?![a-zA-Z0-9])"
+            r"\b" + re.escape(phrase) + r"(?![a-zA-Z0-9+#])"
         )
     return _PHRASE_PATTERN_CACHE[phrase]
 

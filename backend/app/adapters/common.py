@@ -1,4 +1,6 @@
 import asyncio
+import html
+import re
 from typing import Optional
 
 import httpx
@@ -8,6 +10,29 @@ USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
 )
+
+
+_TAG_PATTERN = re.compile(r"<[^>]+>")
+
+
+def html_to_text(raw: str) -> str:
+    """Strip markup from a job description before it reaches is_senior_excluded/
+    extract_skills — several adapters' description fields are real HTML (Greenhouse's
+    `content`, Ashby's `descriptionHtml`, Workday JSON-LD's `description`), not plain text.
+    Found live: an href/class attribute like `class="c-link"` word-boundary-matched the
+    bare "C" skill — tags must come out before any filter function ever sees this text, not
+    just before it's shown to a user (it's never shown to a user — Job has no description
+    field — but the filter functions still need clean text to match against).
+
+    Unescape entities FIRST, then strip tags — confirmed live against Greenhouse's actual
+    `content` field: its tags themselves arrive entity-encoded ("...&lt;/li&gt;&lt;li&gt;...",
+    not real "<li>"), so stripping before unescaping left every tag's literal "&lt;a
+    class=...&gt;" text sitting in the string untouched, the exact bug this function exists
+    to fix. The reverse-order risk (prose that happens to mention "&lt;b&gt;" getting swept
+    up as a fake tag) is the much rarer case in practice."""
+    if not raw:
+        return ""
+    return _TAG_PATTERN.sub(" ", html.unescape(raw))
 
 
 def normalize_location(loc) -> str:

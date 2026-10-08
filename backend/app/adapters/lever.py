@@ -1,7 +1,7 @@
 """Ported from old_version/scraper/scraper.js (scrapeLever)."""
 import httpx
 
-from app.adapters.common import HTTP_TIMEOUT, USER_AGENT, normalize_location
+from app.adapters.common import HTTP_TIMEOUT, USER_AGENT, html_to_text, normalize_location
 from app.schemas import Job
 from app.filters import is_relevant_job, is_india_location, is_senior_excluded, extract_skills
 
@@ -26,7 +26,9 @@ async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:
         if not is_india_location(location):
             continue
 
-        description = post.get("descriptionPlain") or post.get("description") or ""
+        # descriptionPlain is already plain text when present; description (the fallback)
+        # is real HTML — same risk as Greenhouse/Ashby, see html_to_text's docstring.
+        description = post.get("descriptionPlain") or html_to_text(post.get("description") or "")
         if is_senior_excluded(title, description):
             continue
 
