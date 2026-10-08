@@ -17,6 +17,7 @@
 		47A4F015CF91B36C7599FB55 /* LocalStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3205BA28C58D5D383D44EB7 /* LocalStore.swift */; };
 		5A63F717F61F4D840BCE9CE2 /* DiscoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560A210693B5BAB3E0BC09BF /* DiscoverView.swift */; };
 		5B127ED17268D17A02183BAF /* FilterSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70141C5998C1EB66D6B2B136 /* FilterSheetView.swift */; };
+		652DA88A33330B67ACBD4A02 /* JobSummarizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C18AB4024C3A7001EEA8400 /* JobSummarizer.swift */; };
 		6BDF3CC87E2E3B0D9725F176 /* DiscoverViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF2FDA2342963450194B3E81 /* DiscoverViewModel.swift */; };
 		6C2F0EF82D8E3BF7EF29DD27 /* JobDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FE1DE9322616A5C3BFFB759 /* JobDetailView.swift */; };
 		71DE78859368591FB470800F /* ResumeParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F67D5173F262491534F08E4 /* ResumeParser.swift */; };
@@ -35,6 +36,7 @@
 /* Begin PBXFileReference section */
 		017E7DB8100203E1681E25A2 /* PDFTextExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFTextExtractor.swift; sourceTree = "<group>"; };
 		079CD6868EEBD7D3365CBDD6 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		0C18AB4024C3A7001EEA8400 /* JobSummarizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobSummarizer.swift; sourceTree = "<group>"; };
 		2B1DE1C965CBE9321E0ED644 /* RoleCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoleCategory.swift; sourceTree = "<group>"; };
 		35B9B780AC2BF41ECC1A15E7 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		37EB470AC25CF5E682416F92 /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
@@ -182,6 +184,7 @@
 		B470B3BD5C18DBA50ACA5472 /* AI */ = {
 			isa = PBXGroup;
 			children = (
+				0C18AB4024C3A7001EEA8400 /* JobSummarizer.swift */,
 				017E7DB8100203E1681E25A2 /* PDFTextExtractor.swift */,
 				4F67D5173F262491534F08E4 /* ResumeParser.swift */,
 			);
@@ -325,6 +328,7 @@
 				B2F8EB2B3C602492A381D86A /* Job.swift in Sources */,
 				B794B6E8C22FD4CC2DE69703 /* JobCardView.swift in Sources */,
 				6C2F0EF82D8E3BF7EF29DD27 /* JobDetailView.swift in Sources */,
+				652DA88A33330B67ACBD4A02 /* JobSummarizer.swift in Sources */,
 				8C17C94EDE3F2059B3E4BFB6 /* JobsAPI.swift in Sources */,
 				47A4F015CF91B36C7599FB55 /* LocalStore.swift in Sources */,
 				80B205507279D0F986D7A08B /* MatchEngine.swift in Sources */,
