@@ -72,6 +72,16 @@ struct DiscoverView: View {
             Text("Real, India-filtered openings — ranked by your profile.")
                 .font(AlineFont.body(14))
                 .foregroundStyle(AlineColor.graphite)
+            if case .loaded = viewModel.state, !viewModel.jobs.isEmpty {
+                // Companies currently represented in the feed, not the full registry size —
+                // a company we monitor can have zero current openings that pass the
+                // relevance/India/seniority filters, and claiming "305 companies" when only
+                // a fraction have anything live right now would be a misleading number to
+                // show a real user, even if it's a bigger-sounding one.
+                Text("\(viewModel.jobs.count) openings from \(viewModel.availableCompanies.count) companies")
+                    .font(AlineFont.body(12, weight: .medium))
+                    .foregroundStyle(AlineColor.stone)
+            }
             if viewModel.activeFilterCount > 0 {
                 Text("\(viewModel.filteredJobs.count) of \(viewModel.jobs.count) match your filters")
                     .font(AlineFont.body(12, weight: .medium))
