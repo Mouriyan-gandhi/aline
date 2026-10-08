@@ -12,11 +12,12 @@ struct JobsAPI {
 
     static func fetchJobs() async throws -> [Job] {
         // The backend's cache is instant once warm, but a cold start (or post-TTL refresh)
-        // live-scrapes the whole registry — ~70s+ with 69 companies, measured directly.
-        // URLSession's default 60s request timeout would cut that off mid-scrape, which is
-        // very likely why the app looked like it "wasn't loading." Give it real headroom.
+        // live-scrapes the whole registry. Measured directly at 245 companies (40 of them
+        // Workday, via the sitemap+JSON-LD adapter): ~360s. Give real headroom above that —
+        // and once deployed to Render's free tier, add ~60s more for its cold-start wake if
+        // the service had spun down from inactivity.
         var request = URLRequest(url: baseURL.appendingPathComponent("jobs"))
-        request.timeoutInterval = 180
+        request.timeoutInterval = 480
 
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
