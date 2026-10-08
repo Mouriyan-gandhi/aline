@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: aline-backend
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 8000

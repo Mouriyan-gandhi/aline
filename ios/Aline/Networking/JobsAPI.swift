@@ -1,0 +1,27 @@
+import Foundation
+
+enum JobsAPIError: Error {
+    case badResponse
+}
+
+struct JobsAPI {
+    /// Simulator shares the host Mac's network namespace, so localhost reaches the
+    /// FastAPI backend directly. A physical device would need the Mac's LAN IP instead —
+    /// that's a Phase 1 concern once there's a real deployed backend to point at.
+    static let baseURL = URL(string: "http://127.0.0.1:8000")!
+
+    static func fetchJobs() async throws -> [Job] {
+        // The backend's cache is instant once warm, but a cold start (or post-TTL refresh)
+        // live-scrapes the whole registry — ~70s+ with 69 companies, measured directly.
+        // URLSession's default 60s request timeout would cut that off mid-scrape, which is
+        // very likely why the app looked like it "wasn't loading." Give it real headroom.
+        var request = URLRequest(url: baseURL.appendingPathComponent("jobs"))
+        request.timeoutInterval = 180
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+            throw JobsAPIError.badResponse
+        }
+        return try JSONDecoder().decode([Job].self, from: data)
+    }
+}
