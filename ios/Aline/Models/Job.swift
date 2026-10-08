@@ -11,9 +11,10 @@ struct Job: Codable, Identifiable, Hashable {
     let applyURL: String
     let postedAt: String?
     let extractedSkills: [String]
+    let description: String
 
     enum CodingKeys: String, CodingKey {
-        case id, company, platform, title, department, location
+        case id, company, platform, title, department, location, description
         case applyURL = "apply_url"
         case postedAt = "posted_at"
         case extractedSkills = "extracted_skills"

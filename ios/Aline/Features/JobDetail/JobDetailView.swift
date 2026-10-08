@@ -27,6 +27,9 @@ struct JobDetailView: View {
                 if !match.missingSkills.isEmpty {
                     missingSection
                 }
+                if !job.description.isEmpty {
+                    descriptionSection
+                }
                 applyButton
             }
             .padding(16)
@@ -102,6 +105,23 @@ struct JobDetailView: View {
             }
         }
         .font(AlineFont.body(14))
+    }
+
+    // Collapsed by default, not inline body text — the screen's own doc comment (spec
+    // section 29/30) is deliberate: match → why → gaps answers "should I apply?" before
+    // anything else. The real JD still needs to be here (people reasonably want to read it
+    // before applying, not just a skill tally), it just shouldn't be the first thing shown.
+    private var descriptionSection: some View {
+        DisclosureGroup("Full job description") {
+            Text(job.description)
+                .font(AlineFont.body(14))
+                .foregroundStyle(AlineColor.charcoal)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, 8)
+        }
+        .font(AlineFont.body(15, weight: .medium))
+        .foregroundStyle(AlineColor.inkNavy)
+        .tint(AlineColor.electricCobalt)
     }
 
     private var applyButton: some View {

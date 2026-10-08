@@ -37,5 +37,6 @@ async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:
             apply_url=job.get("absolute_url") or f"https://boards.greenhouse.io/{company['slug']}",
             posted_at=job.get("updated_at"),
             extracted_skills=extract_skills(f"{title} {description}"),
+            description=description,
         ))
     return results

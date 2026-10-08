@@ -12,27 +12,46 @@ USER_AGENT = (
 )
 
 
+_BLOCK_END_PATTERN = re.compile(
+    r"</(?:p|li|div|h[1-6]|tr)>|<br\s*/?>", re.IGNORECASE
+)
 _TAG_PATTERN = re.compile(r"<[^>]+>")
+_BLANK_RUN_PATTERN = re.compile(r"[ \t]*\n[ \t]*(?:\n[ \t]*)+")
+_SPACE_RUN_PATTERN = re.compile(r"[ \t]{2,}")
 
 
 def html_to_text(raw: str) -> str:
-    """Strip markup from a job description before it reaches is_senior_excluded/
-    extract_skills — several adapters' description fields are real HTML (Greenhouse's
-    `content`, Ashby's `descriptionHtml`, Workday JSON-LD's `description`), not plain text.
-    Found live: an href/class attribute like `class="c-link"` word-boundary-matched the
-    bare "C" skill — tags must come out before any filter function ever sees this text, not
-    just before it's shown to a user (it's never shown to a user — Job has no description
-    field — but the filter functions still need clean text to match against).
+    """Clean a job description field for two consumers: the filter functions
+    (is_senior_excluded/extract_skills) and, now that Job exposes `description` to the app,
+    an actual human reading it. Several adapters' description fields are real HTML
+    (Greenhouse's `content`, Ashby's `descriptionHtml`, Workday JSON-LD's `description`), not
+    plain text. Found live: an href/class attribute like `class="c-link"` word-boundary-
+    matched the bare "C" skill — tags must come out before any filter function sees this
+    text.
 
     Unescape entities FIRST, then strip tags — confirmed live against Greenhouse's actual
     `content` field: its tags themselves arrive entity-encoded ("...&lt;/li&gt;&lt;li&gt;...",
     not real "<li>"), so stripping before unescaping left every tag's literal "&lt;a
     class=...&gt;" text sitting in the string untouched, the exact bug this function exists
     to fix. The reverse-order risk (prose that happens to mention "&lt;b&gt;" getting swept
-    up as a fake tag) is the much rarer case in practice."""
+    up as a fake tag) is the much rarer case in practice.
+
+    Block-level closing tags (</p>, </li>, <br>, etc.) become a newline before the rest of
+    the markup is stripped — otherwise every paragraph/bullet in a real JD collapses into one
+    unreadable run-on line, which was fine when this text only ever fed a keyword matcher but
+    isn't once a person is actually reading it."""
     if not raw:
         return ""
-    return _TAG_PATTERN.sub(" ", html.unescape(raw))
+    # html.unescape turns "&nbsp;" into U+00A0, not a plain space — normalize it so it
+    # doesn't survive into displayed text as an invisible-looking non-breaking gap.
+    unescaped = html.unescape(raw).replace("\xa0", " ")
+    newlined = _BLOCK_END_PATTERN.sub("\n", unescaped)
+    # A plain " " here, not "" — real markup routinely butts a tag straight against adjacent
+    # text with no whitespace (e.g. "solutions to<a class=\"c-link\">customers</a> and"), so
+    # removing tags with nothing in their place would glue "to" and "customers" into one word.
+    stripped = _TAG_PATTERN.sub(" ", newlined)
+    collapsed = _SPACE_RUN_PATTERN.sub(" ", stripped)
+    return _BLANK_RUN_PATTERN.sub("\n\n", collapsed).strip()
 
 
 def normalize_location(loc) -> str:

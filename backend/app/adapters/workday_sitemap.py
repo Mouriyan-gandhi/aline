@@ -204,6 +204,7 @@ async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:
             apply_url=job_url,
             posted_at=ld_json.get("datePosted"),
             extracted_skills=extract_skills(f"{title} {description}"),
+            description=description,
         ))
 
     # Second dedup layer: the URL-level dedup above doesn't catch two DIFFERENT URLs (e.g.

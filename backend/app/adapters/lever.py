@@ -42,5 +42,6 @@ async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:
             apply_url=post.get("hostedUrl") or f"https://jobs.lever.co/{company['slug']}",
             posted_at=str(post["createdAt"]) if post.get("createdAt") else None,
             extracted_skills=extract_skills(f"{title} {description}"),
+            description=description,
         ))
     return results

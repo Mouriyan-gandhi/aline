@@ -7,9 +7,32 @@ legitimately drop to zero between probes; that's expected, not a bug.
 """
 import httpx
 
-from app.adapters.common import HTTP_TIMEOUT, USER_AGENT, normalize_location
+from app.adapters.common import HTTP_TIMEOUT, USER_AGENT, html_to_text, normalize_location
 from app.schemas import Job
 from app.filters import is_relevant_job, is_india_location, is_senior_excluded, extract_skills
+
+
+async def _fetch_description(client: httpx.AsyncClient, slug: str, post_id: str) -> str:
+    """The postings-LIST endpoint (used above) carries no description text at all — only
+    the per-posting detail endpoint does, under jobAd.sections.*.text (companyDescription,
+    jobDescription, qualifications, additionalInformation — confirmed live). One extra
+    request per posting that's already passed title/location filtering, not per posting
+    overall, so this stays cheap at this platform's current job volume."""
+    try:
+        resp = await client.get(
+            f"https://api.smartrecruiters.com/v1/companies/{slug}/postings/{post_id}",
+            timeout=HTTP_TIMEOUT, headers={"User-Agent": USER_AGENT},
+        )
+        resp.raise_for_status()
+        sections = (resp.json().get("jobAd") or {}).get("sections") or {}
+        parts = [
+            sections[key]["text"]
+            for key in ("jobDescription", "qualifications", "additionalInformation")
+            if sections.get(key, {}).get("text")
+        ]
+        return html_to_text(" ".join(parts))
+    except (httpx.HTTPError, ValueError, KeyError):
+        return ""
 
 
 async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:
@@ -42,6 +65,13 @@ async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:
             continue
 
         post_id = post.get("id", "")
+        description = await _fetch_description(client, company["slug"], post_id)
+        # Re-check with the real description now in hand — the title-only check above is a
+        # cheap pre-filter, but a years-of-experience requirement almost always lives in the
+        # body text, not the title, so this catches senior postings the pre-filter couldn't.
+        if is_senior_excluded(title, description):
+            continue
+
         # NOTE: the postings-list response has no human-facing URL field — only "ref",
         # which is a raw API self-link (https://api.smartrecruiters.com/...), confirmed by
         # inspecting a real response. The actual public careers page follows this pattern,
@@ -57,6 +87,7 @@ async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:
             location=location,
             apply_url=apply_url,
             posted_at=post.get("releasedDate"),
-            extracted_skills=extract_skills(title),
+            extracted_skills=extract_skills(f"{title} {description}"),
+            description=description,
         ))
     return results

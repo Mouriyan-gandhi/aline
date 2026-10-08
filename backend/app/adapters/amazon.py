@@ -79,5 +79,6 @@ async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:
             apply_url=apply_url,
             posted_at=job.get("posted_date"),
             extracted_skills=extract_skills(f"{title} {full_text}"),
+            description=full_text,
         ))
     return results
