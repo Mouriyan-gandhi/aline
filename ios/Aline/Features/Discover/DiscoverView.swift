@@ -3,6 +3,7 @@ import SwiftUI
 struct DiscoverView: View {
     @State private var viewModel: DiscoverViewModel
     @State private var showNotifications = false
+    @State private var showFilters = false
 
     init(profile: CareerProfile) {
         _viewModel = State(wrappedValue: DiscoverViewModel(profile: profile))
@@ -11,7 +12,12 @@ struct DiscoverView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
+                // LazyVStack, not VStack — at full registry scale (1000+ jobs), an eager
+                // VStack would construct every JobCardView on first load instead of only
+                // what's on/near screen, causing a real stutter/hang rather than a smooth
+                // scroll. Found this by actually checking before claiming "you'll see 1000
+                // jobs smoothly" — a plain VStack would not have been smooth.
+                LazyVStack(alignment: .leading, spacing: 16) {
                     header
                     content
                 }
@@ -21,6 +27,20 @@ struct DiscoverView: View {
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button { showFilters = true } label: {
+                        ZStack(alignment: .topTrailing) {
+                            Image(systemName: "line.3.horizontal.decrease.circle")
+                                .foregroundStyle(AlineColor.inkNavy)
+                            if viewModel.activeFilterCount > 0 {
+                                Circle()
+                                    .fill(AlineColor.electricCobalt)
+                                    .frame(width: 8, height: 8)
+                                    .offset(x: 4, y: -4)
+                            }
+                        }
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { showNotifications = true } label: {
                         Image(systemName: "bell")
@@ -30,6 +50,9 @@ struct DiscoverView: View {
             }
             .task { await viewModel.load() }
             .refreshable { await viewModel.load() }
+            .sheet(isPresented: $showFilters) {
+                FilterSheetView(viewModel: viewModel)
+            }
             .alert("Notifications", isPresented: $showNotifications) {
                 Button("OK", role: .cancel) {}
             } message: {
@@ -49,6 +72,11 @@ struct DiscoverView: View {
             Text("Real, India-filtered openings — ranked by your profile.")
                 .font(AlineFont.body(14))
                 .foregroundStyle(AlineColor.graphite)
+            if viewModel.activeFilterCount > 0 {
+                Text("\(viewModel.filteredJobs.count) of \(viewModel.jobs.count) match your filters")
+                    .font(AlineFont.body(12, weight: .medium))
+                    .foregroundStyle(AlineColor.electricCobalt)
+            }
         }
     }
 
@@ -66,8 +94,14 @@ struct DiscoverView: View {
                 Text("No matching openings right now — check back soon.")
                     .font(AlineFont.body(14))
                     .foregroundStyle(AlineColor.stone)
+            } else if viewModel.filteredJobs.isEmpty {
+                // Distinct from "no jobs at all" — the feed has jobs, the user's filters
+                // just don't match any of them. Different problem, different message.
+                Text("No jobs match these filters. Try clearing some.")
+                    .font(AlineFont.body(14))
+                    .foregroundStyle(AlineColor.stone)
             } else {
-                ForEach(viewModel.jobs) { job in
+                ForEach(viewModel.filteredJobs) { job in
                     NavigationLink(value: job) {
                         JobCardView(job: job, match: viewModel.job(for: job))
                     }

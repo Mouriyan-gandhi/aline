@@ -136,10 +136,59 @@ FINTECH_BFSI_CANDIDATES = [
     "Policybazaar", "Turtlemint", "InsuranceDekho", "RenewBuy",
 ]
 
+# Round 2 additions (2026-10-08), per explicit direction to target "all companies 3rd/4th
+# year + early professionals would target in India." Focused on: more India product/startup
+# names (the category least covered so far, best suited to automated Greenhouse/Lever/Ashby
+# discovery rather than Workday), more global mid-size SaaS (same reasoning), plus more names
+# in the GCC sub-categories (pharma/medtech, US financial, hardware/semiconductor) that showed
+# the strongest Workday hit rate in manual testing.
+INDIA_PRODUCT_ROUND2 = [
+    "OkCredit", "LEAD School", "Cuemath", "WhiteHat Jr", "Jumbotail", "ElasticRun", "Zetwerk",
+    "OfBusiness", "Captain Fresh", "DeHaat", "Ninjacart", "WayCool", "Purplle",
+    "Honasa Consumer", "boAt", "Noise", "Wakefit", "CaratLane", "Bluestone", "Livspace",
+    "HomeLane", "Rentomojo", "Furlenco", "Zypp Electric", "Yulu", "Bounce", "Shadowfax",
+    "Xpressbees", "ClickPost", "Pickrr", "Ecom Express", "Rivigo", "FarEye", "LogiNext",
+    "WareIQ", "Increff", "Unicommerce", "LambdaTest", "Appsmith", "Draup", "Keka HR",
+    "Zimyo", "HROne", "GreytHR", "Gaana", "JioSaavn", "Disney Hotstar", "MX Player",
+    "Chingari", "Dailyhunt", "Inshorts", "Koo", "Trell", "Craftsvilla", "Limeroad",
+    "Stage OTT", "Mswipe", "Ezetap", "CredR", "Olx India", "Quikr", "Zoomcar", "Revv",
+    "Sarvam AI", "Krutrim", "Mu Sigma", "Tiger Analytics", "LatentView Analytics",
+    "Course5 Intelligence", "Games24x7", "Nazara Technologies", "WinZO", "Zupee", "Loco",
+    "Newton School", "Pesto Tech", "Portea", "Medlife", "DocsApp", "Lybrate", "Curofy",
+    "Emeritus", "NoBroker", "Square Yards India", "Housing India",
+]
+
+GLOBAL_SAAS_ROUND2 = [
+    "Pendo", "Appcues", "LogRocket", "Lightstep", "Rootly", "incident.io", "Statuspage",
+    "Better Stack", "Checkly", "Insomnia", "Hoppscotch", "SmartBear", "Budibase", "n8n",
+    "Zapier", "Make Integromat", "Workato", "Tray.io", "MuleSoft", "Boomi", "mParticle",
+    "Rudderstack", "Census", "Hightouch", "Fivetran", "Airbyte", "dbt Labs", "Dagster",
+    "Prefect", "Astronomer", "Redpanda", "Materialize", "ClickHouse", "SingleStore",
+    "CockroachDB", "Yugabyte", "Neon", "Prisma", "Apollo GraphQL", "Railway App", "Fly.io",
+    "DigitalOcean", "Vultr", "Rapyd", "Nium", "Airwallex", "Remitly", "Payoneer", "Novo",
+    "Bluevine",
+]
+
+GCC_ROUND2 = [
+    # Pharma/medtech — 4/4 hit rate observed (Pfizer, Novartis, AstraZeneca, Medtronic)
+    "Merck and Co", "Bristol Myers Squibb", "GSK", "Roche", "Sanofi", "Biogen", "Regeneron",
+    "Gilead Sciences", "Vertex Pharmaceuticals", "Boston Scientific", "Eli Lilly",
+    "Amgen", "Takeda",
+    # US financial/insurance GCCs — ~67% hit rate observed
+    "Northern Trust", "State Street", "Allstate", "Travelers Insurance", "Synchrony",
+    "Discover Financial Services", "Ally Financial", "Truist Financial", "US Bancorp",
+    "Voya Financial", "Principal Financial Group", "Lincoln Financial", "Unum Group",
+    "Globe Life", "Aflac", "Hartford Financial",
+    # Hardware/semiconductor — ~62% hit rate observed
+    "Marvell Technology", "ON Semiconductor", "Skyworks Solutions", "Lattice Semiconductor",
+    "KLA Corporation", "Applied Materials", "Lam Research", "Teradyne", "NXP Semiconductors",
+    "Infineon Technologies", "STMicroelectronics", "Renesas Electronics", "Entegris",
+]
+
 ALL_CATEGORIES = {
-    "gcc": GCC_CANDIDATES,
-    "india_product_unicorn": INDIA_PRODUCT_UNICORN_CANDIDATES,
+    "gcc": GCC_CANDIDATES + GCC_ROUND2,
+    "india_product_unicorn": INDIA_PRODUCT_UNICORN_CANDIDATES + INDIA_PRODUCT_ROUND2,
     "it_services": IT_SERVICES_CANDIDATES,
-    "global_product": GLOBAL_PRODUCT_CANDIDATES,
+    "global_product": GLOBAL_PRODUCT_CANDIDATES + GLOBAL_SAAS_ROUND2,
     "fintech_bfsi": FINTECH_BFSI_CANDIDATES,
 }

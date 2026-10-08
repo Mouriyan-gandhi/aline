@@ -139,6 +139,13 @@ async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:
     for sitemap_url in sitemap_urls:
         all_job_urls.extend(await _fetch_job_urls_from_sitemap(client, sitemap_url))
 
+    # Some tenants publish multiple sitemaps (e.g. a locale variant alongside the main one —
+    # found live: Mastercard's robots.txt lists more than one, and the same job appeared in
+    # both). Dedupe by URL before fetching — saves wasted requests, and is the first of two
+    # dedup layers (see job_id dedup below, which catches the case where two DIFFERENT URLs
+    # still resolve to the same underlying requisition ID).
+    all_job_urls = list(dict.fromkeys(all_job_urls))
+
     india_job_urls = [u for u in all_job_urls if _is_india_url(u)]
     # Cheap pre-filter on the URL slug text before committing to a full page fetch per job —
     # large tenants (Cisco: ~280 India URLs) would otherwise mean fetching every single page
@@ -181,10 +188,10 @@ async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:
             continue
 
         job_id = (ld_json.get("identifier") or {}).get("value") or job_url
-        hiring_org = (ld_json.get("hiringOrganization") or {}).get("name") or company["name"]
+        full_id = f"workday_sitemap_{company['name'].replace(' ', '_')}_{job_id}"
 
         results.append(Job(
-            id=f"workday_sitemap_{company['name'].replace(' ', '_')}_{job_id}",
+            id=full_id,
             company=company["name"],
             platform="workday",
             title=title,
@@ -195,4 +202,16 @@ async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:
             extracted_skills=extract_skills(f"{title} {description}"),
         ))
 
-    return results
+    # Second dedup layer: the URL-level dedup above doesn't catch two DIFFERENT URLs (e.g.
+    # distinct locale paths) resolving to the same underlying requisition id — confirmed live
+    # with Mastercard (crashed the iOS app's `Dictionary(uniqueKeysWithValues:)`, since a
+    # duplicate `Job.id` is a hard contract violation downstream, not just redundant data).
+    seen_ids: set[str] = set()
+    deduped: list[Job] = []
+    for job in results:
+        if job.id in seen_ids:
+            continue
+        seen_ids.add(job.id)
+        deduped.append(job)
+
+    return deduped
