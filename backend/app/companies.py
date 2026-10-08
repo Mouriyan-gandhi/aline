@@ -22,6 +22,9 @@ SEED_COMPANIES = [
     {"name": "Twilio", "platform": "greenhouse", "slug": "twilio"},
     {"name": "Zeta", "platform": "lever", "slug": "zeta"},
     {"name": "Harvey", "platform": "ashby", "slug": "harvey"},
+    # Amazon — genuinely public search.json API, see adapters/amazon.py for the full
+    # investigation of this and the other 4 "mega-cap" custom career platforms (2026-10-08).
+    {"name": "Amazon", "platform": "amazon", "slug": "amazon"},
 ]
 
 # Workday tenants, verified via the sitemap + JobPosting JSON-LD method (2026-10-08) — each
@@ -175,6 +178,20 @@ WORKDAY_COMPANIES = [
 
 _RESOLVED_PATH = os.path.join(os.path.dirname(__file__), "companies_resolved.json")
 
+# Permanent denylist for confirmed slug collisions — found live: "TCS" auto-resolved to a
+# Greenhouse board at slug "tcs" that is actually a UK home-healthcare nursing provider
+# ("Community Adult Nurse," "Complex Care" postings), nothing to do with Tata Consultancy
+# Services. The company name was short enough (3-letter acronym) that the prober's
+# multi-word-name "low confidence" check never triggered — it only downgrades confidence for
+# candidates with more than one word, not for short single-word/acronym names, which turned
+# out to be an equally real collision risk. This denylist is a permanent backstop so a
+# confirmed-bad match can never silently re-enter the registry, even after re-running the
+# prober or regenerating companies_resolved.json from scratch. See slug_prober.py's
+# `_SHORT_NAME_LOW_CONFIDENCE_LENGTH` for the actual heuristic fix going forward.
+_CONFIRMED_BAD_MATCHES = {
+    ("TCS", "greenhouse", "tcs"),  # verified live: unrelated UK nursing company
+}
+
 
 def _load_resolved() -> list[dict]:
     if not os.path.exists(_RESOLVED_PATH):
@@ -182,7 +199,11 @@ def _load_resolved() -> list[dict]:
     with open(_RESOLVED_PATH) as f:
         hits = json.load(f)
 
-    high_confidence = [h for h in hits if h.get("confidence") == "high"]
+    high_confidence = [
+        h for h in hits
+        if h.get("confidence") == "high"
+        and (h["name"], h["platform"], h["slug"]) not in _CONFIRMED_BAD_MATCHES
+    ]
 
     # A company can resolve on more than one platform / slug variant — keep the first
     # (name, platform) pair only, to avoid double-registering the same company twice under

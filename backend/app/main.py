@@ -7,7 +7,7 @@ import httpx
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.adapters import ashby, greenhouse, lever, smartrecruiters, workable, workday, workday_sitemap
+from app.adapters import amazon, ashby, greenhouse, lever, smartrecruiters, workable, workday, workday_sitemap
 from app.companies import COMPANIES, NEEDS_REVIEW
 from app.schemas import Job
 
@@ -31,6 +31,7 @@ ADAPTERS = {
     "workday_sitemap": workday_sitemap.scrape,  # active Workday path — see its module docstring
     "smartrecruiters": smartrecruiters.scrape,
     "workable": workable.scrape,
+    "amazon": amazon.scrape,  # genuinely public search.json API — see amazon.py docstring
 }
 
 # Workable rate-limits aggressively (429 after a couple of back-to-back requests from one

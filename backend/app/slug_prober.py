@@ -28,9 +28,27 @@ CORPORATE_SUFFIXES = [
 ]
 
 
+# A candidate name written as a short, all-caps acronym (TCS, GE, IBM, SAP, ABB) is
+# collision-prone in a way a length check alone doesn't capture — found live: "TCS" (3 chars)
+# auto-resolved on Greenhouse to an unrelated UK nursing company. A flat length cutoff would
+# also wrongly demote real coined brand names of similar length (Uber, Loom, Okta, Miro,
+# Wise, Zeta) that aren't acronyms and aren't meaningfully collision-prone the same way —
+# acronym-style capitalization in the ORIGINAL candidate name is the actual signal: an
+# initialism could plausibly stand for many unrelated things, a coined brand word can't.
+_ACRONYM_LOW_CONFIDENCE_MAX_LENGTH = 4
+
+
+def _looks_like_acronym(name: str) -> bool:
+    letters = re.sub(r"[^A-Za-z]", "", name)
+    return bool(letters) and letters.isupper() and len(letters) <= _ACRONYM_LOW_CONFIDENCE_MAX_LENGTH
+
+
 def slug_variants(name: str) -> list[tuple[str, str]]:
     """Returns (slug, confidence) pairs — 'high' for full-name variants, 'low' for
-    first-word-only (more prone to colliding with an unrelated company on the platform)."""
+    first-word-only (more prone to colliding with an unrelated company on the platform) OR
+    any variant derived from a short all-caps acronym name (see _looks_like_acronym)."""
+    is_acronym = _looks_like_acronym(name)
+
     base = name.lower().strip()
     for suffix in CORPORATE_SUFFIXES:
         if base.endswith(suffix):
@@ -44,9 +62,10 @@ def slug_variants(name: str) -> list[tuple[str, str]]:
     compressed = "".join(words)
     hyphenated = "-".join(words)
 
-    variants = [(compressed, "high")]
+    full_name_confidence = "low" if is_acronym else "high"
+    variants = [(compressed, full_name_confidence)]
     if hyphenated != compressed:
-        variants.append((hyphenated, "high"))
+        variants.append((hyphenated, full_name_confidence))
     if len(words) > 1:
         variants.append((words[0], "low"))
     return variants

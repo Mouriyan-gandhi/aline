@@ -58,14 +58,80 @@ INDIA_LOCATION_SIGNALS = [
 # still belongs in the pool per the plan (ingestion filter is one-sided, matching engine
 # judges real fit later).
 SENIOR_EXCLUDE_TITLE_SIGNALS = [
-    "principal", "distinguished engineer",
-    "director", "vp ", "vice president", "head of", "chief ", "svp", "executive",
+    "principal", "distinguished engineer", "staff",
+    "director", "vp", "vice president", "head of", "chief", "svp", "executive",
     "senior director", "group manager", "engineering manager",
 ]
 
-# "staff" as a standalone word (Staff Engineer, Staff Software Engineer, Staff PM, ...) —
-# a substring check on "staff engineer" alone misses titles with a word in between.
-_STAFF_WORD_PATTERN = re.compile(r"\bstaff\b", re.IGNORECASE)
+
+# ---------------------------------------------------------------------------------------
+# Shared word-boundary-safe phrase matching — used by every filter function below.
+#
+# Found live, twice, in two different functions, before this was unified: plain
+# `phrase in text` substring checks matched "C" inside "Commerce"/"Center"/"coordinate"
+# (extract_skills, via the Amazon adapter) and separately matched "llm" inside
+# "Fu[llm]ent" — i.e. a plain Amazon *warehouse fulfillment* job got flagged as an LLM/AI
+# role (is_relevant_job, via the same adapter). Same root cause, two call sites — so this is
+# now ONE shared, properly-tested utility instead of scattered one-off regexes, to make sure
+# a third instance of this bug class can't quietly reappear in a new function later.
+# ---------------------------------------------------------------------------------------
+
+_PHRASE_PATTERN_CACHE: dict[str, re.Pattern] = {}
+
+
+def _phrase_pattern(phrase: str) -> re.Pattern:
+    """Word-boundary-safe pattern for one phrase. \\b alone doesn't work cleanly for
+    phrases ending in a non-word character (e.g. "C++", "C#") — \\b only fires at a
+    word/non-word transition, and a symbol followed by whitespace/end-of-string is
+    non-word-to-non-word, no transition, so "C++" would only ever match its "C" prefix and
+    never match as itself. A negative lookahead for "not immediately followed by another
+    alphanumeric character" fixes this for every case \\b handles plus this one."""
+    if phrase not in _PHRASE_PATTERN_CACHE:
+        _PHRASE_PATTERN_CACHE[phrase] = re.compile(
+            r"\b" + re.escape(phrase) + r"(?![a-zA-Z0-9])"
+        )
+    return _PHRASE_PATTERN_CACHE[phrase]
+
+
+def _contains_any_phrase(text: str, phrases, case_sensitive: bool = False) -> bool:
+    haystack = text if case_sensitive else text.lower()
+    needles = phrases if case_sensitive else [p.lower() for p in phrases]
+    return any(_phrase_pattern(p).search(haystack) for p in needles)
+
+
+def _matching_phrases(text: str, phrases, case_sensitive: bool = False) -> list:
+    haystack = text if case_sensitive else text.lower()
+    out = []
+    for original in phrases:
+        needle = original if case_sensitive else original.lower()
+        if _phrase_pattern(needle).search(haystack):
+            out.append(original)
+    return out
+
+
+# A handful of SKILL_VOCABULARY entries are ALSO ordinary English words ("Go" the language
+# vs. "go" the verb; "Swift" the language vs. "swift" the adjective) — word-boundary matching
+# alone can't distinguish these, since both uses are grammatically standalone words. Found
+# live: a Business Intelligence job description's ordinary use of "swift" got credited as
+# the Swift programming language. Real tech mentions in a JD are almost always properly
+# capitalized ("Go", "Swift"); ordinary prose usage is typically lowercase mid-sentence. This
+# is a heuristic, not a certainty, but it's directionally correct and costs nothing to apply.
+_CASE_SENSITIVE_SKILLS = {"Go", "Swift"}
+
+
+def is_relevant_job(title: str, department: str = "") -> bool:
+    text = f"{title} {department}"
+    return (
+        _contains_any_phrase(text, TARGET_KEYWORDS)
+        or _contains_any_phrase(text, TARGET_ROLES)
+    )
+
+
+def is_india_location(location: str) -> bool:
+    if not location:
+        return False
+    return _contains_any_phrase(location, INDIA_LOCATION_SIGNALS)
+
 
 # Must be followed by "experience"/"exp" (optionally through a few connector words, e.g.
 # "8+ years of professional experience") — a bare "N years" anywhere in a JD is unreliable:
@@ -88,37 +154,18 @@ _SLUG_YEARS_PATTERN = re.compile(r"(\d{1,2})\s*\+?\s*(?:-\s*\d{1,2}\s*)?\s*(?:ye
 
 def is_senior_excluded_in_slug(slug_text: str) -> bool:
     """Lightweight seniority check for short slug/title-length text — see _SLUG_YEARS_PATTERN."""
-    lowered = (slug_text or "").lower()
-    if any(sig in lowered for sig in SENIOR_EXCLUDE_TITLE_SIGNALS):
+    text = slug_text or ""
+    if _contains_any_phrase(text, SENIOR_EXCLUDE_TITLE_SIGNALS):
         return True
-    if _STAFF_WORD_PATTERN.search(lowered):
-        return True
-    for match in _SLUG_YEARS_PATTERN.finditer(slug_text or ""):
+    for match in _SLUG_YEARS_PATTERN.finditer(text):
         if int(match.group(1)) >= 8:
             return True
     return False
 
 
-def is_relevant_job(title: str, department: str = "") -> bool:
-    text = f"{title} {department}".lower()
-    has_keyword = any(kw in text for kw in TARGET_KEYWORDS)
-    has_role = any(role in text for role in TARGET_ROLES)
-    return has_keyword or has_role
-
-
-def is_india_location(location: str) -> bool:
-    if not location:
-        return False
-    text = location.lower()
-    return any(sig in text for sig in INDIA_LOCATION_SIGNALS)
-
-
 def is_senior_excluded(title: str, description: str = "") -> bool:
     """One-sided: True only for postings that read as ~10+ years / senior-staff-and-up."""
-    title_lower = (title or "").lower()
-    if any(sig in title_lower for sig in SENIOR_EXCLUDE_TITLE_SIGNALS):
-        return True
-    if _STAFF_WORD_PATTERN.search(title_lower):
+    if _contains_any_phrase(title or "", SENIOR_EXCLUDE_TITLE_SIGNALS):
         return True
     for match in _YEARS_PATTERN.finditer(description or ""):
         years = int(match.group(1))
@@ -146,5 +193,9 @@ def extract_skills(text: str) -> list[str]:
     """Deterministic keyword match against SKILL_VOCABULARY — no model call."""
     if not text:
         return []
-    lowered = text.lower()
-    return [skill for skill in SKILL_VOCABULARY if skill.lower() in lowered]
+    case_sensitive = [s for s in SKILL_VOCABULARY if s in _CASE_SENSITIVE_SKILLS]
+    case_insensitive = [s for s in SKILL_VOCABULARY if s not in _CASE_SENSITIVE_SKILLS]
+    return (
+        _matching_phrases(text, case_insensitive, case_sensitive=False)
+        + _matching_phrases(text, case_sensitive, case_sensitive=True)
+    )
