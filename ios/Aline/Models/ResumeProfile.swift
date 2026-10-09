@@ -19,6 +19,14 @@ struct ResumeProfile: Codable, Hashable {
     var experience: [ExperienceEntry] = []
     var projects: [ProjectEntry] = []
     var skillCategories: [SkillCategory] = []
+    /// Added for match-scoring (see MatchEngine's certifications/achievements component) —
+    /// not every resume has these, both default empty rather than forcing a template section.
+    var certifications: [CertificationEntry] = []
+    /// Free-text lines — hackathon wins, publications, competition placements. Deliberately
+    /// not structured like certifications (no issuer/date); these are too heterogeneous to
+    /// force into one shape, and the matching use (keyword overlap against a JD) only needs
+    /// the text itself.
+    var achievements: [String] = []
 
     static let empty = ResumeProfile()
 
@@ -60,4 +68,11 @@ struct SkillCategory: Codable, Hashable, Identifiable {
     var id = UUID()
     var label: String = ""
     var items: [String] = []
+}
+
+struct CertificationEntry: Codable, Hashable, Identifiable {
+    var id = UUID()
+    var name: String = ""
+    var issuer: String = ""
+    var dateEarned: String = ""
 }

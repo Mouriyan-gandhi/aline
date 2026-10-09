@@ -13,6 +13,13 @@ final class DiscoverViewModel {
     var jobs: [Job] = []
     var state: DiscoverLoadState = .loading
     let profile: CareerProfile
+    var preferences: UserPreferences
+    /// The user's default ResumeDocument's profile, when one exists — set from the View via
+    /// a SwiftData @Query (view models don't get @Query directly), since it can change
+    /// anytime the person edits their resume in the Resume tab, not just at load time.
+    var resumeProfile: ResumeProfile? {
+        didSet { recomputeMatches() }
+    }
 
     // Client-side filtering — all jobs are already loaded in memory (full registry scale is
     // ~1000, trivial to filter in-process), so this doesn't need a backend round-trip. Both
@@ -20,44 +27,52 @@ final class DiscoverViewModel {
     var selectedCompanies: Set<String> = []
     var selectedRoles: Set<String> = []
 
-    // Computed once per load(), not re-derived on every sort comparison or card render.
-    // At full registry scale (1000+ jobs), `sorted(by:)` alone calls its comparator
-    // O(n log n) times, each invoking both sides — recomputing MatchEngine.match() on
-    // demand there (and again per card on every scroll-triggered re-render) means tens of
-    // thousands of redundant set-math calls for data that never changes after load.
+    // Computed once per load()/profile change, not re-derived on every sort comparison or
+    // card render. At full registry scale (1000+ jobs), `sorted(by:)` alone calls its
+    // comparator O(n log n) times, each invoking both sides — recomputing MatchEngine.match()
+    // on demand there (and again per card on every scroll-triggered re-render) means tens of
+    // thousands of redundant set-math calls for data that never changes between loads.
     private var matchCache: [String: MatchResult] = [:]
 
-    init(profile: CareerProfile) {
+    init(profile: CareerProfile, preferences: UserPreferences = .empty) {
         self.profile = profile
+        self.preferences = preferences
     }
 
     func load() async {
         state = .loading
         do {
             let fetched = try await JobsAPI.fetchJobs()
-            // NOT Dictionary(uniqueKeysWithValues:) — that hard-crashes the app on any
-            // duplicate id. Found live: the backend had a real dedup gap (a Workday company
-            // publishing the same job through two sitemaps) that produced one, and crashed
-            // every launch until fixed server-side. Fixed at the source too, but a single
-            // malformed record from any future adapter bug should never be able to take the
-            // whole app down — last-value-wins on a duplicate is the correct fallback.
-            matchCache = fetched.reduce(into: [:]) { cache, job in
-                cache[job.id] = MatchEngine.match(profile: profile, job: job)
-            }
-            // Dedupe by id — ForEach(Identifiable) doesn't crash on duplicates like the
-            // dictionary above did, but silently produces glitchy/undefined row behavior,
-            // which is its own bug worth not shipping.
+            // Dedupe by id BEFORE anything else — ForEach(Identifiable) doesn't crash on
+            // duplicates the way Dictionary(uniqueKeysWithValues:) does, but silently
+            // produces glitchy/undefined row behavior, which is its own bug worth not
+            // shipping. Found live: the backend had a real dedup gap (a Workday company
+            // publishing the same job through two sitemaps) that produced one.
             var seenIDs: Set<String> = []
-            let deduped = fetched.filter { seenIDs.insert($0.id).inserted }
-            jobs = deduped.sorted { job(for: $0).score > job(for: $1).score }
+            jobs = fetched.filter { seenIDs.insert($0.id).inserted }
+            recomputeMatches()
             state = .loaded
         } catch {
             state = .failed("Couldn't reach the backend. Is it running on 127.0.0.1:8000?")
         }
     }
 
+    /// Rebuilds the match cache and re-sorts — split out from load() so changing
+    /// resumeProfile/preferences (e.g. the person just finished building their resume, or
+    /// edited it) can refresh ranking without a network round-trip.
+    private func recomputeMatches() {
+        matchCache = jobs.reduce(into: [:]) { cache, job in
+            cache[job.id] = MatchEngine.match(
+                resumeProfile: resumeProfile, careerProfile: profile, preferences: preferences, job: job
+            )
+        }
+        jobs.sort { job(for: $0).score > job(for: $1).score }
+    }
+
     func job(for job: Job) -> MatchResult {
-        matchCache[job.id] ?? MatchEngine.match(profile: profile, job: job)
+        matchCache[job.id] ?? MatchEngine.match(
+            resumeProfile: resumeProfile, careerProfile: profile, preferences: preferences, job: job
+        )
     }
 
     /// Companies present in the currently loaded jobs, alphabetical — the filter sheet's

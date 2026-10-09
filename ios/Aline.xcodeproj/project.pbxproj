@@ -30,6 +30,7 @@
 		6C2F0EF82D8E3BF7EF29DD27 /* JobDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FE1DE9322616A5C3BFFB759 /* JobDetailView.swift */; };
 		6D3C2922EA34D6BE87345AE0 /* ManualProfileEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31A27BDC4FFB270E0AFE1BE6 /* ManualProfileEditorView.swift */; };
 		71DE78859368591FB470800F /* ResumeParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F67D5173F262491534F08E4 /* ResumeParser.swift */; };
+		748C45CCFF3368B5461F779A /* UserPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E1ACB43546681BA184C67E8 /* UserPreferences.swift */; };
 		80B205507279D0F986D7A08B /* MatchEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14FA01312441BC77ED2551E /* MatchEngine.swift */; };
 		8C17C94EDE3F2059B3E4BFB6 /* JobsAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40CC00089EB0F134A1CF4F27 /* JobsAPI.swift */; };
 		9188A8FDFC16512C913F6B40 /* ResumeGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6A10F237C8F6E6087DFFF8F /* ResumeGeometry.swift */; };
@@ -54,6 +55,7 @@
 		079CD6868EEBD7D3365CBDD6 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		0C18AB4024C3A7001EEA8400 /* JobSummarizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobSummarizer.swift; sourceTree = "<group>"; };
 		13B54D66F7EAF2A5F67BE29A /* ResumeTemplateComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeTemplateComponents.swift; sourceTree = "<group>"; };
+		1E1ACB43546681BA184C67E8 /* UserPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserPreferences.swift; sourceTree = "<group>"; };
 		22FEBC99D8DFCBFCDD18BC23 /* ResumeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeDetailView.swift; sourceTree = "<group>"; };
 		23A74941F0C793C5EAE86A6C /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
 		2B1DE1C965CBE9321E0ED644 /* RoleCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoleCategory.swift; sourceTree = "<group>"; };
@@ -147,6 +149,7 @@
 				B306FF767545EDD22D04B739 /* CareerProfile.swift */,
 				9DCA32AB518648779AAF71A4 /* Job.swift */,
 				8CBEF79AEAA1F0ED3F6A1CE5 /* ResumeProfile.swift */,
+				1E1ACB43546681BA184C67E8 /* UserPreferences.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -413,6 +416,7 @@
 				BA2EA27E3D44586D7618D5AD /* ShareSheet.swift in Sources */,
 				9FCE664AE4B0C288C64E9196 /* StandardResumeTemplate.swift in Sources */,
 				33E37B3FA6D13ADFB829E4A9 /* Theme.swift in Sources */,
+				748C45CCFF3368B5461F779A /* UserPreferences.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

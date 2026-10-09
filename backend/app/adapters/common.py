@@ -12,6 +12,17 @@ USER_AGENT = (
 )
 
 
+def unescape_text(raw: str) -> str:
+    """Entity-decode only, no tag stripping — for short fields (title, department, location)
+    that are never real HTML but can still arrive entity-encoded. Found live: Workday's own
+    JSON-LD `title` field returns "R&amp;D Engineer" verbatim on some tenants (Hitachi,
+    Barclays, AstraZeneca, Amgen, Marvell confirmed) — a template-escaping quirk on the
+    source side, not something html_to_text's tag-handling machinery is needed for here."""
+    if not raw:
+        return raw
+    return html.unescape(raw)
+
+
 _BLOCK_END_PATTERN = re.compile(
     r"</(?:p|li|div|h[1-6]|tr)>|<br\s*/?>", re.IGNORECASE
 )

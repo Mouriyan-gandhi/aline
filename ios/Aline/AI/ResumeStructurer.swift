@@ -73,6 +73,20 @@ struct ExtractedResumeModel {
     var experience: [ExtractedExperienceModel]
     var projects: [ExtractedProjectModel]
     var skillCategories: [ExtractedSkillCategoryModel]
+    @Guide(description: "Certifications listed on the resume, if any — leave empty if none")
+    var certifications: [ExtractedCertificationModel]
+    @Guide(description: "Standalone achievement lines not already captured elsewhere — hackathon wins, publications, competition placements, awards. Leave empty if none.")
+    var achievements: [String]
+}
+
+@available(iOS 26.0, *)
+@Generable
+struct ExtractedCertificationModel {
+    var name: String
+    @Guide(description: "Issuing organization, if stated, otherwise empty")
+    var issuer: String
+    @Guide(description: "Date earned, if stated, otherwise empty")
+    var dateEarned: String
 }
 
 @available(iOS 26.0, *)
@@ -138,7 +152,11 @@ extension ExtractedResumeModel {
             },
             skillCategories: skillCategories.map {
                 SkillCategory(label: $0.label, items: $0.items)
-            }
+            },
+            certifications: certifications.map {
+                CertificationEntry(name: $0.name, issuer: $0.issuer, dateEarned: $0.dateEarned)
+            },
+            achievements: achievements
         )
     }
 }

@@ -94,16 +94,26 @@ struct JobDetailView: View {
 
     private var matchSection: some View {
         PaperCard {
-            HStack {
-                VStack(alignment: .leading) {
-                    Text("\(match.score)% MATCH")
-                        .font(AlineFont.body(16, weight: .medium))
-                        .foregroundStyle(AlineColor.electricCobalt)
-                    Text("Based on your resume's extracted skills")
+            VStack(alignment: .leading, spacing: 6) {
+                Text("\(match.score)% MATCH")
+                    .font(AlineFont.body(16, weight: .medium))
+                    .foregroundStyle(AlineColor.electricCobalt)
+                Text("Skills, experience fit, and your stated priorities")
+                    .font(AlineFont.body(12))
+                    .foregroundStyle(AlineColor.stone)
+                // Both of these are the explanation for components of the score that aren't
+                // the skill chips below — never leave a score component silently unexplained,
+                // same principle the skills why/gaps sections already follow.
+                if let experienceNote = match.experienceNote {
+                    Label(experienceNote, systemImage: "clock.badge.checkmark")
                         .font(AlineFont.body(12))
-                        .foregroundStyle(AlineColor.stone)
+                        .foregroundStyle(AlineColor.graphite)
                 }
-                Spacer()
+                if let priorityNote = match.priorityNote {
+                    Label(priorityNote, systemImage: "mappin.and.ellipse")
+                        .font(AlineFont.body(12))
+                        .foregroundStyle(AlineColor.graphite)
+                }
             }
         }
     }

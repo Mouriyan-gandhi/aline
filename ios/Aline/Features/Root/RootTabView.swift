@@ -2,10 +2,11 @@ import SwiftUI
 
 struct RootTabView: View {
     let profile: CareerProfile
+    let preferences: UserPreferences
 
     var body: some View {
         TabView {
-            DiscoverView(profile: profile)
+            DiscoverView(profile: profile, preferences: preferences)
                 .tabItem { Label("Discover", systemImage: "sparkles") }
 
             ResumeView(profile: profile)

@@ -1,12 +1,18 @@
 import SwiftUI
+import SwiftData
 
 struct DiscoverView: View {
     @State private var viewModel: DiscoverViewModel
     @State private var showNotifications = false
     @State private var showFilters = false
+    @Query(sort: \ResumeDocument.updatedAt, order: .reverse) private var resumeDocuments: [ResumeDocument]
 
-    init(profile: CareerProfile) {
-        _viewModel = State(wrappedValue: DiscoverViewModel(profile: profile))
+    init(profile: CareerProfile, preferences: UserPreferences) {
+        _viewModel = State(wrappedValue: DiscoverViewModel(profile: profile, preferences: preferences))
+    }
+
+    private var defaultResumeProfile: ResumeProfile? {
+        (resumeDocuments.first { $0.isDefault } ?? resumeDocuments.first)?.profile
     }
 
     var body: some View {
@@ -48,7 +54,15 @@ struct DiscoverView: View {
                     }
                 }
             }
-            .task { await viewModel.load() }
+            .task {
+                viewModel.resumeProfile = defaultResumeProfile
+                await viewModel.load()
+            }
+            .onChange(of: resumeDocuments) {
+                // Keeps ranking current if the person edits their resume in the Resume tab
+                // and comes back — didSet on resumeProfile re-sorts without a network call.
+                viewModel.resumeProfile = defaultResumeProfile
+            }
             .refreshable { await viewModel.load() }
             .sheet(isPresented: $showFilters) {
                 FilterSheetView(viewModel: viewModel)

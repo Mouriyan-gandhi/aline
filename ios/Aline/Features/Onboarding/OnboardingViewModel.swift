@@ -43,4 +43,15 @@ final class OnboardingViewModel {
             rawResumeText: parsedProfile.rawResumeText
         )
     }
+
+    /// Previously computed and discarded — location/workMode/confirmedRoles never made it
+    /// past onboarding. Now persisted alongside CareerProfile (see AlineApp.swift) and read
+    /// by MatchEngine's priority-alignment component.
+    func finalPreferences() -> UserPreferences {
+        UserPreferences(
+            preferredLocation: preferredLocation,
+            workModes: workModes,
+            preferredRoles: confirmedRoles
+        )
+    }
 }

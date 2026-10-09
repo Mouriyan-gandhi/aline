@@ -14,3 +14,4 @@ class Job(BaseModel):
     posted_at: Optional[str] = None
     extracted_skills: list[str] = []
     description: str = ""
+    min_years_experience: Optional[int] = None

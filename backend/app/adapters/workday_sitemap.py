@@ -35,11 +35,11 @@ from urllib.parse import urljoin, urlparse
 import httpx
 from urllib.robotparser import RobotFileParser
 
-from app.adapters.common import HTTP_TIMEOUT, USER_AGENT, html_to_text
+from app.adapters.common import HTTP_TIMEOUT, USER_AGENT, html_to_text, unescape_text
 from app.schemas import Job
 from app.filters import (
     is_relevant_job, is_india_location, is_senior_excluded, is_senior_excluded_in_slug,
-    extract_skills,
+    extract_skills, extract_min_years_experience,
 )
 
 JOB_PAGE_DELAY_SECONDS = 1.5
@@ -172,7 +172,7 @@ async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:
         if not ld_json:
             continue  # page didn't carry structured data this time; skip rather than guess
 
-        title = (ld_json.get("title") or "").strip()
+        title = unescape_text((ld_json.get("title") or "").strip())
         # schema.org JobPosting's description is conventionally HTML (it's meant for a
         # browser/search-engine renderer), same risk as Greenhouse's content/Ashby's
         # descriptionHtml — see html_to_text's docstring for the live false-positive this
@@ -205,6 +205,7 @@ async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:
             posted_at=ld_json.get("datePosted"),
             extracted_skills=extract_skills(f"{title} {description}"),
             description=description,
+            min_years_experience=extract_min_years_experience(description),
         ))
 
     # Second dedup layer: the URL-level dedup above doesn't catch two DIFFERENT URLs (e.g.

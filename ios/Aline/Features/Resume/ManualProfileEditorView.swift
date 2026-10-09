@@ -68,6 +68,37 @@ struct ManualProfileEditorView: View {
                     Label("Add skill category", systemImage: "plus")
                 }
             }
+
+            Section("Certifications") {
+                ForEach($initialProfile.certifications) { $cert in
+                    VStack(alignment: .leading, spacing: 4) {
+                        TextField("Certification name", text: $cert.name)
+                        HStack {
+                            TextField("Issuer", text: $cert.issuer)
+                            TextField("Date earned", text: $cert.dateEarned)
+                        }
+                    }
+                    .font(AlineFont.body(14))
+                }
+                .onDelete { initialProfile.certifications.remove(atOffsets: $0) }
+                Button { initialProfile.certifications.append(CertificationEntry()) } label: {
+                    Label("Add certification", systemImage: "plus")
+                }
+            }
+
+            Section("Achievements") {
+                ForEach(initialProfile.achievements.indices, id: \.self) { index in
+                    TextField("Achievement", text: Binding(
+                        get: { initialProfile.achievements[index] },
+                        set: { initialProfile.achievements[index] = $0 }
+                    ))
+                    .font(AlineFont.body(14))
+                }
+                .onDelete { initialProfile.achievements.remove(atOffsets: $0) }
+                Button { initialProfile.achievements.append("") } label: {
+                    Label("Add achievement", systemImage: "plus")
+                }
+            }
         }
         .navigationTitle("Build Your Resume")
         .navigationBarTitleDisplayMode(.inline)

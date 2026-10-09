@@ -12,11 +12,13 @@ struct Job: Codable, Identifiable, Hashable {
     let postedAt: String?
     let extractedSkills: [String]
     let description: String
+    let minYearsExperience: Int?
 
     enum CodingKeys: String, CodingKey {
         case id, company, platform, title, department, location, description
         case applyURL = "apply_url"
         case postedAt = "posted_at"
         case extractedSkills = "extracted_skills"
+        case minYearsExperience = "min_years_experience"
     }
 }

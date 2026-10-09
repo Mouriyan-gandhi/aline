@@ -3,7 +3,7 @@ import httpx
 
 from app.adapters.common import HTTP_TIMEOUT, USER_AGENT, html_to_text, normalize_location
 from app.schemas import Job
-from app.filters import is_relevant_job, is_india_location, is_senior_excluded, extract_skills
+from app.filters import is_relevant_job, is_india_location, is_senior_excluded, extract_skills, extract_min_years_experience
 
 
 async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:
@@ -43,5 +43,6 @@ async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:
             posted_at=str(post["createdAt"]) if post.get("createdAt") else None,
             extracted_skills=extract_skills(f"{title} {description}"),
             description=description,
+            min_years_experience=extract_min_years_experience(description),
         ))
     return results

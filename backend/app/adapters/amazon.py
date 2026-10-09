@@ -24,7 +24,7 @@ import httpx
 
 from app.adapters.common import HTTP_TIMEOUT, USER_AGENT, html_to_text
 from app.schemas import Job
-from app.filters import is_relevant_job, is_senior_excluded, extract_skills
+from app.filters import is_relevant_job, is_senior_excluded, extract_skills, extract_min_years_experience
 
 PAGE_SIZE = 100
 MAX_RESULTS = 1000  # safety cap — India total is ~2300 before filtering; this is generous
@@ -80,5 +80,6 @@ async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:
             posted_at=job.get("posted_date"),
             extracted_skills=extract_skills(f"{title} {full_text}"),
             description=full_text,
+            min_years_experience=extract_min_years_experience(full_text),
         ))
     return results

@@ -6,6 +6,7 @@ plus the two filters added at the plan stage: India location, and one-sided seni
 exclusion (only drop postings that read as ~10+ years / senior-staff-and-up).
 """
 import re
+from typing import Optional
 
 # Keywords indicating an internship / early-career / student-facing posting.
 TARGET_KEYWORDS = [
@@ -180,6 +181,18 @@ def is_senior_excluded(title: str, description: str = "") -> bool:
         if years >= 8:
             return True
     return False
+
+
+def extract_min_years_experience(description: str) -> Optional[int]:
+    """Surfaces the same number is_senior_excluded already finds and throws away, for the
+    client's experience-fit match component (see iOS MatchEngine) — reuses _YEARS_PATTERN
+    rather than a second regex, so this stays immune to the exact false-positive class that
+    pattern was already hardened against (company-history blurbs, benefits copy). Takes the
+    MINIMUM years mentioned across all matches: a posting that opens with "0-2 years" and
+    later mentions "5+ years preferred" for a senior variant of the role should read as
+    asking for the lower, actually-applicable floor, not the higher aspirational one."""
+    years = [int(m.group(1)) for m in _YEARS_PATTERN.finditer(description or "")]
+    return min(years) if years else None
 
 
 # Shared skill vocabulary used for deterministic JD skill extraction (backend) and,

@@ -4,7 +4,7 @@ import UniformTypeIdentifiers
 struct OnboardingView: View {
     @State private var viewModel = OnboardingViewModel()
     @State private var isPickingFile = false
-    let onComplete: (CareerProfile) -> Void
+    let onComplete: (CareerProfile, UserPreferences) -> Void
 
     var body: some View {
         ZStack {
@@ -158,7 +158,7 @@ struct OnboardingView: View {
                 }
             }
             Spacer()
-            Button("Done") { onComplete(viewModel.finalProfile()) }
+            Button("Done") { onComplete(viewModel.finalProfile(), viewModel.finalPreferences()) }
                 .buttonStyle(AlinePrimaryButtonStyle())
                 .frame(maxWidth: .infinity)
         }
