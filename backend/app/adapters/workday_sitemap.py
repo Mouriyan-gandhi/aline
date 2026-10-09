@@ -117,7 +117,8 @@ def _location_from_ld_json(data: dict) -> str:
     if not isinstance(address, dict):
         return "Not specified"
     parts = [address.get("addressLocality"), address.get("addressRegion"), address.get("addressCountry")]
-    return ", ".join(p for p in parts if p) or "Not specified"
+    joined = ", ".join(p for p in parts if p) or "Not specified"
+    return unescape_text(joined)
 
 
 async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:

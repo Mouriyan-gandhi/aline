@@ -243,10 +243,171 @@ PHARMA_MEDTECH_ROUND3 = [
     "Cochlear", "Align Technology", "IDEXX Laboratories", "Catalent", "Lonza", "WuXi AppTec",
 ]
 
+# Round 4 additions (2026-10-09), per direction to push toward 500-600 registered companies.
+# At the observed ~25% candidate->hit rate from Rounds 1-3, reaching +200-280 more registered
+# companies needs several hundred more real candidate names, not a handful — this round is
+# sized accordingly. Covers: a much deeper India D2C/startup sweep (fintech, healthtech,
+# logistics, gaming, agritech, proptech, deep-tech/space/EV — the single richest source for
+# Greenhouse/Lever/Ashby, per the hit-rate data so far), AI/ML infra and devtools globally
+# (a fast-growing category, barely covered), more consulting/analytics boutiques, and more
+# global retail/automotive/aerospace/travel GCCs.
+INDIA_FINTECH_ROUND4 = [
+    "Fibe", "moneyview", "CASHe", "LoanTap", "IndiaLends", "Rupeek", "OneCard", "Freo",
+    "Kiwi", "Niro", "Falcon", "Finin", "Jar App", "GullakMoney", "Walrus", "Turtlemint India",
+    "Vital Fin", "Jodo", "LeapFinance", "Propelld", "GrayQuest", "Avail Finance", "KredX",
+    "Vayana Network", "Cogoport", "ClearTax", "Quicko", "myITreturn", "Refyne", "Salary Box",
+]
+
+INDIA_D2C_CONSUMER_ROUND4 = [
+    "Wow Skin Science", "mCaffeine", "Bombay Shaving Company", "The Man Company", "Beardo",
+    "Sirona Hygiene", "Pee Safe", "Nua Woman", "Mamaearth India", "Plum Goodness",
+    "Minimalist Skincare", "Mokobara", "The Souled Store", "Bewakoof", "Snitch Fashion",
+    "Zouk", "Country Delight", "Milkbasket", "Otipy", "Freshtohome", "iD Fresh Food",
+    "Epigamia", "Sleepy Owl Coffee", "Third Wave Coffee", "Rage Coffee", "Blue Tokai Coffee",
+    "Slurrp Farm", "Yoga Bar", "True Elements", "RAW Pressery", "Paper Boat",
+]
+
+INDIA_SAAS_ANALYTICS_ROUND4 = [
+    "Zluri", "Sprinto", "Scrut Automation", "AdOnMo", "InVideo", "Rocketium", "Pixis",
+    "Clootrack", "Entropik Technology", "Decimal Point Analytics", "Absolutdata", "Crayon Data",
+    "Vuram", "Zycus", "Tredence Analytics", "Indegene", "Axtria", "Denave", "Draup",
+    "Hiver", "Chargebee India", "Freshchat", "Freshsales", "Observe.AI India", "Locus.sh",
+    "WebEngage India", "Clevertap India", "MoEngage India", "Netcore Cloud",
+]
+
+INDIA_HEALTHTECH_LOGISTICS_ROUND4 = [
+    "Visit Health", "Plum Benefits", "Loop Health", "Even Healthcare", "Breathe Well-being",
+    "Fitterfly", "HealthAssure", "DocOn", "Mfine", "Portea Medical", "1mg India", "PharmEasy India",
+    "BluSmart", "Chalo", "Shuttl", "Zingbus", "IntrCity SmartBus", "Vogo Automotive",
+    "Bizongo", "Power2SME", "IndiaMART", "Udaan Logistics", "Delhivery Logistics",
+]
+
+INDIA_GAMING_MEDIA_ROUND4 = [
+    "Mobile Premier League", "Hike Messenger", "Paytm First Games", "My11Circle",
+    "Pratilipi", "Glance InMobi", "Roposo", "Lokal App", "Public App India",
+    "Nazara Technologies India", "Games24x7 India",
+]
+
+INDIA_DEEPTECH_AGRI_PROPTECH_ROUND4 = [
+    "AgroStar", "Cropin Technology", "Fasal", "BigHaat", "Skyroot Aerospace", "Agnikul Cosmos",
+    "Pixxel Space", "Bellatrix Aerospace", "Dhruva Space", "Ather Energy", "Euler Motors",
+    "Battery Smart", "Log9 Materials", "Nestaway", "Zolo Stays", "Stanza Living", "Colive",
+    "MakeMyTrip", "Yatra Online", "Cleartrip", "Ixigo", "EaseMyTrip",
+]
+
+AI_ML_INFRA_DEVTOOLS_ROUND4 = [
+    "ChaosSearch", "Logz.io", "Coralogix", "SigNoz", "Last9", "LangChain", "LlamaIndex",
+    "Pinecone", "Weaviate", "Qdrant", "Chroma", "Baseten", "Replicate", "Fireworks AI",
+    "Groq", "Cerebras Systems", "SambaNova Systems", "Anyscale", "Lithic", "Middesk",
+    "Vouched", "Socure", "Justworks", "Papaya Global", "Oyster HR", "Velocity Global",
+    "Orca Security", "Lacework", "Aqua Security", "Sysdig", "Vectra AI", "Abnormal Security",
+    "Material Security",
+]
+
+CONSULTING_ANALYTICS_ROUND4 = [
+    "Cognizant Consulting", "IBM Consulting", "Capgemini Invent", "Infosys Consulting",
+    "Wipro Consulting", "Course5 Intelligence India", "ZS Associates India", "Mu Sigma India",
+]
+
+GLOBAL_RETAIL_AUTO_AEROSPACE_ROUND4 = [
+    "Costco Wholesale", "Tesco", "Carrefour", "Metro AG", "Aldi", "Lidl", "Magna International",
+    "Aptiv", "Visteon", "Denso", "Valeo", "Faurecia", "Collins Aerospace", "RTX Corporation",
+    "XPO Logistics", "C.H. Robinson", "Flexport", "project44", "Agoda", "Traveloka",
+]
+
+# Round 5 additions (2026-10-09). Round 4's incremental hit rate on fresh India startup/SaaS
+# names ran far higher (~47%) than the overall campaign average (~25%) — that category is the
+# richest remaining vein (Greenhouse/Lever/Ashby skew heavily toward exactly this company
+# profile), so this round leans into it hardest, plus a second global SaaS/devtools sweep and
+# more niche fintech/crypto, dev tools, martech/salestech, and gaming/media, none covered yet.
+INDIA_B2B_SAAS_ROUND5 = [
+    "Darwinbox HR", "Keka", "Zimyo HR", "HROne", "GreytHR", "Superset", "Springworks",
+    "Peoplebox", "Leena AI", "Haptik Jio", "Yellow.ai India", "Kissflow", "Zoho People",
+    "Kaleidofin", "Perfios Technologies", "Signzy Technologies", "HyperVerge", "IDfy",
+    "Karza Technologies India", "AuthBridge", "SpringVerify", "Smart Join", "Uniphore India",
+    "Observe AI", "Rocketlane", "Chargebee Retention", "Cashfree Payments", "Juspay Technologies",
+    "Open Financial Technologies", "RazorpayX", "Setu Fintech", "M2P Fintech India",
+    "Yubi", "CredAvenue India", "Jupiter Money", "Fi Money India", "Slice Pay", "Simpl India",
+]
+
+INDIA_STARTUP_CONSUMER_ROUND5 = [
+    "Zepto India", "Swish Delivery", "Dunzo India", "Shadowfax Technologies", "Xpressbees India",
+    "Ecom Express India", "Shiprocket India", "Pickrr Technologies", "ClickPost India",
+    "WareIQ India", "Unicommerce eSolutions", "Increff India", "Moglix India", "Zetwerk India",
+    "Infra.Market India", "OfBusiness India", "Jumbotail India", "DeHaat India", "Ninjacart India",
+    "WayCool Foods", "Captain Fresh India", "Licious India", "FreshToHome India",
+    "Curefoods India", "Rebel Foods", "Swiggy Genie", "Zomato Hyperpure India",
+]
+
+GLOBAL_DEVTOOLS_MARTECH_ROUND5 = [
+    "PostHog", "Mixpanel India", "Amplitude India", "June.so", "Heap Analytics", "Statsig",
+    "LaunchDarkly India", "Split Software", "Eppo", "GrowthBook", "Unleash", "ConfigCat",
+    "Temporal Technologies", "Inngest", "Trigger.dev", "Windmill Labs", "Val Town",
+    "Cal.com", "Resend", "Novu", "Knock Notifications", "Courier", "OneSignal",
+    "Customer.io India", "Iterable India", "Braze India", "MoEngage Global", "WebEngage Global",
+    "Clevertap Global", "Pendo.io India", "Appcues India", "Userpilot", "Chameleon",
+    "Mutiny", "Clearbit India", "Apollo.io India", "Instantly.ai", "Smartlead",
+]
+
+FINTECH_CRYPTO_ROUND5 = [
+    "Circle Internet Financial", "Paxos", "Anchorage Digital", "Fireblocks", "Gemini Trust",
+    "Bitpanda", "Blockchain.com", "Ledger", "Trust Wallet", "MetaMask Consensys", "Alchemy",
+    "QuickNode", "Moralis", "thirdweb", "Dynamic Labs", "Privy", "Magic Labs",
+    "Bridge Fintech", "Column Bank", "Increase", "Unit Fintech", "Treasury Prime",
+    "Synctera Fintech", "Highnote", "Moov Financial", "Astra Finance", "Method Financial",
+]
+
+GAMING_MEDIA_GLOBAL_ROUND5 = [
+    "Scopely", "Jam City", "Zynga", "Playrix", "Dream Games", "Voodoo Games", "MY.GAMES",
+    "Supercell", "King Digital Entertainment", "Rovio Entertainment", "Niantic Labs",
+    "Discord India", "Twitch Interactive", "Patreon", "Substack", "Beehiiv",
+    "Webflow India", "Framer India", "Descript", "Riverside.fm", "Opus Clip",
+]
+
+# Round 6 additions (2026-10-09) — continuing the same high-yield categories: distinctive
+# coined brand names (AI-native companies, dev tools, security, HR tech) and deeper India B2B.
+AI_NATIVE_ROUND6 = [
+    "Character.AI", "Inflection AI", "Stability AI", "Synthesia", "Suno", "Udio", "Poolside",
+    "Magic Labs AI", "Anysphere", "Codeium", "Tabnine", "Sourcegraph", "StackBlitz", "Lovable",
+    "Windsurf", "Warp", "Raycast", "Height App", "Shortcut Software", "Productboard", "Aha.io",
+]
+
+SECURITY_DEVTOOLS_ROUND6 = [
+    "Semgrep", "Socket Security", "Chainguard", "Teleport", "Doppler", "1Password", "Vanta",
+    "Drata", "Secureframe", "Tines", "Torq", "BigCommerce", "Recharge Payments", "Bold Commerce",
+    "Rebuy Engine", "Gorgias", "Yotpo", "Attentive Mobile", "Postscript", "Culture Amp",
+    "15Five", "Bonusly",
+]
+
+FINTECH_INFRA_ROUND6 = [
+    "dLocal", "EBANX", "Thunes", "Currencycloud", "TrueLayer", "Yapily", "GoCardless", "Tink",
+    "Bud Financial", "Codat", "Finix Payments",
+]
+
+INDIA_B2B_ROUND6 = [
+    "Vyapar App", "Munshiji", "Refrens", "Khata Book India", "FloBiz", "OkCredit India",
+    "Kredivo India", "Bijak", "ProcMart", "Zetwerk Manufacturing", "GreenCell Mobility",
+    "Magenta EV", "Statiq", "ChargeZone", "Exponent Energy", "Log9 Materials India",
+    "Mindgrove Technologies", "InCred Finance", "Northern Arc Capital", "Vivriti Capital",
+    "Centrum Group", "Aditya Birla Capital Digital", "Tata Digital", "Tata Neu",
+]
+
 ALL_CATEGORIES = {
-    "gcc": GCC_CANDIDATES + GCC_ROUND2 + CPG_FMCG_GCC + US_FINANCIAL_GCC_ROUND3 + PHARMA_MEDTECH_ROUND3,
-    "india_product_unicorn": INDIA_PRODUCT_UNICORN_CANDIDATES + INDIA_PRODUCT_ROUND2 + INDIA_AI_NATIVE_ROUND3,
-    "it_services": IT_SERVICES_CANDIDATES + CONSULTING_PROFESSIONAL_SERVICES,
-    "global_product": GLOBAL_PRODUCT_CANDIDATES + GLOBAL_SAAS_ROUND2 + SEMICONDUCTOR_DESIGN_HOUSES,
-    "fintech_bfsi": FINTECH_BFSI_CANDIDATES,
+    "gcc": (
+        GCC_CANDIDATES + GCC_ROUND2 + CPG_FMCG_GCC + US_FINANCIAL_GCC_ROUND3 + PHARMA_MEDTECH_ROUND3
+        + GLOBAL_RETAIL_AUTO_AEROSPACE_ROUND4
+    ),
+    "india_product_unicorn": (
+        INDIA_PRODUCT_UNICORN_CANDIDATES + INDIA_PRODUCT_ROUND2 + INDIA_AI_NATIVE_ROUND3
+        + INDIA_FINTECH_ROUND4 + INDIA_D2C_CONSUMER_ROUND4 + INDIA_SAAS_ANALYTICS_ROUND4
+        + INDIA_HEALTHTECH_LOGISTICS_ROUND4 + INDIA_GAMING_MEDIA_ROUND4 + INDIA_DEEPTECH_AGRI_PROPTECH_ROUND4
+        + INDIA_B2B_SAAS_ROUND5 + INDIA_STARTUP_CONSUMER_ROUND5 + INDIA_B2B_ROUND6
+    ),
+    "it_services": IT_SERVICES_CANDIDATES + CONSULTING_PROFESSIONAL_SERVICES + CONSULTING_ANALYTICS_ROUND4,
+    "global_product": (
+        GLOBAL_PRODUCT_CANDIDATES + GLOBAL_SAAS_ROUND2 + SEMICONDUCTOR_DESIGN_HOUSES
+        + AI_ML_INFRA_DEVTOOLS_ROUND4 + GLOBAL_DEVTOOLS_MARTECH_ROUND5 + GAMING_MEDIA_GLOBAL_ROUND5
+        + AI_NATIVE_ROUND6 + SECURITY_DEVTOOLS_ROUND6
+    ),
+    "fintech_bfsi": FINTECH_BFSI_CANDIDATES + FINTECH_CRYPTO_ROUND5 + FINTECH_INFRA_ROUND6,
 }

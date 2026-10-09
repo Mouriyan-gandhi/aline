@@ -17,10 +17,16 @@ def unescape_text(raw: str) -> str:
     that are never real HTML but can still arrive entity-encoded. Found live: Workday's own
     JSON-LD `title` field returns "R&amp;D Engineer" verbatim on some tenants (Hitachi,
     Barclays, AstraZeneca, Amgen, Marvell confirmed) — a template-escaping quirk on the
-    source side, not something html_to_text's tag-handling machinery is needed for here."""
+    source side, not something html_to_text's tag-handling machinery is needed for here.
+
+    Unescapes twice, not once: found live on Baxter's `jobLocation` text — "BANGALORE_R&D"
+    arrived DOUBLE-encoded as "BANGALORE_R&amp;amp;D", and a single html.unescape() pass only
+    resolves one level, leaving a visible "&amp;" remnant ("R&amp;D"). A second pass is a
+    no-op on already-clean text (nothing left to unescape), so this is safe to always do,
+    not just for known-double-encoded tenants."""
     if not raw:
         return raw
-    return html.unescape(raw)
+    return html.unescape(html.unescape(raw))
 
 
 _BLOCK_END_PATTERN = re.compile(
