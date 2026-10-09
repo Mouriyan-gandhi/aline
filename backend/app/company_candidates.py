@@ -185,10 +185,68 @@ GCC_ROUND2 = [
     "Infineon Technologies", "STMicroelectronics", "Renesas Electronics", "Entegris",
 ]
 
+# Round 3 additions (2026-10-09), per direction to keep pushing registered-company count.
+# Targets categories/sub-segments underrepresented in Round 1/2: consumer packaged goods /
+# FMCG GCCs (none were in the original list at all), consulting/professional-services firms
+# with real India analyst/engineer hiring (also entirely absent before — IT_SERVICES had zero
+# Big 4/strategy-consulting names), more semiconductor design houses with dedicated India
+# engineering centers, a newer wave of India AI-native startups, and US financial-services GCC
+# names not yet tried. Checked each name here against the existing five lists above before
+# adding — not guaranteed zero overlap (slug_prober re-testing an existing hit is harmless,
+# just a wasted request), but a real pass was made, not a blind dump.
+CONSULTING_PROFESSIONAL_SERVICES = [
+    "Deloitte", "KPMG", "EY", "PwC", "Accenture", "McKinsey and Company",
+    "Boston Consulting Group", "Bain and Company", "Kearney", "Oliver Wyman",
+    "Roland Berger", "Strategy and PwC", "Protiviti", "Alvarez and Marsal",
+    "FTI Consulting", "Grant Thornton", "BDO", "RSM International", "Crowe Global",
+    "Baker Tilly", "Zinnov", "RedSeer", "Praxis Global Alliance", "ZS Associates",
+    "Simon Kucher", "L.E.K. Consulting", "Charles River Associates", "NERA Economic Consulting",
+    "Cornerstone Research", "Analysis Group", "Huron Consulting", "Guidehouse",
+    "West Monroe", "Slalom Consulting", "Booz Allen Hamilton", "ICF International",
+]
+
+CPG_FMCG_GCC = [
+    "Procter and Gamble", "Unilever", "Nestle", "PepsiCo", "Coca-Cola", "Mondelez International",
+    "Kraft Heinz", "General Mills", "Kellanova", "Hershey", "Mars Incorporated", "Diageo",
+    "Pernod Ricard", "AB InBev", "Heineken", "Colgate-Palmolive", "Kimberly-Clark",
+    "Reckitt Benckiser", "Haleon", "Kenvue", "L'Oreal", "Estee Lauder", "LVMH", "Richemont",
+    "Levi Strauss", "Gap Inc", "VF Corporation", "Under Armour", "lululemon", "Adidas",
+    "Puma", "New Balance", "PVH Corp", "Ralph Lauren",
+]
+
+US_FINANCIAL_GCC_ROUND3 = [
+    "Jefferies", "Raymond James", "Stifel Financial", "Piper Sandler", "Evercore", "Lazard",
+    "Houlihan Lokey", "PJT Partners", "Moelis and Company", "Guggenheim Partners", "Oppenheimer",
+    "William Blair", "Robert W Baird", "RBC Capital Markets", "TD Securities", "BMO Financial Group",
+    "CIBC", "Scotiabank", "National Australia Bank", "Westpac",
+]
+
+SEMICONDUCTOR_DESIGN_HOUSES = [
+    "GlobalFoundries", "UMC", "TSMC", "SK Hynix", "Samsung Electronics", "Credo Technology",
+    "Astera Labs", "Ambarella", "Silicon Labs", "MaxLinear", "Diodes Incorporated",
+    "Monolithic Power Systems", "Power Integrations", "Allegro MicroSystems", "Wolfspeed",
+    "Cirrus Logic", "Synaptics", "Rambus", "CEVA Inc", "Infinera", "Ciena", "Amphenol",
+    "TE Connectivity", "Molex", "eInfochips", "Sasken Technologies", "L&T Semiconductor Technologies",
+    "Mindteck", "VVDN Technologies", "Mirafra Technologies",
+]
+
+INDIA_AI_NATIVE_ROUND3 = [
+    "Lyzr AI", "Rezo.ai", "Haptik", "Slang Labs", "Vernacular.ai", "Verloop.io", "Cogcent",
+    "Flexiple", "Turing", "Multiplier", "Fyle", "Dukaan", "Jiffy.ai", "Floworks",
+    "Orbo.ai", "Wisdom AI", "Avaamo", "Yellow Messenger", "Skit.ai", "Convin",
+]
+
+PHARMA_MEDTECH_ROUND3 = [
+    "Novo Nordisk", "Teva Pharmaceutical", "Viatris", "Organon", "Alkermes",
+    "Jazz Pharmaceuticals", "Incyte", "Alexion Pharmaceuticals", "Horizon Therapeutics",
+    "Dexcom", "Insulet", "Edwards Lifesciences", "Intuitive Surgical", "Hologic", "ResMed",
+    "Cochlear", "Align Technology", "IDEXX Laboratories", "Catalent", "Lonza", "WuXi AppTec",
+]
+
 ALL_CATEGORIES = {
-    "gcc": GCC_CANDIDATES + GCC_ROUND2,
-    "india_product_unicorn": INDIA_PRODUCT_UNICORN_CANDIDATES + INDIA_PRODUCT_ROUND2,
-    "it_services": IT_SERVICES_CANDIDATES,
-    "global_product": GLOBAL_PRODUCT_CANDIDATES + GLOBAL_SAAS_ROUND2,
+    "gcc": GCC_CANDIDATES + GCC_ROUND2 + CPG_FMCG_GCC + US_FINANCIAL_GCC_ROUND3 + PHARMA_MEDTECH_ROUND3,
+    "india_product_unicorn": INDIA_PRODUCT_UNICORN_CANDIDATES + INDIA_PRODUCT_ROUND2 + INDIA_AI_NATIVE_ROUND3,
+    "it_services": IT_SERVICES_CANDIDATES + CONSULTING_PROFESSIONAL_SERVICES,
+    "global_product": GLOBAL_PRODUCT_CANDIDATES + GLOBAL_SAAS_ROUND2 + SEMICONDUCTOR_DESIGN_HOUSES,
     "fintech_bfsi": FINTECH_BFSI_CANDIDATES,
 }

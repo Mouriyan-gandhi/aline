@@ -4,6 +4,13 @@ NOTE: this endpoint returns HTTP 200 with an empty body for ANY company identifi
 nonexistent ones (confirmed live) — it never 404s. The registry only includes slugs the
 slug_prober confirmed had `totalFound > 0` at probe time, but a company's postings can still
 legitimately drop to zero between probes; that's expected, not a bug.
+
+Found live (2026-10-09): the list endpoint paginates at 100 results per page (`totalFound`
+vs. `content` length), and this adapter only ever fetched page one. For Swiggy specifically
+— 175 total postings — every one of its real India tech roles (Software Development
+Engineer, Data Scientist, Product Manager) sat in the second page; the Sales/Warehouse/
+Copywriter postings that happened to occupy the first 100 slots were all this adapter ever
+saw. Now paginates until `totalFound` is exhausted.
 """
 import httpx
 
@@ -35,11 +42,29 @@ async def _fetch_description(client: httpx.AsyncClient, slug: str, post_id: str)
         return ""
 
 
+PAGE_SIZE = 100
+MAX_POSTINGS = 1000  # safety cap, not a real limit — generous headroom above any real company's count
+
+
+async def _fetch_all_postings(client: httpx.AsyncClient, slug: str) -> list[dict]:
+    url = f"https://api.smartrecruiters.com/v1/companies/{slug}/postings"
+    all_postings: list[dict] = []
+    for offset in range(0, MAX_POSTINGS, PAGE_SIZE):
+        resp = await client.get(
+            url, params={"offset": offset, "limit": PAGE_SIZE},
+            timeout=HTTP_TIMEOUT, headers={"User-Agent": USER_AGENT},
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        page = data.get("content", [])
+        all_postings.extend(page)
+        if len(page) < PAGE_SIZE or offset + PAGE_SIZE >= data.get("totalFound", 0):
+            break
+    return all_postings
+
+
 async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:
-    url = f"https://api.smartrecruiters.com/v1/companies/{company['slug']}/postings"
-    resp = await client.get(url, timeout=HTTP_TIMEOUT, headers={"User-Agent": USER_AGENT})
-    resp.raise_for_status()
-    postings = resp.json().get("content", [])
+    postings = await _fetch_all_postings(client, company["slug"])
 
     results: list[Job] = []
     for post in postings:

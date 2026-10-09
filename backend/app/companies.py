@@ -25,6 +25,15 @@ SEED_COMPANIES = [
     # Amazon — genuinely public search.json API, see adapters/amazon.py for the full
     # investigation of this and the other 4 "mega-cap" custom career platforms (2026-10-08).
     {"name": "Amazon", "platform": "amazon", "slug": "amazon"},
+    # The next 4 came out of a manual review of 33 single-word-slug NEEDS_REVIEW candidates
+    # (2026-10-09) — slug_prober correctly flagged all of them "low confidence" (the collision
+    # risk a bare single word like "capital"/"general"/"pure" carries), and live-checking each
+    # one found the overwhelming majority genuinely WERE the wrong company (see
+    # _CONFIRMED_BAD_MATCHES below) — these 4 are the ones with strong positive evidence.
+    {"name": "Sarvam AI", "platform": "ashby", "slug": "sarvam"},  # confirmed via "Chanakya" — a Sarvam-specific product codename, not a generic title
+    {"name": "Swiggy", "platform": "smartrecruiters", "slug": "swiggy"},  # 100 real-looking postings; renamed from "Swiggy Instamart" since this is their main board
+    {"name": "Make", "platform": "greenhouse", "slug": "make"},  # confirmed via absolute_url pointing to make.com; renamed from "Make Integromat" (their old name)
+    {"name": "Plaid", "platform": "ashby", "slug": "plaid"},  # 121 postings, consistent with Plaid's real size; renamed from "Plaid India" since this looks like their global board, not an India-specific one
 ]
 
 # Workday tenants, verified via the sitemap + JobPosting JSON-LD method (2026-10-08) — each
@@ -190,6 +199,29 @@ _RESOLVED_PATH = os.path.join(os.path.dirname(__file__), "companies_resolved.jso
 # `_SHORT_NAME_LOW_CONFIDENCE_LENGTH` for the actual heuristic fix going forward.
 _CONFIRMED_BAD_MATCHES = {
     ("TCS", "greenhouse", "tcs"),  # verified live: unrelated UK nursing company
+    # Batch from the 2026-10-09 manual review of 33 single-word-slug NEEDS_REVIEW candidates
+    # — each confirmed live to be a different, unrelated company than the intended target
+    # (wrong domain in absolute_url, implausible job content for the company's real size, or
+    # an outright duplicate slug collision between two different intended targets — "capital"
+    # and "general" each matched two different companies on this list to the identical board).
+    ("Together AI", "smartrecruiters", "together"),  # mortgage/lending company, not the AI infra company
+    ("Stage OTT", "greenhouse", "stage"),  # resolves to KKR (private equity), not Stage OTT
+    ("Charles Schwab", "greenhouse", "charles"),  # small EU company, not the US brokerage
+    ("National Grid", "greenhouse", "national"),  # too few/generic postings for a utility this size
+    ("Disney Hotstar", "greenhouse", "disney"),  # only a placeholder "MASTER TEMPLATE" posting
+    ("Capital One", "lever", "capital"),  # collided with Capital Float on the identical board — neither is real
+    ("Capital Float", "lever", "capital"),
+    ("Eli Lilly", "ashby", "eli"),  # 5-job Ashby board implausible for a company this size
+    ("US Bancorp", "greenhouse", "us"),  # absolute_url points to itelinternational.com
+    ("Help Scout", "greenhouse", "help"),  # "Dispatch" role suggests logistics, not a support-SaaS company
+    ("Lattice Semiconductor", "greenhouse", "lattice"),  # lattice.com is the HR-software company, not the chipmaker
+    ("Applied Materials", "ashby", "applied"),  # implausible for a semiconductor-equipment giant to run Ashby
+    ("General Motors", "greenhouse", "general"),  # collided with General Dynamics on the identical board
+    ("General Dynamics", "greenhouse", "general"),
+    ("Analog Devices", "ashby", "analog"),  # implausible size/platform fit; "Senior iOS Engineer" doesn't fit either
+    ("Parker Hannifin", "ashby", "parker"),  # implausible for an industrial manufacturing giant
+    ("New Relic", "greenhouse", "new"),  # single generic-titled job, too thin to trust
+    ("Pure Storage", "ashby", "pure"),  # "Founding GTM Leader" — early-stage-startup language, not a 5000-person public company
 }
 
 

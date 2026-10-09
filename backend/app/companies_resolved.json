@@ -1,9 +1,520 @@
 [
   {
+    "name": "Druva",
+    "category": "india_product_unicorn",
+    "platform": "greenhouse",
+    "slug": "druva",
+    "confidence": "high"
+  },
+  {
+    "name": "Fastly",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "fastly",
+    "confidence": "high"
+  },
+  {
+    "name": "Cloudflare",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "cloudflare",
+    "confidence": "high"
+  },
+  {
+    "name": "HighRadius",
+    "category": "india_product_unicorn",
+    "platform": "greenhouse",
+    "slug": "highradius",
+    "confidence": "high"
+  },
+  {
+    "name": "NICE Ltd",
+    "category": "gcc",
+    "platform": "greenhouse",
+    "slug": "nice",
+    "confidence": "high"
+  },
+  {
+    "name": "Five9",
+    "category": "gcc",
+    "platform": "greenhouse",
+    "slug": "five9",
+    "confidence": "high"
+  },
+  {
+    "name": "Appcues",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "appcues",
+    "confidence": "high"
+  },
+  {
+    "name": "Talkdesk",
+    "category": "gcc",
+    "platform": "ashby",
+    "slug": "talkdesk",
+    "confidence": "high"
+  },
+  {
+    "name": "InfoBeans",
+    "category": "it_services",
+    "platform": "smartrecruiters",
+    "slug": "infobeans",
+    "confidence": "high"
+  },
+  {
+    "name": "Pendo",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "pendo",
+    "confidence": "high"
+  },
+  {
+    "name": "Zenoti",
+    "category": "india_product_unicorn",
+    "platform": "greenhouse",
+    "slug": "zenoti",
+    "confidence": "high"
+  },
+  {
+    "name": "LinkedIn",
+    "category": "global_product",
+    "platform": "lever",
+    "slug": "linkedin",
+    "confidence": "high"
+  },
+  {
+    "name": "Blend360",
+    "category": "it_services",
+    "platform": "smartrecruiters",
+    "slug": "blend360",
+    "confidence": "high"
+  },
+  {
+    "name": "Checkly",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "checkly",
+    "confidence": "high"
+  },
+  {
+    "name": "Scaler",
+    "category": "india_product_unicorn",
+    "platform": "ashby",
+    "slug": "scaler",
+    "confidence": "high"
+  },
+  {
+    "name": "Transform",
+    "category": "it_services",
+    "platform": "greenhouse",
+    "slug": "transform",
+    "confidence": "high"
+  },
+  {
+    "name": "ClickHouse",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "clickhouse",
+    "confidence": "high"
+  },
+  {
     "name": "Navi",
     "category": "india_product_unicorn",
     "platform": "ashby",
     "slug": "navi",
+    "confidence": "high"
+  },
+  {
+    "name": "n8n",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "n8n",
+    "confidence": "high"
+  },
+  {
+    "name": "KPMG",
+    "category": "it_services",
+    "platform": "lever",
+    "slug": "kpmg",
+    "confidence": "low"
+  },
+  {
+    "name": "Zapier",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "zapier",
+    "confidence": "high"
+  },
+  {
+    "name": "Discord",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "discord",
+    "confidence": "high"
+  },
+  {
+    "name": "Workato",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "workato",
+    "confidence": "high"
+  },
+  {
+    "name": "Workato",
+    "category": "global_product",
+    "platform": "smartrecruiters",
+    "slug": "workato",
+    "confidence": "high"
+  },
+  {
+    "name": "Hightouch",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "hightouch",
+    "confidence": "high"
+  },
+  {
+    "name": "InterviewBit",
+    "category": "india_product_unicorn",
+    "platform": "smartrecruiters",
+    "slug": "interviewbit",
+    "confidence": "high"
+  },
+  {
+    "name": "HackerRank",
+    "category": "india_product_unicorn",
+    "platform": "greenhouse",
+    "slug": "hackerrank",
+    "confidence": "high"
+  },
+  {
+    "name": "HackerRank",
+    "category": "india_product_unicorn",
+    "platform": "smartrecruiters",
+    "slug": "hackerrank",
+    "confidence": "high"
+  },
+  {
+    "name": "Airbyte",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "airbyte",
+    "confidence": "high"
+  },
+  {
+    "name": "Fivetran",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "fivetran",
+    "confidence": "high"
+  },
+  {
+    "name": "Prefect",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "prefect",
+    "confidence": "high"
+  },
+  {
+    "name": "Qualtrics",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "qualtrics",
+    "confidence": "high"
+  },
+  {
+    "name": "Qualtrics",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "qualtrics",
+    "confidence": "high"
+  },
+  {
+    "name": "Materialize",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "materialize",
+    "confidence": "high"
+  },
+  {
+    "name": "US Bank",
+    "category": "gcc",
+    "platform": "greenhouse",
+    "slug": "us",
+    "confidence": "high"
+  },
+  {
+    "name": "SingleStore",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "singlestore",
+    "confidence": "high"
+  },
+  {
+    "name": "Yugabyte",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "yugabyte",
+    "confidence": "high"
+  },
+  {
+    "name": "Prisma",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "prisma",
+    "confidence": "high"
+  },
+  {
+    "name": "Vultr",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "vultr",
+    "confidence": "high"
+  },
+  {
+    "name": "Disney",
+    "category": "gcc",
+    "platform": "greenhouse",
+    "slug": "disney",
+    "confidence": "high"
+  },
+  {
+    "name": "Airwallex",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "airwallex",
+    "confidence": "high"
+  },
+  {
+    "name": "Novo",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "novo",
+    "confidence": "high"
+  },
+  {
+    "name": "Nium",
+    "category": "global_product",
+    "platform": "lever",
+    "slug": "nium",
+    "confidence": "high"
+  },
+  {
+    "name": "Payoneer",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "payoneer",
+    "confidence": "high"
+  },
+  {
+    "name": "NoBroker",
+    "category": "india_product_unicorn",
+    "platform": "smartrecruiters",
+    "slug": "nobroker",
+    "confidence": "high"
+  },
+  {
+    "name": "Astera Labs",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "astera",
+    "confidence": "high"
+  },
+  {
+    "name": "Naukri",
+    "category": "india_product_unicorn",
+    "platform": "greenhouse",
+    "slug": "naukri",
+    "confidence": "high"
+  },
+  {
+    "name": "Uber",
+    "category": "global_product",
+    "platform": "smartrecruiters",
+    "slug": "uber",
+    "confidence": "high"
+  },
+  {
+    "name": "ServiceNow",
+    "category": "global_product",
+    "platform": "smartrecruiters",
+    "slug": "servicenow",
+    "confidence": "high"
+  },
+  {
+    "name": "LogRocket",
+    "category": "global_product",
+    "platform": "lever",
+    "slug": "logrocket",
+    "confidence": "high"
+  },
+  {
+    "name": "E.ON",
+    "category": "gcc",
+    "platform": "ashby",
+    "slug": "eon",
+    "confidence": "low"
+  },
+  {
+    "name": "Silicon Labs",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "silicon",
+    "confidence": "high"
+  },
+  {
+    "name": "SmartBear",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "smartbear",
+    "confidence": "high"
+  },
+  {
+    "name": "Boomi",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "boomi",
+    "confidence": "high"
+  },
+  {
+    "name": "MongoDB",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "mongodb",
+    "confidence": "high"
+  },
+  {
+    "name": "Confluent",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "confluent",
+    "confidence": "high"
+  },
+  {
+    "name": "Elastic",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "elastic",
+    "confidence": "high"
+  },
+  {
+    "name": "Twilio",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "twilio",
+    "confidence": "high"
+  },
+  {
+    "name": "Stripe",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "stripe",
+    "confidence": "high"
+  },
+  {
+    "name": "Zscaler",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "zscaler",
+    "confidence": "high"
+  },
+  {
+    "name": "Datadog",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "datadog",
+    "confidence": "high"
+  },
+  {
+    "name": "Buildkite",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "buildkite",
+    "confidence": "high"
+  },
+  {
+    "name": "PagerDuty",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "pagerduty",
+    "confidence": "high"
+  },
+  {
+    "name": "Synechron",
+    "category": "it_services",
+    "platform": "smartrecruiters",
+    "slug": "synechron",
+    "confidence": "high"
+  },
+  {
+    "name": "Astronomer",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "astronomer",
+    "confidence": "high"
+  },
+  {
+    "name": "Lincoln Financial",
+    "category": "gcc",
+    "platform": "greenhouse",
+    "slug": "lincoln",
+    "confidence": "high"
+  },
+  {
+    "name": "Yes Bank",
+    "category": "fintech_bfsi",
+    "platform": "greenhouse",
+    "slug": "yes",
+    "confidence": "high"
+  },
+  {
+    "name": "Pinterest",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "pinterest",
+    "confidence": "high"
+  },
+  {
+    "name": "Dropbox",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "dropbox",
+    "confidence": "high"
+  },
+  {
+    "name": "Zinnov",
+    "category": "it_services",
+    "platform": "greenhouse",
+    "slug": "zinnov",
+    "confidence": "high"
+  },
+  {
+    "name": "Airbnb",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "airbnb",
+    "confidence": "high"
+  },
+  {
+    "name": "Spotify",
+    "category": "global_product",
+    "platform": "lever",
+    "slug": "spotify",
+    "confidence": "high"
+  },
+  {
+    "name": "Bluestone",
+    "category": "india_product_unicorn",
+    "platform": "greenhouse",
+    "slug": "bluestone",
+    "confidence": "high"
+  },
+  {
+    "name": "Bluestone",
+    "category": "india_product_unicorn",
+    "platform": "smartrecruiters",
+    "slug": "bluestone",
     "confidence": "high"
   },
   {
@@ -14,10 +525,206 @@
     "confidence": "high"
   },
   {
-    "name": "Thales Group",
+    "name": "Slice",
+    "category": "fintech_bfsi",
+    "platform": "greenhouse",
+    "slug": "slice",
+    "confidence": "high"
+  },
+  {
+    "name": "Bounce",
+    "category": "india_product_unicorn",
+    "platform": "ashby",
+    "slug": "bounce",
+    "confidence": "high"
+  },
+  {
+    "name": "Rubrik",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "rubrik",
+    "confidence": "high"
+  },
+  {
+    "name": "Unilever",
+    "category": "gcc",
+    "platform": "greenhouse",
+    "slug": "unilever",
+    "confidence": "high"
+  },
+  {
+    "name": "Commvault",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "commvault",
+    "confidence": "high"
+  },
+  {
+    "name": "Databricks",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "databricks",
+    "confidence": "high"
+  },
+  {
+    "name": "LogiNext",
+    "category": "india_product_unicorn",
+    "platform": "smartrecruiters",
+    "slug": "loginext",
+    "confidence": "high"
+  },
+  {
+    "name": "Tide",
+    "category": "fintech_bfsi",
+    "platform": "greenhouse",
+    "slug": "tide",
+    "confidence": "high"
+  },
+  {
+    "name": "Monzo",
+    "category": "fintech_bfsi",
+    "platform": "greenhouse",
+    "slug": "monzo",
+    "confidence": "high"
+  },
+  {
+    "name": "Zeta",
+    "category": "fintech_bfsi",
+    "platform": "lever",
+    "slug": "zeta",
+    "confidence": "high"
+  },
+  {
+    "name": "N26",
+    "category": "fintech_bfsi",
+    "platform": "greenhouse",
+    "slug": "n26",
+    "confidence": "low"
+  },
+  {
+    "name": "UiPath",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "uipath",
+    "confidence": "high"
+  },
+  {
+    "name": "Nubank",
+    "category": "fintech_bfsi",
+    "platform": "greenhouse",
+    "slug": "nubank",
+    "confidence": "high"
+  },
+  {
+    "name": "Nubank",
+    "category": "fintech_bfsi",
+    "platform": "ashby",
+    "slug": "nubank",
+    "confidence": "high"
+  },
+  {
+    "name": "Ramp",
+    "category": "fintech_bfsi",
+    "platform": "ashby",
+    "slug": "ramp",
+    "confidence": "high"
+  },
+  {
+    "name": "Brex",
+    "category": "fintech_bfsi",
+    "platform": "greenhouse",
+    "slug": "brex",
+    "confidence": "high"
+  },
+  {
+    "name": "Perplexity",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "perplexity",
+    "confidence": "high"
+  },
+  {
+    "name": "Adyen",
+    "category": "fintech_bfsi",
+    "platform": "greenhouse",
+    "slug": "adyen",
+    "confidence": "high"
+  },
+  {
+    "name": "Block",
+    "category": "fintech_bfsi",
+    "platform": "greenhouse",
+    "slug": "block",
+    "confidence": "high"
+  },
+  {
+    "name": "Bill.com",
+    "category": "fintech_bfsi",
+    "platform": "greenhouse",
+    "slug": "billcom",
+    "confidence": "high"
+  },
+  {
+    "name": "Anthropic",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "anthropic",
+    "confidence": "high"
+  },
+  {
+    "name": "Brex",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "brex",
+    "confidence": "high"
+  },
+  {
+    "name": "Melio",
+    "category": "fintech_bfsi",
+    "platform": "greenhouse",
+    "slug": "melio",
+    "confidence": "high"
+  },
+  {
+    "name": "OpenAI",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "openai",
+    "confidence": "high"
+  },
+  {
+    "name": "Palantir Technologies",
+    "category": "global_product",
+    "platform": "lever",
+    "slug": "palantir",
+    "confidence": "high"
+  },
+  {
+    "name": "Palantir Technologies",
+    "category": "global_product",
+    "platform": "smartrecruiters",
+    "slug": "palantir",
+    "confidence": "high"
+  },
+  {
+    "name": "Kenvue",
     "category": "gcc",
     "platform": "smartrecruiters",
-    "slug": "thales",
+    "slug": "kenvue",
+    "confidence": "high"
+  },
+  {
+    "name": "Plaid",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "plaid",
+    "confidence": "high"
+  },
+  {
+    "name": "Asana",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "asana",
     "confidence": "high"
   },
   {
@@ -35,6 +742,48 @@
     "confidence": "high"
   },
   {
+    "name": "Persona",
+    "category": "fintech_bfsi",
+    "platform": "ashby",
+    "slug": "persona",
+    "confidence": "high"
+  },
+  {
+    "name": "Notion",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "notion",
+    "confidence": "high"
+  },
+  {
+    "name": "Miro",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "miro",
+    "confidence": "high"
+  },
+  {
+    "name": "Sardine",
+    "category": "fintech_bfsi",
+    "platform": "ashby",
+    "slug": "sardine",
+    "confidence": "high"
+  },
+  {
+    "name": "Figma",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "figma",
+    "confidence": "high"
+  },
+  {
+    "name": "Figma",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "figma",
+    "confidence": "high"
+  },
+  {
     "name": "Alloy",
     "category": "fintech_bfsi",
     "platform": "greenhouse",
@@ -56,24 +805,38 @@
     "confidence": "high"
   },
   {
-    "name": "Persona",
-    "category": "fintech_bfsi",
-    "platform": "ashby",
-    "slug": "persona",
+    "name": "Neon",
+    "category": "global_product",
+    "platform": "lever",
+    "slug": "neon",
     "confidence": "high"
   },
   {
-    "name": "Sardine",
-    "category": "fintech_bfsi",
+    "name": "Neon",
+    "category": "global_product",
     "platform": "ashby",
-    "slug": "sardine",
+    "slug": "neon",
     "confidence": "high"
   },
   {
-    "name": "Riskified",
-    "category": "fintech_bfsi",
+    "name": "Airtable",
+    "category": "global_product",
     "platform": "greenhouse",
-    "slug": "riskified",
+    "slug": "airtable",
+    "confidence": "high"
+  },
+  {
+    "name": "Airtable",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "airtable",
+    "confidence": "high"
+  },
+  {
+    "name": "Canva",
+    "category": "global_product",
+    "platform": "smartrecruiters",
+    "slug": "canva",
     "confidence": "high"
   },
   {
@@ -91,206 +854,10 @@
     "confidence": "high"
   },
   {
-    "name": "Trulioo",
-    "category": "fintech_bfsi",
-    "platform": "ashby",
-    "slug": "trulioo",
-    "confidence": "high"
-  },
-  {
-    "name": "ComplyAdvantage",
+    "name": "Riskified",
     "category": "fintech_bfsi",
     "platform": "greenhouse",
-    "slug": "complyadvantage",
-    "confidence": "high"
-  },
-  {
-    "name": "NoBroker",
-    "category": "india_product_unicorn",
-    "platform": "smartrecruiters",
-    "slug": "nobroker",
-    "confidence": "high"
-  },
-  {
-    "name": "Commvault",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "commvault",
-    "confidence": "high"
-  },
-  {
-    "name": "Jumio",
-    "category": "fintech_bfsi",
-    "platform": "greenhouse",
-    "slug": "jumio",
-    "confidence": "high"
-  },
-  {
-    "name": "Jumio",
-    "category": "fintech_bfsi",
-    "platform": "smartrecruiters",
-    "slug": "jumio",
-    "confidence": "high"
-  },
-  {
-    "name": "Rubrik",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "rubrik",
-    "confidence": "high"
-  },
-  {
-    "name": "Naukri",
-    "category": "india_product_unicorn",
-    "platform": "greenhouse",
-    "slug": "naukri",
-    "confidence": "high"
-  },
-  {
-    "name": "UiPath",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "uipath",
-    "confidence": "high"
-  },
-  {
-    "name": "Anaplan",
-    "category": "gcc",
-    "platform": "greenhouse",
-    "slug": "anaplan",
-    "confidence": "high"
-  },
-  {
-    "name": "Coinbase",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "coinbase",
-    "confidence": "high"
-  },
-  {
-    "name": "Celonis",
-    "category": "gcc",
-    "platform": "greenhouse",
-    "slug": "celonis",
-    "confidence": "high"
-  },
-  {
-    "name": "Lendingkart",
-    "category": "fintech_bfsi",
-    "platform": "smartrecruiters",
-    "slug": "lendingkart",
-    "confidence": "high"
-  },
-  {
-    "name": "Palantir Technologies",
-    "category": "global_product",
-    "platform": "lever",
-    "slug": "palantir",
-    "confidence": "high"
-  },
-  {
-    "name": "Palantir Technologies",
-    "category": "global_product",
-    "platform": "smartrecruiters",
-    "slug": "palantir",
-    "confidence": "high"
-  },
-  {
-    "name": "Perplexity",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "perplexity",
-    "confidence": "high"
-  },
-  {
-    "name": "OpenAI",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "openai",
-    "confidence": "high"
-  },
-  {
-    "name": "Smartsheet",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "smartsheet",
-    "confidence": "high"
-  },
-  {
-    "name": "Plaid",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "plaid",
-    "confidence": "high"
-  },
-  {
-    "name": "Gong",
-    "category": "global_product",
-    "platform": "smartrecruiters",
-    "slug": "gong",
-    "confidence": "high"
-  },
-  {
-    "name": "NICE Ltd",
-    "category": "gcc",
-    "platform": "greenhouse",
-    "slug": "nice",
-    "confidence": "high"
-  },
-  {
-    "name": "Asana",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "asana",
-    "confidence": "high"
-  },
-  {
-    "name": "Notion",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "notion",
-    "confidence": "high"
-  },
-  {
-    "name": "Turtlemint",
-    "category": "fintech_bfsi",
-    "platform": "smartrecruiters",
-    "slug": "turtlemint",
-    "confidence": "high"
-  },
-  {
-    "name": "Talkdesk",
-    "category": "gcc",
-    "platform": "ashby",
-    "slug": "talkdesk",
-    "confidence": "high"
-  },
-  {
-    "name": "Figma",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "figma",
-    "confidence": "high"
-  },
-  {
-    "name": "Figma",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "figma",
-    "confidence": "high"
-  },
-  {
-    "name": "Five9",
-    "category": "gcc",
-    "platform": "greenhouse",
-    "slug": "five9",
-    "confidence": "high"
-  },
-  {
-    "name": "Outreach",
-    "category": "global_product",
-    "platform": "lever",
-    "slug": "outreach",
+    "slug": "riskified",
     "confidence": "high"
   },
   {
@@ -301,32 +868,25 @@
     "confidence": "high"
   },
   {
-    "name": "Airtable",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "airtable",
-    "confidence": "high"
-  },
-  {
-    "name": "Airtable",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "airtable",
-    "confidence": "high"
-  },
-  {
-    "name": "Miro",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "miro",
-    "confidence": "high"
-  },
-  {
     "name": "Loom",
     "category": "global_product",
     "platform": "ashby",
     "slug": "loom",
     "confidence": "high"
+  },
+  {
+    "name": "ComplyAdvantage",
+    "category": "fintech_bfsi",
+    "platform": "greenhouse",
+    "slug": "complyadvantage",
+    "confidence": "high"
+  },
+  {
+    "name": "LVMH",
+    "category": "gcc",
+    "platform": "smartrecruiters",
+    "slug": "lvmh",
+    "confidence": "low"
   },
   {
     "name": "Calendly",
@@ -343,17 +903,24 @@
     "confidence": "high"
   },
   {
-    "name": "Canva",
-    "category": "global_product",
-    "platform": "smartrecruiters",
-    "slug": "canva",
+    "name": "Trulioo",
+    "category": "fintech_bfsi",
+    "platform": "ashby",
+    "slug": "trulioo",
     "confidence": "high"
   },
   {
-    "name": "Linear",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "linear",
+    "name": "Jumio",
+    "category": "fintech_bfsi",
+    "platform": "greenhouse",
+    "slug": "jumio",
+    "confidence": "high"
+  },
+  {
+    "name": "Jumio",
+    "category": "fintech_bfsi",
+    "platform": "smartrecruiters",
+    "slug": "jumio",
     "confidence": "high"
   },
   {
@@ -364,24 +931,45 @@
     "confidence": "high"
   },
   {
+    "name": "Webflow",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "webflow",
+    "confidence": "high"
+  },
+  {
+    "name": "Vercel",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "vercel",
+    "confidence": "high"
+  },
+  {
+    "name": "Vercel",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "vercel",
+    "confidence": "high"
+  },
+  {
+    "name": "Linear",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "linear",
+    "confidence": "high"
+  },
+  {
+    "name": "Stifel Financial",
+    "category": "gcc",
+    "platform": "smartrecruiters",
+    "slug": "stifel",
+    "confidence": "high"
+  },
+  {
     "name": "Netlify",
     "category": "global_product",
     "platform": "greenhouse",
     "slug": "netlify",
-    "confidence": "high"
-  },
-  {
-    "name": "Supabase",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "supabase",
-    "confidence": "high"
-  },
-  {
-    "name": "Render",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "render",
     "confidence": "high"
   },
   {
@@ -392,17 +980,24 @@
     "confidence": "high"
   },
   {
-    "name": "Bluestone",
-    "category": "india_product_unicorn",
-    "platform": "greenhouse",
-    "slug": "bluestone",
+    "name": "Render",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "render",
     "confidence": "high"
   },
   {
-    "name": "Bluestone",
-    "category": "india_product_unicorn",
+    "name": "Lendingkart",
+    "category": "fintech_bfsi",
     "platform": "smartrecruiters",
-    "slug": "bluestone",
+    "slug": "lendingkart",
+    "confidence": "high"
+  },
+  {
+    "name": "MetLife",
+    "category": "gcc",
+    "platform": "lever",
+    "slug": "metlife",
     "confidence": "high"
   },
   {
@@ -413,6 +1008,20 @@
     "confidence": "high"
   },
   {
+    "name": "HP",
+    "category": "gcc",
+    "platform": "greenhouse",
+    "slug": "hp",
+    "confidence": "low"
+  },
+  {
+    "name": "Credo Technology",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "credo",
+    "confidence": "high"
+  },
+  {
     "name": "Modal Labs",
     "category": "global_product",
     "platform": "ashby",
@@ -420,31 +1029,10 @@
     "confidence": "high"
   },
   {
-    "name": "ElevenLabs",
+    "name": "Cohere",
     "category": "global_product",
     "platform": "ashby",
-    "slug": "elevenlabs",
-    "confidence": "high"
-  },
-  {
-    "name": "Bounce",
-    "category": "india_product_unicorn",
-    "platform": "ashby",
-    "slug": "bounce",
-    "confidence": "high"
-  },
-  {
-    "name": "Attio",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "attio",
-    "confidence": "high"
-  },
-  {
-    "name": "Glean",
-    "category": "global_product",
-    "platform": "smartrecruiters",
-    "slug": "glean",
+    "slug": "cohere",
     "confidence": "high"
   },
   {
@@ -455,17 +1043,45 @@
     "confidence": "high"
   },
   {
-    "name": "Slice",
-    "category": "fintech_bfsi",
-    "platform": "greenhouse",
-    "slug": "slice",
+    "name": "Supabase",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "supabase",
     "confidence": "high"
   },
   {
-    "name": "Remote",
+    "name": "Glean",
     "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "remote",
+    "platform": "smartrecruiters",
+    "slug": "glean",
+    "confidence": "high"
+  },
+  {
+    "name": "ElevenLabs",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "elevenlabs",
+    "confidence": "high"
+  },
+  {
+    "name": "Turtlemint",
+    "category": "fintech_bfsi",
+    "platform": "smartrecruiters",
+    "slug": "turtlemint",
+    "confidence": "high"
+  },
+  {
+    "name": "Attio",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "attio",
+    "confidence": "high"
+  },
+  {
+    "name": "NoBroker",
+    "category": "india_product_unicorn",
+    "platform": "smartrecruiters",
+    "slug": "nobroker",
     "confidence": "high"
   },
   {
@@ -473,6 +1089,20 @@
     "category": "global_product",
     "platform": "ashby",
     "slug": "deel",
+    "confidence": "high"
+  },
+  {
+    "name": "Ramp",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "ramp",
+    "confidence": "high"
+  },
+  {
+    "name": "Remote",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "remote",
     "confidence": "high"
   },
   {
@@ -497,10 +1127,10 @@
     "confidence": "high"
   },
   {
-    "name": "LogiNext",
-    "category": "india_product_unicorn",
-    "platform": "smartrecruiters",
-    "slug": "loginext",
+    "name": "Chime",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "chime",
     "confidence": "high"
   },
   {
@@ -511,10 +1141,17 @@
     "confidence": "high"
   },
   {
-    "name": "Zscaler",
+    "name": "Vernacular.ai",
+    "category": "india_product_unicorn",
+    "platform": "smartrecruiters",
+    "slug": "vernacularai",
+    "confidence": "high"
+  },
+  {
+    "name": "Coinbase",
     "category": "global_product",
     "platform": "greenhouse",
-    "slug": "zscaler",
+    "slug": "coinbase",
     "confidence": "high"
   },
   {
@@ -525,10 +1162,24 @@
     "confidence": "high"
   },
   {
-    "name": "Brex",
-    "category": "fintech_bfsi",
+    "name": "Kraken",
+    "category": "global_product",
+    "platform": "lever",
+    "slug": "kraken",
+    "confidence": "high"
+  },
+  {
+    "name": "Turing",
+    "category": "india_product_unicorn",
     "platform": "greenhouse",
-    "slug": "brex",
+    "slug": "turing",
+    "confidence": "high"
+  },
+  {
+    "name": "Turing",
+    "category": "india_product_unicorn",
+    "platform": "ashby",
+    "slug": "turing",
     "confidence": "high"
   },
   {
@@ -539,10 +1190,10 @@
     "confidence": "high"
   },
   {
-    "name": "Kraken",
-    "category": "global_product",
-    "platform": "lever",
-    "slug": "kraken",
+    "name": "Continental",
+    "category": "gcc",
+    "platform": "smartrecruiters",
+    "slug": "continental",
     "confidence": "high"
   },
   {
@@ -553,10 +1204,17 @@
     "confidence": "high"
   },
   {
-    "name": "Chime",
-    "category": "global_product",
+    "name": "ResMed",
+    "category": "gcc",
+    "platform": "smartrecruiters",
+    "slug": "resmed",
+    "confidence": "high"
+  },
+  {
+    "name": "Align Technology",
+    "category": "gcc",
     "platform": "greenhouse",
-    "slug": "chime",
+    "slug": "align",
     "confidence": "high"
   },
   {
@@ -581,13 +1239,6 @@
     "confidence": "high"
   },
   {
-    "name": "Lyft",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "lyft",
-    "confidence": "high"
-  },
-  {
     "name": "Instacart",
     "category": "global_product",
     "platform": "greenhouse",
@@ -595,24 +1246,59 @@
     "confidence": "high"
   },
   {
-    "name": "Discord",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "discord",
+    "name": "Lonza",
+    "category": "gcc",
+    "platform": "smartrecruiters",
+    "slug": "lonza",
     "confidence": "high"
   },
   {
-    "name": "Roblox",
+    "name": "Lyft",
     "category": "global_product",
     "platform": "greenhouse",
-    "slug": "roblox",
+    "slug": "lyft",
     "confidence": "high"
   },
   {
-    "name": "Databricks",
+    "name": "Reddit",
     "category": "global_product",
     "platform": "greenhouse",
-    "slug": "databricks",
+    "slug": "reddit",
+    "confidence": "high"
+  },
+  {
+    "name": "Reddit",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "reddit",
+    "confidence": "high"
+  },
+  {
+    "name": "Snowflake",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "snowflake",
+    "confidence": "high"
+  },
+  {
+    "name": "TCS",
+    "category": "it_services",
+    "platform": "greenhouse",
+    "slug": "tcs",
+    "confidence": "low"
+  },
+  {
+    "name": "Duolingo",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "duolingo",
+    "confidence": "high"
+  },
+  {
+    "name": "Swiggy",
+    "category": "india_product_unicorn",
+    "platform": "smartrecruiters",
+    "slug": "swiggy",
     "confidence": "high"
   },
   {
@@ -623,17 +1309,31 @@
     "confidence": "high"
   },
   {
-    "name": "Reddit",
+    "name": "CRED",
+    "category": "india_product_unicorn",
+    "platform": "lever",
+    "slug": "cred",
+    "confidence": "low"
+  },
+  {
+    "name": "Udemy",
     "category": "global_product",
     "platform": "greenhouse",
-    "slug": "reddit",
+    "slug": "udemy",
     "confidence": "high"
   },
   {
-    "name": "Reddit",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "reddit",
+    "name": "Freshworks",
+    "category": "india_product_unicorn",
+    "platform": "lever",
+    "slug": "freshworks",
+    "confidence": "high"
+  },
+  {
+    "name": "Freshworks",
+    "category": "india_product_unicorn",
+    "platform": "smartrecruiters",
+    "slug": "freshworks",
     "confidence": "high"
   },
   {
@@ -644,297 +1344,10 @@
     "confidence": "high"
   },
   {
-    "name": "Duolingo",
+    "name": "Roblox",
     "category": "global_product",
     "platform": "greenhouse",
-    "slug": "duolingo",
-    "confidence": "high"
-  },
-  {
-    "name": "E.ON",
-    "category": "gcc",
-    "platform": "ashby",
-    "slug": "eon",
-    "confidence": "high"
-  },
-  {
-    "name": "Udemy",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "udemy",
-    "confidence": "high"
-  },
-  {
-    "name": "SurveyMonkey",
-    "category": "gcc",
-    "platform": "greenhouse",
-    "slug": "surveymonkey",
-    "confidence": "high"
-  },
-  {
-    "name": "SurveyMonkey",
-    "category": "gcc",
-    "platform": "ashby",
-    "slug": "surveymonkey",
-    "confidence": "high"
-  },
-  {
-    "name": "Wrike",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "wrike",
-    "confidence": "high"
-  },
-  {
-    "name": "Honeycomb",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "honeycomb",
-    "confidence": "high"
-  },
-  {
-    "name": "LaunchDarkly",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "launchdarkly",
-    "confidence": "high"
-  },
-  {
-    "name": "LaunchDarkly",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "launchdarkly",
-    "confidence": "high"
-  },
-  {
-    "name": "Anthropic",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "anthropic",
-    "confidence": "high"
-  },
-  {
-    "name": "Sentry",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "sentry",
-    "confidence": "high"
-  },
-  {
-    "name": "Amplitude",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "amplitude",
-    "confidence": "high"
-  },
-  {
-    "name": "Mixpanel",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "mixpanel",
-    "confidence": "high"
-  },
-  {
-    "name": "FullStory",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "fullstory",
-    "confidence": "high"
-  },
-  {
-    "name": "Iterable",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "iterable",
-    "confidence": "high"
-  },
-  {
-    "name": "Iterable",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "iterable",
-    "confidence": "high"
-  },
-  {
-    "name": "Klaviyo",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "klaviyo",
-    "confidence": "high"
-  },
-  {
-    "name": "Klaviyo",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "klaviyo",
-    "confidence": "high"
-  },
-  {
-    "name": "Customer.io",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "customerio",
-    "confidence": "high"
-  },
-  {
-    "name": "Braze",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "braze",
-    "confidence": "high"
-  },
-  {
-    "name": "Intercom",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "intercom",
-    "confidence": "high"
-  },
-  {
-    "name": "NoBroker",
-    "category": "india_product_unicorn",
-    "platform": "smartrecruiters",
-    "slug": "nobroker",
-    "confidence": "high"
-  },
-  {
-    "name": "Brex",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "brex",
-    "confidence": "high"
-  },
-  {
-    "name": "TCS",
-    "category": "it_services",
-    "platform": "greenhouse",
-    "slug": "tcs",
-    "confidence": "high"
-  },
-  {
-    "name": "Lincoln Financial",
-    "category": "gcc",
-    "platform": "greenhouse",
-    "slug": "lincoln",
-    "confidence": "high"
-  },
-  {
-    "name": "SalesLoft",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "salesloft",
-    "confidence": "high"
-  },
-  {
-    "name": "6sense",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "6sense",
-    "confidence": "high"
-  },
-  {
-    "name": "ZoomInfo",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "zoominfo",
-    "confidence": "high"
-  },
-  {
-    "name": "Figma",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "figma",
-    "confidence": "high"
-  },
-  {
-    "name": "Figma",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "figma",
-    "confidence": "high"
-  },
-  {
-    "name": "Clari",
-    "category": "global_product",
-    "platform": "lever",
-    "slug": "clari",
-    "confidence": "high"
-  },
-  {
-    "name": "JFrog",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "jfrog",
-    "confidence": "high"
-  },
-  {
-    "name": "Buildkite",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "buildkite",
-    "confidence": "high"
-  },
-  {
-    "name": "CircleCI",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "circleci",
-    "confidence": "high"
-  },
-  {
-    "name": "Apollo.io",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "apolloio",
-    "confidence": "high"
-  },
-  {
-    "name": "Wiz",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "wiz",
-    "confidence": "high"
-  },
-  {
-    "name": "Snyk",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "snyk",
-    "confidence": "high"
-  },
-  {
-    "name": "Cloudflare",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "cloudflare",
-    "confidence": "high"
-  },
-  {
-    "name": "CRED",
-    "category": "india_product_unicorn",
-    "platform": "lever",
-    "slug": "cred",
-    "confidence": "high"
-  },
-  {
-    "name": "Fastly",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "fastly",
-    "confidence": "high"
-  },
-  {
-    "name": "Freshworks",
-    "category": "india_product_unicorn",
-    "platform": "lever",
-    "slug": "freshworks",
-    "confidence": "high"
-  },
-  {
-    "name": "Freshworks",
-    "category": "india_product_unicorn",
-    "platform": "smartrecruiters",
-    "slug": "freshworks",
+    "slug": "roblox",
     "confidence": "high"
   },
   {
@@ -945,45 +1358,31 @@
     "confidence": "high"
   },
   {
-    "name": "Thoughtworks",
-    "category": "it_services",
-    "platform": "greenhouse",
-    "slug": "thoughtworks",
-    "confidence": "high"
-  },
-  {
-    "name": "Pendo",
+    "name": "Smartsheet",
     "category": "global_product",
     "platform": "greenhouse",
-    "slug": "pendo",
+    "slug": "smartsheet",
     "confidence": "high"
   },
   {
-    "name": "Appcues",
+    "name": "Wrike",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "wrike",
+    "confidence": "high"
+  },
+  {
+    "name": "Sentry",
     "category": "global_product",
     "platform": "ashby",
-    "slug": "appcues",
+    "slug": "sentry",
     "confidence": "high"
   },
   {
-    "name": "Endava",
-    "category": "it_services",
-    "platform": "smartrecruiters",
-    "slug": "endava",
-    "confidence": "high"
-  },
-  {
-    "name": "Disney",
-    "category": "gcc",
-    "platform": "greenhouse",
-    "slug": "disney",
-    "confidence": "high"
-  },
-  {
-    "name": "LogRocket",
+    "name": "Honeycomb",
     "category": "global_product",
-    "platform": "lever",
-    "slug": "logrocket",
+    "platform": "greenhouse",
+    "slug": "honeycomb",
     "confidence": "high"
   },
   {
@@ -1001,6 +1400,20 @@
     "confidence": "high"
   },
   {
+    "name": "LaunchDarkly",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "launchdarkly",
+    "confidence": "high"
+  },
+  {
+    "name": "LaunchDarkly",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "launchdarkly",
+    "confidence": "high"
+  },
+  {
     "name": "Paytm",
     "category": "india_product_unicorn",
     "platform": "lever",
@@ -1015,31 +1428,17 @@
     "confidence": "high"
   },
   {
-    "name": "Checkly",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "checkly",
-    "confidence": "high"
-  },
-  {
-    "name": "SmartBear",
+    "name": "Mixpanel",
     "category": "global_product",
     "platform": "greenhouse",
-    "slug": "smartbear",
+    "slug": "mixpanel",
     "confidence": "high"
   },
   {
-    "name": "Zapier",
+    "name": "FullStory",
     "category": "global_product",
     "platform": "ashby",
-    "slug": "zapier",
-    "confidence": "high"
-  },
-  {
-    "name": "n8n",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "n8n",
+    "slug": "fullstory",
     "confidence": "high"
   },
   {
@@ -1050,24 +1449,17 @@
     "confidence": "high"
   },
   {
-    "name": "Workato",
+    "name": "Braze",
     "category": "global_product",
     "platform": "greenhouse",
-    "slug": "workato",
+    "slug": "braze",
     "confidence": "high"
   },
   {
-    "name": "Workato",
+    "name": "Amplitude",
     "category": "global_product",
-    "platform": "smartrecruiters",
-    "slug": "workato",
-    "confidence": "high"
-  },
-  {
-    "name": "Swiggy",
-    "category": "india_product_unicorn",
-    "platform": "smartrecruiters",
-    "slug": "swiggy",
+    "platform": "ashby",
+    "slug": "amplitude",
     "confidence": "high"
   },
   {
@@ -1085,10 +1477,38 @@
     "confidence": "high"
   },
   {
-    "name": "Boomi",
+    "name": "Iterable",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "iterable",
+    "confidence": "high"
+  },
+  {
+    "name": "Iterable",
     "category": "global_product",
     "platform": "ashby",
-    "slug": "boomi",
+    "slug": "iterable",
+    "confidence": "high"
+  },
+  {
+    "name": "Klaviyo",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "klaviyo",
+    "confidence": "high"
+  },
+  {
+    "name": "Klaviyo",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "klaviyo",
+    "confidence": "high"
+  },
+  {
+    "name": "Thales Group",
+    "category": "gcc",
+    "platform": "smartrecruiters",
+    "slug": "thales",
     "confidence": "high"
   },
   {
@@ -1099,311 +1519,59 @@
     "confidence": "high"
   },
   {
-    "name": "Synechron",
+    "name": "Customer.io",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "customerio",
+    "confidence": "high"
+  },
+  {
+    "name": "Thoughtworks",
+    "category": "it_services",
+    "platform": "greenhouse",
+    "slug": "thoughtworks",
+    "confidence": "high"
+  },
+  {
+    "name": "Endava",
     "category": "it_services",
     "platform": "smartrecruiters",
-    "slug": "synechron",
+    "slug": "endava",
     "confidence": "high"
   },
   {
-    "name": "Vercel",
+    "name": "Intercom",
     "category": "global_product",
     "platform": "greenhouse",
-    "slug": "vercel",
+    "slug": "intercom",
     "confidence": "high"
   },
   {
-    "name": "Vercel",
+    "name": "Gong",
     "category": "global_product",
-    "platform": "ashby",
-    "slug": "vercel",
-    "confidence": "high"
-  },
-  {
-    "name": "Hightouch",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "hightouch",
-    "confidence": "high"
-  },
-  {
-    "name": "Fivetran",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "fivetran",
-    "confidence": "high"
-  },
-  {
-    "name": "Prefect",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "prefect",
-    "confidence": "high"
-  },
-  {
-    "name": "HP",
-    "category": "gcc",
-    "platform": "greenhouse",
-    "slug": "hp",
-    "confidence": "high"
-  },
-  {
-    "name": "MetLife",
-    "category": "gcc",
-    "platform": "lever",
-    "slug": "metlife",
-    "confidence": "high"
-  },
-  {
-    "name": "Astronomer",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "astronomer",
-    "confidence": "high"
-  },
-  {
-    "name": "SingleStore",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "singlestore",
-    "confidence": "high"
-  },
-  {
-    "name": "Materialize",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "materialize",
-    "confidence": "high"
-  },
-  {
-    "name": "ClickHouse",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "clickhouse",
-    "confidence": "high"
-  },
-  {
-    "name": "Yugabyte",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "yugabyte",
-    "confidence": "high"
-  },
-  {
-    "name": "InfoBeans",
-    "category": "it_services",
     "platform": "smartrecruiters",
-    "slug": "infobeans",
+    "slug": "gong",
     "confidence": "high"
   },
   {
-    "name": "Cars24",
-    "category": "india_product_unicorn",
-    "platform": "smartrecruiters",
-    "slug": "cars24",
-    "confidence": "high"
-  },
-  {
-    "name": "Prisma",
+    "name": "SalesLoft",
     "category": "global_product",
     "platform": "greenhouse",
-    "slug": "prisma",
+    "slug": "salesloft",
     "confidence": "high"
   },
   {
-    "name": "Whatfix",
-    "category": "india_product_unicorn",
-    "platform": "smartrecruiters",
-    "slug": "whatfix",
-    "confidence": "high"
-  },
-  {
-    "name": "Neon",
+    "name": "Clari",
     "category": "global_product",
     "platform": "lever",
-    "slug": "neon",
+    "slug": "clari",
     "confidence": "high"
   },
   {
-    "name": "Neon",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "neon",
-    "confidence": "high"
-  },
-  {
-    "name": "Blend360",
-    "category": "it_services",
-    "platform": "smartrecruiters",
-    "slug": "blend360",
-    "confidence": "high"
-  },
-  {
-    "name": "Vultr",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "vultr",
-    "confidence": "high"
-  },
-  {
-    "name": "Observe.AI",
-    "category": "india_product_unicorn",
-    "platform": "greenhouse",
-    "slug": "observeai",
-    "confidence": "high"
-  },
-  {
-    "name": "Cohere",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "cohere",
-    "confidence": "high"
-  },
-  {
-    "name": "CloudSEK",
-    "category": "india_product_unicorn",
-    "platform": "greenhouse",
-    "slug": "cloudsek",
-    "confidence": "high"
-  },
-  {
-    "name": "Transform",
-    "category": "it_services",
-    "platform": "greenhouse",
-    "slug": "transform",
-    "confidence": "high"
-  },
-  {
-    "name": "Airwallex",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "airwallex",
-    "confidence": "high"
-  },
-  {
-    "name": "HighRadius",
-    "category": "india_product_unicorn",
-    "platform": "greenhouse",
-    "slug": "highradius",
-    "confidence": "high"
-  },
-  {
-    "name": "Payoneer",
+    "name": "6sense",
     "category": "global_product",
     "platform": "greenhouse",
-    "slug": "payoneer",
-    "confidence": "high"
-  },
-  {
-    "name": "Novo",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "novo",
-    "confidence": "high"
-  },
-  {
-    "name": "Nium",
-    "category": "global_product",
-    "platform": "lever",
-    "slug": "nium",
-    "confidence": "high"
-  },
-  {
-    "name": "Continental",
-    "category": "gcc",
-    "platform": "smartrecruiters",
-    "slug": "continental",
-    "confidence": "high"
-  },
-  {
-    "name": "Druva",
-    "category": "india_product_unicorn",
-    "platform": "greenhouse",
-    "slug": "druva",
-    "confidence": "high"
-  },
-  {
-    "name": "Yes Bank",
-    "category": "fintech_bfsi",
-    "platform": "greenhouse",
-    "slug": "yes",
-    "confidence": "high"
-  },
-  {
-    "name": "Zenoti",
-    "category": "india_product_unicorn",
-    "platform": "greenhouse",
-    "slug": "zenoti",
-    "confidence": "high"
-  },
-  {
-    "name": "ServiceNow",
-    "category": "global_product",
-    "platform": "smartrecruiters",
-    "slug": "servicenow",
-    "confidence": "high"
-  },
-  {
-    "name": "Uber",
-    "category": "global_product",
-    "platform": "smartrecruiters",
-    "slug": "uber",
-    "confidence": "high"
-  },
-  {
-    "name": "Airbyte",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "airbyte",
-    "confidence": "high"
-  },
-  {
-    "name": "Snowflake",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "snowflake",
-    "confidence": "high"
-  },
-  {
-    "name": "Confluent",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "confluent",
-    "confidence": "high"
-  },
-  {
-    "name": "MongoDB",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "mongodb",
-    "confidence": "high"
-  },
-  {
-    "name": "Twilio",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "twilio",
-    "confidence": "high"
-  },
-  {
-    "name": "Elastic",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "elastic",
-    "confidence": "high"
-  },
-  {
-    "name": "Stripe",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "stripe",
-    "confidence": "high"
-  },
-  {
-    "name": "Scaler",
-    "category": "india_product_unicorn",
-    "platform": "ashby",
-    "slug": "scaler",
+    "slug": "6sense",
     "confidence": "high"
   },
   {
@@ -1414,24 +1582,73 @@
     "confidence": "high"
   },
   {
-    "name": "Datadog",
+    "name": "Apollo.io",
     "category": "global_product",
     "platform": "greenhouse",
-    "slug": "datadog",
+    "slug": "apolloio",
     "confidence": "high"
   },
   {
-    "name": "InterviewBit",
+    "name": "Figma",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "figma",
+    "confidence": "high"
+  },
+  {
+    "name": "Figma",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "figma",
+    "confidence": "high"
+  },
+  {
+    "name": "Outreach",
+    "category": "global_product",
+    "platform": "lever",
+    "slug": "outreach",
+    "confidence": "high"
+  },
+  {
+    "name": "Cars24",
     "category": "india_product_unicorn",
     "platform": "smartrecruiters",
-    "slug": "interviewbit",
+    "slug": "cars24",
     "confidence": "high"
   },
   {
-    "name": "Tide",
-    "category": "fintech_bfsi",
+    "name": "ZoomInfo",
+    "category": "global_product",
     "platform": "greenhouse",
-    "slug": "tide",
+    "slug": "zoominfo",
+    "confidence": "high"
+  },
+  {
+    "name": "JFrog",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "jfrog",
+    "confidence": "high"
+  },
+  {
+    "name": "Anaplan",
+    "category": "gcc",
+    "platform": "greenhouse",
+    "slug": "anaplan",
+    "confidence": "high"
+  },
+  {
+    "name": "CircleCI",
+    "category": "global_product",
+    "platform": "greenhouse",
+    "slug": "circleci",
+    "confidence": "high"
+  },
+  {
+    "name": "Celonis",
+    "category": "gcc",
+    "platform": "greenhouse",
+    "slug": "celonis",
     "confidence": "high"
   },
   {
@@ -1442,185 +1659,87 @@
     "confidence": "high"
   },
   {
-    "name": "PagerDuty",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "pagerduty",
+    "name": "Whatfix",
+    "category": "india_product_unicorn",
+    "platform": "smartrecruiters",
+    "slug": "whatfix",
     "confidence": "high"
   },
   {
-    "name": "US Bank",
+    "name": "CloudSEK",
+    "category": "india_product_unicorn",
+    "platform": "greenhouse",
+    "slug": "cloudsek",
+    "confidence": "high"
+  },
+  {
+    "name": "Wiz",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "wiz",
+    "confidence": "high"
+  },
+  {
+    "name": "Snyk",
+    "category": "global_product",
+    "platform": "ashby",
+    "slug": "snyk",
+    "confidence": "high"
+  },
+  {
+    "name": "Observe.AI",
+    "category": "india_product_unicorn",
+    "platform": "greenhouse",
+    "slug": "observeai",
+    "confidence": "high"
+  },
+  {
+    "name": "SurveyMonkey",
     "category": "gcc",
     "platform": "greenhouse",
-    "slug": "us",
+    "slug": "surveymonkey",
     "confidence": "high"
   },
   {
-    "name": "Monzo",
-    "category": "fintech_bfsi",
+    "name": "SurveyMonkey",
+    "category": "gcc",
+    "platform": "ashby",
+    "slug": "surveymonkey",
+    "confidence": "high"
+  },
+  {
+    "name": "AB InBev",
+    "category": "gcc",
     "platform": "greenhouse",
-    "slug": "monzo",
+    "slug": "abinbev",
     "confidence": "high"
   },
   {
-    "name": "HackerRank",
-    "category": "india_product_unicorn",
-    "platform": "greenhouse",
-    "slug": "hackerrank",
-    "confidence": "high"
-  },
-  {
-    "name": "HackerRank",
-    "category": "india_product_unicorn",
+    "name": "GEP Worldwide",
+    "category": "it_services",
     "platform": "smartrecruiters",
-    "slug": "hackerrank",
+    "slug": "gepworldwide",
     "confidence": "high"
   },
   {
-    "name": "N26",
-    "category": "fintech_bfsi",
-    "platform": "greenhouse",
-    "slug": "n26",
-    "confidence": "high"
-  },
-  {
-    "name": "Qualtrics",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "qualtrics",
-    "confidence": "high"
-  },
-  {
-    "name": "Qualtrics",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "qualtrics",
-    "confidence": "high"
-  },
-  {
-    "name": "Nubank",
-    "category": "fintech_bfsi",
-    "platform": "greenhouse",
-    "slug": "nubank",
-    "confidence": "high"
-  },
-  {
-    "name": "Nubank",
-    "category": "fintech_bfsi",
-    "platform": "ashby",
-    "slug": "nubank",
-    "confidence": "high"
-  },
-  {
-    "name": "Zeta",
-    "category": "fintech_bfsi",
-    "platform": "lever",
-    "slug": "zeta",
-    "confidence": "high"
-  },
-  {
-    "name": "Dropbox",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "dropbox",
-    "confidence": "high"
-  },
-  {
-    "name": "Adyen",
-    "category": "fintech_bfsi",
-    "platform": "greenhouse",
-    "slug": "adyen",
-    "confidence": "high"
-  },
-  {
-    "name": "Pinterest",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "pinterest",
-    "confidence": "high"
-  },
-  {
-    "name": "Block",
-    "category": "fintech_bfsi",
-    "platform": "greenhouse",
-    "slug": "block",
-    "confidence": "high"
-  },
-  {
-    "name": "LinkedIn",
-    "category": "global_product",
-    "platform": "lever",
-    "slug": "linkedin",
-    "confidence": "high"
-  },
-  {
-    "name": "Airbnb",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "airbnb",
-    "confidence": "high"
-  },
-  {
-    "name": "Melio",
-    "category": "fintech_bfsi",
-    "platform": "greenhouse",
-    "slug": "melio",
-    "confidence": "high"
-  },
-  {
-    "name": "Bill.com",
-    "category": "fintech_bfsi",
-    "platform": "greenhouse",
-    "slug": "billcom",
-    "confidence": "high"
-  },
-  {
-    "name": "Ramp",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "ramp",
-    "confidence": "high"
-  },
-  {
-    "name": "Spotify",
-    "category": "global_product",
-    "platform": "lever",
-    "slug": "spotify",
-    "confidence": "high"
-  },
-  {
-    "name": "Plaid India",
-    "category": "fintech_bfsi",
-    "platform": "ashby",
-    "slug": "plaid",
-    "confidence": "low"
-  },
-  {
-    "name": "Together AI",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "togetherai",
-    "confidence": "high"
-  },
-  {
-    "name": "Together AI",
-    "category": "global_product",
+    "name": "Roland Berger",
+    "category": "it_services",
     "platform": "smartrecruiters",
-    "slug": "together",
-    "confidence": "low"
+    "slug": "rolandberger",
+    "confidence": "high"
   },
   {
-    "name": "Stage OTT",
-    "category": "india_product_unicorn",
-    "platform": "greenhouse",
-    "slug": "stage",
-    "confidence": "low"
-  },
-  {
-    "name": "Ramp",
-    "category": "fintech_bfsi",
+    "name": "Apollo GraphQL",
+    "category": "global_product",
     "platform": "ashby",
-    "slug": "ramp",
+    "slug": "apollo-graphql",
+    "confidence": "high"
+  },
+  {
+    "name": "Charles River Associates",
+    "category": "it_services",
+    "platform": "greenhouse",
+    "slug": "charlesriverassociates",
     "confidence": "high"
   },
   {
@@ -1631,60 +1750,11 @@
     "confidence": "high"
   },
   {
-    "name": "Pure Storage",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "purestorage",
-    "confidence": "high"
-  },
-  {
-    "name": "Pure Storage",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "purestorage",
-    "confidence": "high"
-  },
-  {
-    "name": "Pure Storage",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "pure",
-    "confidence": "low"
-  },
-  {
-    "name": "Modern Treasury",
-    "category": "fintech_bfsi",
-    "platform": "ashby",
-    "slug": "moderntreasury",
-    "confidence": "high"
-  },
-  {
-    "name": "Scale AI",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "scaleai",
-    "confidence": "high"
-  },
-  {
-    "name": "Blue Yonder",
-    "category": "global_product",
+    "name": "Oliver Wyman",
+    "category": "it_services",
     "platform": "lever",
-    "slug": "blue",
-    "confidence": "low"
-  },
-  {
-    "name": "Digit Insurance",
-    "category": "fintech_bfsi",
-    "platform": "greenhouse",
-    "slug": "digit",
-    "confidence": "low"
-  },
-  {
-    "name": "Swiggy Instamart",
-    "category": "india_product_unicorn",
-    "platform": "smartrecruiters",
-    "slug": "swiggy",
-    "confidence": "low"
+    "slug": "oliverwyman",
+    "confidence": "high"
   },
   {
     "name": "Pocket FM",
@@ -1694,13 +1764,6 @@
     "confidence": "high"
   },
   {
-    "name": "Charles Schwab",
-    "category": "gcc",
-    "platform": "greenhouse",
-    "slug": "charles",
-    "confidence": "low"
-  },
-  {
     "name": "Captain Fresh",
     "category": "india_product_unicorn",
     "platform": "smartrecruiters",
@@ -1708,130 +1771,18 @@
     "confidence": "high"
   },
   {
-    "name": "Mistral AI",
-    "category": "global_product",
-    "platform": "lever",
-    "slug": "mistral",
-    "confidence": "low"
-  },
-  {
-    "name": "Epic Games",
+    "name": "New Relic",
     "category": "global_product",
     "platform": "greenhouse",
-    "slug": "epicgames",
+    "slug": "newrelic",
     "confidence": "high"
   },
   {
-    "name": "National Grid",
-    "category": "gcc",
-    "platform": "greenhouse",
-    "slug": "national",
-    "confidence": "low"
-  },
-  {
-    "name": "Disney Hotstar",
-    "category": "india_product_unicorn",
-    "platform": "greenhouse",
-    "slug": "disney",
-    "confidence": "low"
-  },
-  {
-    "name": "Sarvam AI",
-    "category": "india_product_unicorn",
-    "platform": "ashby",
-    "slug": "sarvam",
-    "confidence": "low"
-  },
-  {
-    "name": "Capital One",
-    "category": "gcc",
-    "platform": "lever",
-    "slug": "capital",
-    "confidence": "low"
-  },
-  {
-    "name": "Tiger Analytics",
-    "category": "india_product_unicorn",
-    "platform": "ashby",
-    "slug": "tiger",
-    "confidence": "low"
-  },
-  {
-    "name": "Eli Lilly",
-    "category": "gcc",
-    "platform": "ashby",
-    "slug": "eli",
-    "confidence": "low"
-  },
-  {
-    "name": "Capital Float",
-    "category": "fintech_bfsi",
-    "platform": "lever",
-    "slug": "capital",
-    "confidence": "low"
-  },
-  {
-    "name": "US Bancorp",
-    "category": "gcc",
-    "platform": "greenhouse",
-    "slug": "us",
-    "confidence": "low"
-  },
-  {
-    "name": "Newton School",
-    "category": "india_product_unicorn",
+    "name": "New Relic",
+    "category": "global_product",
     "platform": "smartrecruiters",
-    "slug": "newtonschool",
+    "slug": "newrelic",
     "confidence": "high"
-  },
-  {
-    "name": "Newton School",
-    "category": "india_product_unicorn",
-    "platform": "greenhouse",
-    "slug": "newton",
-    "confidence": "low"
-  },
-  {
-    "name": "Newton School",
-    "category": "india_product_unicorn",
-    "platform": "lever",
-    "slug": "newton",
-    "confidence": "low"
-  },
-  {
-    "name": "Pesto Tech",
-    "category": "india_product_unicorn",
-    "platform": "ashby",
-    "slug": "pesto",
-    "confidence": "low"
-  },
-  {
-    "name": "Help Scout",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "helpscout",
-    "confidence": "high"
-  },
-  {
-    "name": "Help Scout",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "help",
-    "confidence": "low"
-  },
-  {
-    "name": "Lattice Semiconductor",
-    "category": "gcc",
-    "platform": "greenhouse",
-    "slug": "lattice",
-    "confidence": "low"
-  },
-  {
-    "name": "Applied Materials",
-    "category": "gcc",
-    "platform": "ashby",
-    "slug": "applied",
-    "confidence": "low"
   },
   {
     "name": "Renesas Electronics",
@@ -1841,60 +1792,46 @@
     "confidence": "high"
   },
   {
-    "name": "General Motors",
-    "category": "gcc",
-    "platform": "greenhouse",
-    "slug": "general",
-    "confidence": "low"
-  },
-  {
-    "name": "Make Integromat",
+    "name": "Pure Storage",
     "category": "global_product",
     "platform": "greenhouse",
-    "slug": "make",
-    "confidence": "low"
+    "slug": "purestorage",
+    "confidence": "high"
   },
   {
-    "name": "Railway App",
+    "name": "Pure Storage",
     "category": "global_product",
     "platform": "ashby",
-    "slug": "railway",
-    "confidence": "low"
+    "slug": "purestorage",
+    "confidence": "high"
   },
   {
-    "name": "Better Stack",
-    "category": "global_product",
-    "platform": "lever",
-    "slug": "better",
-    "confidence": "low"
+    "name": "Modern Treasury",
+    "category": "fintech_bfsi",
+    "platform": "ashby",
+    "slug": "moderntreasury",
+    "confidence": "high"
   },
   {
-    "name": "GEP Worldwide",
-    "category": "it_services",
+    "name": "William Blair",
+    "category": "gcc",
+    "platform": "greenhouse",
+    "slug": "williamblair",
+    "confidence": "high"
+  },
+  {
+    "name": "Newton School",
+    "category": "india_product_unicorn",
     "platform": "smartrecruiters",
-    "slug": "gepworldwide",
+    "slug": "newtonschool",
     "confidence": "high"
   },
   {
-    "name": "Analog Devices",
-    "category": "gcc",
-    "platform": "ashby",
-    "slug": "analog",
-    "confidence": "low"
-  },
-  {
-    "name": "Apollo GraphQL",
-    "category": "global_product",
-    "platform": "ashby",
-    "slug": "apollo-graphql",
-    "confidence": "high"
-  },
-  {
-    "name": "Apollo GraphQL",
+    "name": "Together AI",
     "category": "global_product",
     "platform": "greenhouse",
-    "slug": "apollo",
-    "confidence": "low"
+    "slug": "togetherai",
+    "confidence": "high"
   },
   {
     "name": "Western Digital",
@@ -1904,45 +1841,31 @@
     "confidence": "high"
   },
   {
-    "name": "Parker Hannifin",
-    "category": "gcc",
-    "platform": "ashby",
-    "slug": "parker",
-    "confidence": "low"
-  },
-  {
-    "name": "Fi Money",
-    "category": "fintech_bfsi",
+    "name": "Wisdom AI",
+    "category": "india_product_unicorn",
     "platform": "lever",
-    "slug": "fi",
-    "confidence": "low"
-  },
-  {
-    "name": "New Relic",
-    "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "newrelic",
+    "slug": "wisdomai",
     "confidence": "high"
   },
   {
-    "name": "New Relic",
+    "name": "Epic Games",
     "category": "global_product",
-    "platform": "smartrecruiters",
-    "slug": "newrelic",
+    "platform": "greenhouse",
+    "slug": "epicgames",
     "confidence": "high"
   },
   {
-    "name": "New Relic",
+    "name": "Help Scout",
     "category": "global_product",
-    "platform": "greenhouse",
-    "slug": "new",
-    "confidence": "low"
+    "platform": "ashby",
+    "slug": "helpscout",
+    "confidence": "high"
   },
   {
-    "name": "General Dynamics",
-    "category": "gcc",
+    "name": "Scale AI",
+    "category": "global_product",
     "platform": "greenhouse",
-    "slug": "general",
-    "confidence": "low"
+    "slug": "scaleai",
+    "confidence": "high"
   }
 ]
