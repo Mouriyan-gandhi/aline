@@ -171,23 +171,30 @@ struct MatchEngine {
         var matchNotes: [String] = []
         var mismatchNotes: [String] = []
 
-        if preferences.preferredLocation != "All locations" {
-            if job.location.localizedCaseInsensitiveContains(preferences.preferredLocation) {
+        // Empty set is the real onboarding flow's own explicit "open to any location" state,
+        // not an unset placeholder — nothing to boost or penalize against.
+        if !preferences.preferredLocations.isEmpty {
+            if preferences.preferredLocations.contains(where: { job.location.localizedCaseInsensitiveContains($0) }) {
                 subscores.append(1.0)
-                matchNotes.append("In your preferred location (\(preferences.preferredLocation))")
+                matchNotes.append("In your preferred location")
             } else {
                 // Not excluded, just not boosted — see the standing one-sided-filter rule
                 // (ingestion never hard-drops on a soft preference, and neither does this).
                 // Still worth a note: a lower score with no explanation at all breaks the
                 // "never an opaque number" principle just as much as a wrong one would.
                 subscores.append(0.3)
-                mismatchNotes.append("Outside your preferred location (\(preferences.preferredLocation))")
+                mismatchNotes.append("Outside your preferred locations")
             }
         }
 
         if !preferences.preferredRoles.isEmpty {
+            // preferredRoles holds OnboardingRoleInterest display labels, not raw keywords —
+            // match via each label's own keyword list, not the label text itself (a label
+            // like "Backend Development" wouldn't substring-match a real "Backend Engineer"
+            // job title).
             let lowerTitle = job.title.lowercased()
-            if preferences.preferredRoles.contains(where: { lowerTitle.contains($0.lowercased()) }) {
+            let interests = OnboardingRoleInterest.all.filter { preferences.preferredRoles.contains($0.label) }
+            if interests.contains(where: { interest in interest.keywords.contains { lowerTitle.contains($0) } }) {
                 subscores.append(1.0)
                 matchNotes.append("Matches a role you're interested in")
             } else {
