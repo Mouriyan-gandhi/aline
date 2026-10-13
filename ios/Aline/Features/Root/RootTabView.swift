@@ -3,21 +3,23 @@ import SwiftUI
 struct RootTabView: View {
     let profile: CareerProfile
     let preferences: UserPreferences
+    @State private var selected: AlineTab = .discover
 
     var body: some View {
-        TabView {
-            DiscoverView(profile: profile, preferences: preferences)
-                .tabItem { Label("Discover", systemImage: "sparkles") }
+        ZStack(alignment: .bottom) {
+            Group {
+                switch selected {
+                case .discover: DiscoverView(profile: profile, preferences: preferences)
+                case .resume: ResumeView(profile: profile)
+                case .community: CommunityView()
+                case .profile: ProfileView(profile: profile)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            ResumeView(profile: profile)
-                .tabItem { Label("Resume", systemImage: "doc.text") }
-
-            CommunityView()
-                .tabItem { Label("Community", systemImage: "bubble.left.and.bubble.right") }
-
-            ProfileView(profile: profile)
-                .tabItem { Label("Profile", systemImage: "person.crop.circle") }
+            AlineTabBar(selected: $selected)
         }
-        .tint(AlineColor.electricCobalt)
+        .ignoresSafeArea(.keyboard)
+        .tint(AlineColor.primary)
     }
 }
