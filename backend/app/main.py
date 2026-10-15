@@ -63,6 +63,22 @@ PLATFORM_CONCURRENCY = {
 
 CACHE_TTL_SECONDS = 10 * 60  # periodic refresh, not re-scraped on every request
 
+# A company's last-known-good jobs survive this many consecutive failed refresh cycles before
+# being dropped from the feed. Without this, a single transient failure (DNS blip, a one-off
+# 500 from the source, a rate limit) wiped that company's jobs out of /jobs immediately —
+# indistinguishable from those jobs actually closing, and a real risk of a user missing a
+# still-open opportunity for a reason that has nothing to do with the job itself. 3 cycles
+# (~30 min at the current 10-minute TTL) tolerates a transient blip while still eventually
+# reflecting a source that's genuinely down or discontinued, rather than caching it forever.
+MAX_CONSECUTIVE_FAILURES = 3
+
+
+def _company_key(company: dict) -> tuple:
+    # (name, platform, slug-or-url_base) — verified unique across the full registry; name
+    # alone collides (several companies share a display name across platforms) and slug alone
+    # collides even more (workday_sitemap entries key off url_base, not slug).
+    return (company["name"], company["platform"], company.get("slug") or company.get("url_base"))
+
 
 class JobsCache:
     def __init__(self):
@@ -75,6 +91,14 @@ class JobsCache:
         # returning an empty list — the bug that shipped first: 0 jobs within 10ms of the
         # startup scrape still running.
         self.ready_event = asyncio.Event()
+        # Per-company last-known-good jobs + consecutive failure count — see
+        # MAX_CONSECUTIVE_FAILURES and refresh_cache's merge logic below.
+        self.company_jobs: dict[tuple, list[Job]] = {}
+        self.company_fail_streak: dict[tuple, int] = {}
+        # Companies currently mid-failure-streak (but not yet dropped) as of the last refresh —
+        # surfaced on /companies so a scraper problem is visible, not silently indistinguishable
+        # from "those companies just have zero open jobs right now."
+        self.companies_degraded: list[str] = []
 
     def is_stale(self) -> bool:
         return (time.time() - self.last_refreshed) > CACHE_TTL_SECONDS
@@ -83,32 +107,37 @@ class JobsCache:
 cache = JobsCache()
 
 
-async def scrape_all() -> list[Job]:
+async def scrape_all() -> dict[tuple, tuple[list[Job], bool]]:
     """
     Every active platform (including workday_sitemap) tolerates real concurrency — see
     PLATFORM_CONCURRENCY above for per-platform limits and why. The old fully-serial,
     heavily-spaced Workday path is gone: no companies route to the legacy "workday" adapter
     that needed it (see companies.py) — workday_sitemap hits a fundamentally different,
     unblocked endpoint.
+
+    Returns {company_key: (jobs, succeeded)} rather than a flat job list — refresh_cache needs
+    to tell a company that scraped to a genuine empty result apart from one whose scrape
+    outright failed, so a failure never gets merged in as if it were real "zero jobs" data.
     """
     sems = {platform: asyncio.Semaphore(n) for platform, n in PLATFORM_CONCURRENCY.items()}
 
-    async def scrape_one(company: dict, client: httpx.AsyncClient) -> list[Job]:
+    async def scrape_one(company: dict, client: httpx.AsyncClient) -> tuple[tuple, list[Job], bool]:
+        key = _company_key(company)
         adapter = ADAPTERS.get(company["platform"])
         if adapter is None:
-            return []
+            return key, [], True  # unroutable platform, not a failure — genuinely nothing to show
         sem = sems.get(company["platform"], asyncio.Semaphore(10))
         async with sem:
             try:
-                return await adapter(company, client)
+                return key, await adapter(company, client), True
             except Exception as exc:  # noqa: BLE001 — one bad source shouldn't break the rest
                 logger.warning("Scrape failed for %s (%s): %s", company["name"], company["platform"], exc)
-                return []
+                return key, [], False
 
     async with httpx.AsyncClient(follow_redirects=True) as client:
         results = await asyncio.gather(*(scrape_one(c, client) for c in COMPANIES))
 
-    return [job for company_jobs in results for job in company_jobs]
+    return {key: (jobs, ok) for key, jobs, ok in results}
 
 
 async def refresh_cache():
@@ -117,14 +146,42 @@ async def refresh_cache():
     cache.refreshing = True
     started = time.time()
     try:
-        jobs = await scrape_all()
-        cache.jobs = jobs
+        results = await scrape_all()
+        degraded: list[str] = []
+        current_keys = {_company_key(c) for c in COMPANIES}
+        name_by_key = {_company_key(c): c["name"] for c in COMPANIES}
+
+        for key, (jobs, ok) in results.items():
+            if ok:
+                cache.company_jobs[key] = jobs
+                cache.company_fail_streak[key] = 0
+            else:
+                streak = cache.company_fail_streak.get(key, 0) + 1
+                cache.company_fail_streak[key] = streak
+                if streak > MAX_CONSECUTIVE_FAILURES:
+                    # Genuinely treat as gone only after repeated failures — a real signal the
+                    # source is down/discontinued, not a one-off blip.
+                    cache.company_jobs[key] = []
+                else:
+                    # Keep the prior cycle's jobs as-is; this company's contribution to /jobs
+                    # doesn't change just because this one cycle's fetch failed.
+                    degraded.append(name_by_key.get(key, str(key)))
+
+        # Drop any company no longer in the registry (e.g. removed from companies.py) so its
+        # stale jobs don't linger in the cache forever.
+        for stale_key in list(cache.company_jobs.keys()):
+            if stale_key not in current_keys:
+                del cache.company_jobs[stale_key]
+                cache.company_fail_streak.pop(stale_key, None)
+
+        cache.jobs = [job for jobs in cache.company_jobs.values() for job in jobs]
+        cache.companies_degraded = degraded
         cache.last_refreshed = time.time()
         cache.last_error = None
         cache.ready_event.set()
         logger.info(
-            "Refreshed cache: %d jobs from %d companies in %.1fs",
-            len(jobs), len(COMPANIES), time.time() - started,
+            "Refreshed cache: %d jobs from %d companies in %.1fs (%d degraded, kept from last cycle)",
+            len(cache.jobs), len(COMPANIES), time.time() - started, len(degraded),
         )
     except Exception as exc:  # noqa: BLE001
         cache.last_error = str(exc)
@@ -158,6 +215,10 @@ async def companies_status():
         "cache_last_refreshed": cache.last_refreshed,
         "cache_job_count": len(cache.jobs),
         "cache_last_error": cache.last_error,
+        # Companies whose last scrape failed but whose jobs are still being shown from a
+        # prior successful cycle (see MAX_CONSECUTIVE_FAILURES) — a scraper problem should be
+        # visible here, never silently indistinguishable from "that company has 0 jobs."
+        "companies_degraded": cache.companies_degraded,
     }
 
 
