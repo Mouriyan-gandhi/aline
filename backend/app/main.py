@@ -8,7 +8,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.adapters import amazon, ashby, greenhouse, lever, smartrecruiters, workable, workday, workday_sitemap
+from app.community import router as community_router
+from app.community_db import init_db as init_community_db
 from app.companies import COMPANIES, NEEDS_REVIEW
+from app.feedback import router as feedback_router
+from app.profile import router as profile_router
 from app.schemas import Job
 
 logging.basicConfig(level=logging.INFO)
@@ -22,6 +26,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(community_router)
+app.include_router(profile_router)
+app.include_router(feedback_router)
 
 ADAPTERS = {
     "greenhouse": greenhouse.scrape,
@@ -127,12 +135,13 @@ async def refresh_cache():
 
 @app.on_event("startup")
 async def on_startup():
+    init_community_db()
     asyncio.create_task(refresh_cache())
 
 
 @app.get("/")
 async def root():
-    return {"service": "aline-backend", "try": ["/health", "/jobs", "/companies"]}
+    return {"service": "aline-backend", "try": ["/health", "/jobs", "/companies", "/community/discussions", "/profile"]}
 
 
 @app.get("/health")

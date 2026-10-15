@@ -1,0 +1,38 @@
+# Fly.io deployment config. `fly launch` will have generated most of this if you ran it
+# first — this file is provided so the app name, volume mount, and always-on setting are
+# correct from the start rather than needing to be fixed after.
+#
+# IMPORTANT before first deploy: `app` must be globally unique across all of Fly. If
+# "aline-backend" is taken, change it here (and nowhere else needs to match).
+app = "aline-backend"
+primary_region = "bom"  # Mumbai — closest Fly region to India-based users/companies data
+
+[build]
+
+[env]
+  PORT = "8080"
+
+[[mounts]]
+  # Persistent volume for community.db — WITHOUT this, every deploy/restart wipes all
+  # profiles, discussions and comments (the container filesystem is otherwise ephemeral).
+  # Create the volume once before first deploy:
+  #   fly volumes create aline_data --region bom --size 1
+  source = "aline_data"
+  destination = "/app/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # Kept always-on deliberately: on_startup kicks off a full company scrape (~450s measured
+  # live against all 460 companies) and /jobs blocks until that first scrape completes. An
+  # auto-stopped machine waking on request would make whoever triggers that wake wait up to
+  # 7.5 minutes for their first request. Fine to revisit once there's enough real traffic
+  # that always-on is clearly worth its small cost either way.
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

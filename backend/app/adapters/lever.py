@@ -1,4 +1,6 @@
 """Ported from old_version/scraper/scraper.js (scrapeLever)."""
+from datetime import datetime, timezone
+
 import httpx
 
 from app.adapters.common import HTTP_TIMEOUT, USER_AGENT, html_to_text, normalize_location
@@ -40,7 +42,15 @@ async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:
             department=department,
             location=location,
             apply_url=post.get("hostedUrl") or f"https://jobs.lever.co/{company['slug']}",
-            posted_at=str(post["createdAt"]) if post.get("createdAt") else None,
+            # Lever's createdAt is epoch milliseconds, not a date string — every other
+            # adapter (Greenhouse/Ashby/SmartRecruiters/Workday) already hands the iOS client
+            # an ISO8601 string, so convert here rather than leaning on the client to guess
+            # which platform sent a raw timestamp. Was previously `str(createdAt)`, which
+            # shipped a literal "1788425813778" to the freshness badge.
+            posted_at=(
+                datetime.fromtimestamp(post["createdAt"] / 1000, tz=timezone.utc).isoformat()
+                if post.get("createdAt") else None
+            ),
             extracted_skills=extract_skills(f"{title} {description}"),
             description=description,
             min_years_experience=extract_min_years_experience(description),
