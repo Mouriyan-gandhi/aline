@@ -83,7 +83,7 @@ struct JobDetailView: View {
                 .foregroundStyle(AlineColor.inkNavy)
             HStack(spacing: 12) {
                 Label(job.location, systemImage: "mappin.and.ellipse")
-                if let posted = job.postedAt {
+                if let posted = job.postedRelativeDescription {
                     Label(posted, systemImage: "clock")
                 }
             }

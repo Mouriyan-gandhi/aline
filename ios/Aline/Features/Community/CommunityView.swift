@@ -244,7 +244,7 @@ struct CommunityView: View {
                 .foregroundStyle(.white)
                 .frame(width: 48, height: 48)
         }
-        .modifier(GlassFABStyle())
+        .buttonStyle(GlassFABStyle())
         .padding(.trailing, 16)
         .padding(.bottom, 100)
     }

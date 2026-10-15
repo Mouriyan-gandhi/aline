@@ -59,13 +59,13 @@ struct JobCardView: View {
                     .font(AlineFont.sfPro(10))
             }
             .foregroundStyle(AlineColor.textPrimary)
-            if let posted = job.postedAt {
-                Text("New · \(posted)")
+            if let freshnessLabel = job.freshnessLabel {
+                Text(freshnessLabel)
                     .font(AlineFont.sfPro(10, weight: .medium))
                     .foregroundStyle(AlineColor.textPrimary)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
-                    .background(AlineColor.badgeHighlight)
+                    .background(freshnessLabel == "New" ? AlineColor.badgeHighlight : AlineColor.badgeHighlightMuted)
                     .clipShape(Capsule())
             }
         }

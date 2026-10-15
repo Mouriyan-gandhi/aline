@@ -26,6 +26,12 @@ enum AlineColor {
     /// more screens; visually close to the real design's secondary gray but not yet pulled
     /// from a token/style definition directly.
     static let textSecondary = Color(hex: 0x6B6B6B)
+    /// Text-field / form-input hairline border — slightly darker than `cardBorder` so inputs
+    /// read as editable against plain card surfaces.
+    static let inputBorder = Color(hex: 0xD8D6D1)
+    /// Unselected chip fill (topic/filter/role chips) — the neutral state `primary` selection
+    /// is drawn against.
+    static let chipUnselected = Color(hex: 0xF0EFEB)
 
     // MARK: - Deprecated placeholder-system aliases (being phased out screen by screen)
     // Kept temporarily so screens not yet rebuilt from Figma still compile; remove once every
@@ -147,5 +153,35 @@ struct AlinePrimaryButtonStyle: ButtonStyle {
             .background(AlineColor.primary)
             .clipShape(Capsule())
             .opacity(configuration.isPressed ? 0.85 : 1)
+    }
+}
+
+/// Floating action button style built on real Liquid Glass (iOS 26+): a genuinely discrete,
+/// circular glass surface, tinted with the brand color and `.interactive()` so it responds to
+/// touch the way system glass controls do. Liquid Glass only reads as "glass" over a shape
+/// that's visually separated from its surroundings — flush/edge-to-edge glass just looks like
+/// a flat tinted fill — so this is always used floating over content (e.g. Community's compose
+/// button), never flush against an edge. Falls back to a plain tinted-material circle on
+/// iOS < 26 since the deployment target is 18.
+struct GlassFABStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        Group {
+            if #available(iOS 26.0, *) {
+                configuration.label
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 56, height: 56)
+                    .glassEffect(.regular.tint(AlineColor.primary).interactive(), in: .circle)
+            } else {
+                configuration.label
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 56, height: 56)
+                    .background(AlineColor.primary, in: .circle)
+                    .shadow(color: .black.opacity(0.18), radius: 10, y: 4)
+            }
+        }
+        .scaleEffect(configuration.isPressed ? 0.93 : 1)
+        .animation(.spring(response: 0.25, dampingFraction: 0.7), value: configuration.isPressed)
     }
 }

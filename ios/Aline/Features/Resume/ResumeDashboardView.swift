@@ -8,6 +8,8 @@ struct ResumeDashboardView: View {
     let careerProfile: CareerProfile
 
     @Environment(\.modelContext) private var modelContext
+    @Environment(AppRouter.self) private var router
+    @Environment(ProfileViewModel.self) private var profileViewModel
     @Query(sort: \ResumeDocument.updatedAt, order: .reverse) private var documents: [ResumeDocument]
     @State private var path = NavigationPath()
 
@@ -19,7 +21,7 @@ struct ResumeDashboardView: View {
                         Text("My resumes").font(AlineFont.display(24)).foregroundStyle(AlineColor.inkNavy)
                         Spacer()
                         Button {
-                            path.append(ResumeRoute.addResume)
+                            startNewResume(fallbackRoute: .addResume)
                         } label: {
                             Label("Add Resume", systemImage: "plus")
                         }
@@ -55,7 +57,7 @@ struct ResumeDashboardView: View {
                             Text("Strengthen your summary and experience for every opportunity in a few guided steps.")
                                 .font(AlineFont.body(13)).foregroundStyle(AlineColor.stone)
                             Button {
-                                path.append(ResumeRoute.addResume)
+                                startNewResume(fallbackRoute: .addResume)
                             } label: {
                                 Label("Create New Resume", systemImage: "plus")
                                     .frame(maxWidth: .infinity)
@@ -70,9 +72,10 @@ struct ResumeDashboardView: View {
             .navigationDestination(for: ResumeRoute.self) { route in
                 switch route {
                 case .addResume:
-                    AddResumeView(careerProfile: careerProfile, path: $path)
-                case .manualEntry:
-                    ManualProfileEditorView(initialProfile: .empty, path: $path)
+                    AddResumeView(careerProfile: careerProfile, profile: profileViewModel.profile, path: $path)
+                case .manualEntry(let seedID):
+                    let seeded = seedID.flatMap { PendingProfileStore.shared.take($0) } ?? .empty
+                    ManualProfileEditorView(initialProfile: seeded, path: $path)
                 case .chooseTemplate(let profileID):
                     if let profile = PendingProfileStore.shared.take(profileID) {
                         ChooseTemplateView(profile: profile, path: $path)
@@ -112,11 +115,23 @@ struct ResumeDashboardView: View {
             }
         }
     }
+
+    /// The real gate: creating a resume (either path — upload or build-from-scratch) needs a
+    /// filled-in profile first, since AddResumeView's "build from scratch" link and the
+    /// matching engine both rely on it. Not gating "view your existing resumes" or detail —
+    /// only the two entry points that start a NEW one.
+    private func startNewResume(fallbackRoute: ResumeRoute) {
+        guard profileViewModel.isLoaded, profileViewModel.profile.isComplete else {
+            router.redirectToProfile(message: "Finish your profile — education, career stage, and specialization — so we can start building your resume from it.")
+            return
+        }
+        path.append(fallbackRoute)
+    }
 }
 
 enum ResumeRoute: Hashable {
     case addResume
-    case manualEntry
+    case manualEntry(String?)
     case chooseTemplate(String)
     case detail(String)
 }

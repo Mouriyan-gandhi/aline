@@ -8,6 +8,10 @@ import UniformTypeIdentifiers
 /// a structured ResumeProfile handed to ChooseTemplateView.
 struct AddResumeView: View {
     let careerProfile: CareerProfile
+    /// Guaranteed complete by ResumeDashboardView's gate before this screen is ever reached —
+    /// used to seed "build from scratch" so manual entry starts pre-filled from the profile
+    /// instead of blank, the actual payoff of capturing this data at the profile level.
+    let profile: UserProfileData
     @Binding var path: NavigationPath
 
     @State private var isPickingFile = false
@@ -68,7 +72,8 @@ struct AddResumeView: View {
                     Divider().padding(.vertical, 4)
 
                     Button {
-                        path.append(ResumeRoute.manualEntry)
+                        let id = PendingProfileStore.shared.store(profile.seedResumeProfile())
+                        path.append(ResumeRoute.manualEntry(id))
                     } label: {
                         Text("Don't have a resume yet? Build one from scratch")
                             .font(AlineFont.body(14, weight: .medium))
