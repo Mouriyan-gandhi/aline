@@ -1,13 +1,12 @@
 import SwiftUI
 
-/// Matches the real Figma "Opportunity card" component exactly (confirmed via
-/// get_design_context against the Home/opportunity-feed screen, 2026-10-13): 48x48 logo
-/// tile, title/company/meta row with a location pin + "City · Type", a lime freshness badge,
-/// and a match-ring + heart in a trailing column. Real company logo assets aren't practical
-/// here — the design shows specific companies (Google, Apple...) but the app has 460+
-/// registered companies with no logo-fetching pipeline yet — so the logo tile falls back to
-/// the company's initial on a tinted background, keeping the same slot shape/size the design
-/// defines rather than a placeholder icon.
+/// Matches the real Figma "Opportunity card" layout (48x48 logo tile, title/company/meta row
+/// with a location pin + "City · Type", a freshness badge, and a match-ring + heart in a
+/// trailing column), restyled for the iOS 26/27 brand refresh: a soft elevation shadow instead
+/// of a flat hairline border, a gradient match ring, and the brand sparkle color reserved for
+/// the freshness badge and standout (>85%) matches. Real company logo assets aren't practical
+/// here — the app has 460+ registered companies with no logo-fetching pipeline yet — so the
+/// logo tile falls back to the company's initial on a brand-tinted background.
 struct JobCardView: View {
     let job: Job
     let match: MatchResult
@@ -26,10 +25,7 @@ struct JobCardView: View {
         .frame(height: 96)
         .background(AlineColor.paperWhite)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(AlineColor.cardBorder, lineWidth: 1)
-        )
+        .shadow(color: .black.opacity(0.06), radius: 10, y: 3)
     }
 
     private var companyLogo: some View {
@@ -37,8 +33,7 @@ struct JobCardView: View {
             .font(AlineFont.sfPro(18, weight: .bold))
             .foregroundStyle(AlineColor.primary)
             .frame(width: 48, height: 48)
-            .background(AlineColor.canvas)
-            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(AlineColor.cardBorder, lineWidth: 1))
+            .background(AlineColor.primary.opacity(0.12))
             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 
@@ -87,28 +82,18 @@ struct JobCardView: View {
                     .foregroundStyle(isLiked ? AlineColor.primary : AlineColor.textPrimary)
             }
             .buttonStyle(.plain)
-            MatchRing(score: match.score)
-        }
-    }
-}
-
-private struct MatchRing: View {
-    let score: Int
-
-    var body: some View {
-        ZStack {
-            Circle()
-                .stroke(AlineColor.cardBorder, lineWidth: 4)
-            Circle()
-                .trim(from: 0, to: Double(score) / 100)
-                .stroke(AlineColor.primary, style: StrokeStyle(lineWidth: 4, lineCap: .round))
-                .rotationEffect(.degrees(-90))
-            VStack(spacing: 0) {
-                Text("\(score)%").font(AlineFont.sfPro(10, weight: .bold))
-                Text("Match").font(AlineFont.sfPro(7))
+            ZStack(alignment: .topTrailing) {
+                BrandMatchRing(score: match.score, diameter: 44, lineWidth: 4)
+                // A standout match earns the brand's sparkle signal — same "this is special"
+                // meaning as the freshness badge, reserved for genuinely high matches (>85%)
+                // rather than shown on every card.
+                if match.score > 85 {
+                    Image(systemName: "sparkle")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(AlineColor.spark)
+                        .offset(x: 3, y: -3)
+                }
             }
-            .foregroundStyle(AlineColor.textPrimary)
         }
-        .frame(width: 44, height: 44)
     }
 }

@@ -111,30 +111,31 @@ struct DiscoverView: View {
 
     private var heroCard: some View {
         ZStack(alignment: .topLeading) {
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(AlineColor.primary)
-            // Decorative shapes — recreated as plain native shapes rather than downloading
-            // the Figma file's decorative SVGs, which aren't load-bearing content.
-            Circle()
-                .fill(AlineColor.badgeHighlight)
-                .frame(width: 90, height: 90)
-                .offset(x: 260, y: -40)
-            Circle()
-                .fill(Color.purple.opacity(0.35))
-                .frame(width: 110, height: 110)
-                .offset(x: 230, y: 60)
+            // The brand's own glossy blue-to-lavender gradient, echoing the logo treatment,
+            // in place of a flat fill + plain decorative circles.
+            BrandMeshHero()
             VStack(alignment: .leading, spacing: 10) {
-                Text("Discover roles that fit you.")
-                    .font(AlineFont.sfPro(26, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 180, alignment: .leading)
+                HStack(alignment: .top, spacing: 6) {
+                    Image(systemName: "sparkle")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(AlineColor.spark)
+                    // No fixed width here — at larger Dynamic Type sizes this wrapped to
+                    // multiple lines fine on its own; the old fixed `width: 200` frame instead
+                    // clipped it down to "Dis…" at the largest accessibility size (verified
+                    // live), which is a worse failure than just taking more vertical space.
+                    Text("Discover roles that fit you.")
+                        .font(AlineFont.sfPro(26, weight: .semibold))
+                        .foregroundStyle(.white)
+                }
                 Text("We track top companies\nso you don't have to.")
                     .font(AlineFont.sfPro(12))
                     .foregroundStyle(.white.opacity(0.9))
             }
             .padding(18)
         }
-        .frame(height: 190)
+        // minHeight, not a fixed height — lets the card grow at larger Dynamic Type sizes
+        // instead of clipping wrapped text.
+        .frame(minHeight: 190)
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
     }
 
@@ -142,34 +143,51 @@ struct DiscoverView: View {
 
     private var searchAndFilterRow: some View {
         HStack(spacing: 10) {
-            HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(AlineColor.textPrimary)
-                Text("Search roles, companies or skills...")
-                    .font(AlineFont.inter(12, weight: .medium))
-                    .foregroundStyle(AlineColor.textSecondary)
-                Spacer()
-            }
-            .padding(.horizontal, 14)
-            .frame(height: 38)
-            .background(AlineColor.paperWhite)
-            .clipShape(Capsule())
-            .overlay(Capsule().stroke(AlineColor.cardBorder, lineWidth: 1))
+            searchField
+            filterButton
+        }
+    }
 
-            Button { showFilters = true } label: {
-                ZStack(alignment: .topTrailing) {
-                    Image(systemName: "slider.horizontal.3")
-                        .foregroundStyle(AlineColor.iconMuted)
-                        .frame(width: 38, height: 38)
-                        .background(AlineColor.paperWhite)
-                        .clipShape(Circle())
-                        .overlay(Circle().stroke(AlineColor.cardBorder, lineWidth: 1))
-                    if viewModel.activeFilterCount > 0 {
-                        Circle().fill(AlineColor.primary).frame(width: 8, height: 8)
-                    }
+    @ViewBuilder
+    private var searchField: some View {
+        let label = HStack(spacing: 8) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(AlineColor.textPrimary)
+            Text("Search roles, companies or skills...")
+                .font(AlineFont.inter(12, weight: .medium))
+                .foregroundStyle(AlineColor.textSecondary)
+            Spacer()
+        }
+        .padding(.horizontal, 14)
+        .frame(height: 38)
+
+        // Liquid Glass belongs on functional chrome like a search field (per HIG) — but only
+        // reads as glass over a genuinely floating shape, so it still gets its own capsule
+        // rather than sitting flush against the row.
+        if #available(iOS 26.0, *) {
+            label.glassEffect(.regular, in: .capsule)
+        } else {
+            label
+                .background(AlineColor.paperWhite)
+                .clipShape(Capsule())
+                .overlay(Capsule().stroke(AlineColor.cardBorder, lineWidth: 1))
+        }
+    }
+
+    @ViewBuilder
+    private var filterButton: some View {
+        Button { showFilters = true } label: {
+            ZStack(alignment: .topTrailing) {
+                Image(systemName: "slider.horizontal.3")
+                    .foregroundStyle(AlineColor.iconMuted)
+                    .frame(width: 38, height: 38)
+                if viewModel.activeFilterCount > 0 {
+                    Circle().fill(AlineColor.primary).frame(width: 8, height: 8)
                 }
             }
         }
+        .buttonStyle(.plain)
+        .modifier(GlassCircleBackground())
     }
 
     // MARK: - Mode pills
@@ -185,9 +203,7 @@ struct DiscoverView: View {
                         .foregroundStyle(mode == candidate ? .white : AlineColor.textPrimary)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
-                        .background(mode == candidate ? AlineColor.primary : AlineColor.paperWhite)
-                        .clipShape(Capsule())
-                        .overlay(Capsule().stroke(mode == candidate ? Color.clear : AlineColor.cardBorder, lineWidth: 1))
+                        .modifier(ModePillBackground(isSelected: mode == candidate))
                 }
                 .buttonStyle(.plain)
             }
@@ -211,12 +227,13 @@ struct DiscoverView: View {
         case .loading:
             ProgressView().tint(AlineColor.primary).frame(maxWidth: .infinity).padding(.top, 40)
         case .failed(let message):
-            Text(message).font(AlineFont.sfPro(14)).foregroundStyle(.red)
+            BrandEmptyState(icon: "exclamationmark.triangle", title: "Couldn't load opportunities", message: message)
         case .loaded:
             if viewModel.filteredJobs.isEmpty {
-                Text(viewModel.jobs.isEmpty ? "No matching openings right now — check back soon." : "No jobs match these filters. Try clearing some.")
-                    .font(AlineFont.sfPro(14))
-                    .foregroundStyle(AlineColor.textSecondary)
+                BrandEmptyState(
+                    title: viewModel.jobs.isEmpty ? "No matching openings right now" : "No jobs match these filters",
+                    message: viewModel.jobs.isEmpty ? "Check back soon — new roles come in throughout the day." : "Try clearing some filters."
+                )
             } else {
                 sectionHeader(title: "Recommended opportunities", trailing: "\(viewModel.filteredJobs.count) Opportunities")
                 cardList(Array(recommendedSlice))
@@ -234,9 +251,11 @@ struct DiscoverView: View {
         let jobs = entries.compactMap { saved in viewModel.jobs.first { $0.id == saved.jobID } }
         return Group {
             if jobs.isEmpty {
-                Text(applied ? "Nothing marked as applied yet." : "Nothing liked yet — tap the heart on a job to save it here.")
-                    .font(AlineFont.sfPro(14))
-                    .foregroundStyle(AlineColor.textSecondary)
+                BrandEmptyState(
+                    icon: applied ? "checkmark.circle" : "heart",
+                    title: applied ? "Nothing marked as applied yet" : "Nothing liked yet",
+                    message: applied ? nil : "Tap the heart on a job to save it here."
+                )
             } else {
                 sectionHeader(title: applied ? "Applied opportunities" : "Liked opportunities", trailing: "\(jobs.count)")
                 cardList(jobs)
