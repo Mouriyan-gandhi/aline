@@ -36,7 +36,6 @@ enum AlineTab: CaseIterable {
 /// (deployment target stays 18).
 struct AlineTabBar: View {
     @Binding var selected: AlineTab
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         HStack(spacing: 4) {
@@ -52,30 +51,16 @@ struct AlineTabBar: View {
         .padding(.bottom, 8)
     }
 
-    private static let selectionFeedback = UISelectionFeedbackGenerator()
-
-    /// `AlineFont.sfPro` scales from `UIFontMetrics`' own trait collection directly, not from
-    /// SwiftUI's `dynamicTypeSize` environment — so capping that environment value here has no
-    /// effect on these labels (verified live: labels kept truncating to 2-3 letters regardless).
-    /// The actual fix is the standard iOS pattern for compact chrome: drop the text label
-    /// entirely at accessibility sizes and show a slightly larger icon alone, the same thing
-    /// Apple's own `UITabBar` does automatically.
-    private var showsLabel: Bool { !dynamicTypeSize.isAccessibilitySize }
-
     @ViewBuilder
     private func tabButton(_ tab: AlineTab) -> some View {
         Button {
-            guard selected != tab else { return }
-            Self.selectionFeedback.selectionChanged()
             withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
                 selected = tab
             }
         } label: {
             VStack(spacing: 3) {
-                Image(systemName: tab.icon).font(.system(size: showsLabel ? 17 : 20, weight: .semibold))
-                if showsLabel {
-                    Text(tab.label).font(AlineFont.sfPro(10, weight: .semibold))
-                }
+                Image(systemName: tab.icon).font(.system(size: 17, weight: .semibold))
+                Text(tab.label).font(AlineFont.sfPro(10, weight: .semibold))
             }
             .foregroundStyle(selected == tab ? .white : AlineColor.textPrimary)
             .frame(width: 64, height: 48)
@@ -84,7 +69,6 @@ struct AlineTabBar: View {
                     selectedBackground
                 }
             }
-            .accessibilityLabel(tab.label)
         }
         .buttonStyle(.plain)
     }

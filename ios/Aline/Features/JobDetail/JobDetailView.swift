@@ -38,9 +38,10 @@ struct JobDetailView: View {
                 if !match.missingSkills.isEmpty {
                     missingSection
                 }
+                tailorResumeButton
+                applyButton
             }
             .padding(16)
-            .padding(.bottom, 8)
         }
         .background(AlineColor.warmCanvas)
         .navigationBarTitleDisplayMode(.inline)
@@ -53,12 +54,6 @@ struct JobDetailView: View {
                         .foregroundStyle(AlineColor.electricCobalt)
                 }
             }
-        }
-        // Pinned so the primary action (Apply) stays reachable while scrolling a potentially
-        // long job description, instead of sitting at the end of the ScrollView where it's
-        // only reachable after reading everything — a standard modern-iOS job-app pattern.
-        .safeAreaInset(edge: .bottom) {
-            actionBar
         }
         .alert("Did you apply?", isPresented: $askedIfApplied) {
             Button("Yes") { markApplied() }
@@ -97,29 +92,27 @@ struct JobDetailView: View {
         }
     }
 
-    /// The app's actual differentiator — explainable match, not a bare job list — so it earns
-    /// a real hero moment: a large gradient ring up front, not just a percentage text line.
     private var matchSection: some View {
         PaperCard {
-            HStack(alignment: .top, spacing: 16) {
-                BrandMatchRing(score: match.score, diameter: 88, lineWidth: 7)
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Skills, experience fit, and your stated priorities")
+            VStack(alignment: .leading, spacing: 6) {
+                Text("\(match.score)% MATCH")
+                    .font(AlineFont.body(16, weight: .medium))
+                    .foregroundStyle(AlineColor.electricCobalt)
+                Text("Skills, experience fit, and your stated priorities")
+                    .font(AlineFont.body(12))
+                    .foregroundStyle(AlineColor.stone)
+                // Both of these are the explanation for components of the score that aren't
+                // the skill chips below — never leave a score component silently unexplained,
+                // same principle the skills why/gaps sections already follow.
+                if let experienceNote = match.experienceNote {
+                    Label(experienceNote, systemImage: "clock.badge.checkmark")
                         .font(AlineFont.body(12))
-                        .foregroundStyle(AlineColor.stone)
-                    // Both of these are the explanation for components of the score that
-                    // aren't the skill chips below — never leave a score component silently
-                    // unexplained, same principle the skills why/gaps sections already follow.
-                    if let experienceNote = match.experienceNote {
-                        Label(experienceNote, systemImage: "clock.badge.checkmark")
-                            .font(AlineFont.body(12))
-                            .foregroundStyle(AlineColor.graphite)
-                    }
-                    if let priorityNote = match.priorityNote {
-                        Label(priorityNote, systemImage: "mappin.and.ellipse")
-                            .font(AlineFont.body(12))
-                            .foregroundStyle(AlineColor.graphite)
-                    }
+                        .foregroundStyle(AlineColor.graphite)
+                }
+                if let priorityNote = match.priorityNote {
+                    Label(priorityNote, systemImage: "mappin.and.ellipse")
+                        .font(AlineFont.body(12))
+                        .foregroundStyle(AlineColor.graphite)
                 }
             }
         }
@@ -128,41 +121,21 @@ struct JobDetailView: View {
     private var whySection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Why you're a match").font(AlineFont.body(15, weight: .medium)).foregroundStyle(AlineColor.inkNavy)
-            FlowLayout(spacing: 6) {
-                ForEach(match.matchedSkills, id: \.self) { skill in
-                    matchChip(skill, matched: true)
-                }
+            ForEach(match.matchedSkills, id: \.self) { skill in
+                Label(skill, systemImage: "checkmark").foregroundStyle(AlineColor.charcoal)
             }
         }
+        .font(AlineFont.body(14))
     }
 
     private var missingSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Potential gaps").font(AlineFont.body(15, weight: .medium)).foregroundStyle(AlineColor.inkNavy)
-            FlowLayout(spacing: 6) {
-                ForEach(match.missingSkills, id: \.self) { skill in
-                    matchChip(skill, matched: false)
-                }
+            ForEach(match.missingSkills, id: \.self) { skill in
+                Label(skill, systemImage: "triangle").foregroundStyle(AlineColor.graphite)
             }
         }
-    }
-
-    /// Checkmark chips in the brand color for matched skills, outline chips for gaps — same
-    /// chip language as the job card and resume skill chips, so "a skill" looks like the same
-    /// kind of object everywhere in the app.
-    private func matchChip(_ skill: String, matched: Bool) -> some View {
-        Label(skill, systemImage: matched ? "checkmark" : "circle.dashed")
-            .font(AlineFont.body(12, weight: .medium))
-            .foregroundStyle(matched ? .white : AlineColor.graphite)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background {
-                if matched {
-                    Capsule().fill(AlineColor.primary)
-                } else {
-                    Capsule().stroke(AlineColor.creamBorder, lineWidth: 1)
-                }
-            }
+        .font(AlineFont.body(14))
     }
 
     @ViewBuilder
@@ -247,40 +220,33 @@ struct JobDetailView: View {
         }
     }
 
-    /// Pinned bottom bar holding both actions — Liquid Glass since this is exactly the
-    /// "functional/control layer, always reachable" case the HIG calls out for `glassEffect`,
-    /// the same reasoning as the tab bar. Tailor stays a compact icon-only secondary action so
-    /// Apply (the actual primary action) keeps the visual weight.
-    private var actionBar: some View {
-        HStack(spacing: 10) {
-            // The JD-driven tailoring entry point: tapping this hands the job's own extracted
-            // skills into ResumeDetailView's keyword-gap section (see missingSkills(for:)
-            // there). Uses the default resume if one exists; if the person has never built one
-            // yet, nudges them to the Resume tab rather than failing silently.
-            Button {
-                isShowingTailorSheet = true
-            } label: {
-                Image(systemName: "sparkles")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(AlineColor.primary)
-                    .frame(width: 48, height: 48)
-            }
-            .modifier(GlassCircleBackground())
-
-            Button {
-                if let url = URL(string: job.applyURL) {
-                    openURL(url)
-                    askedIfApplied = true
-                }
-            } label: {
-                Text("Apply on \(job.company) ↗").frame(maxWidth: .infinity)
-            }
-            .buttonStyle(AlinePrimaryButtonStyle())
+    // The JD-driven tailoring entry point: tapping this hands the job's own extracted
+    // skills into ResumeDetailView's keyword-gap section (see missingSkills(for:) there) —
+    // "that job information is being circulated into the pipeline" is this parameter, not a
+    // separate system. Uses the default resume if one exists; if the person has never built
+    // one yet, nudges them to the Resume tab rather than failing silently.
+    private var tailorResumeButton: some View {
+        Button {
+            isShowingTailorSheet = true
+        } label: {
+            Label("Tailor Resume for This Job", systemImage: "sparkles").frame(maxWidth: .infinity)
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 12)
-        .padding(.bottom, 8)
-        .background(.bar)
+        .font(AlineFont.body(15, weight: .medium))
+        .foregroundStyle(AlineColor.inkNavy)
+        .padding(.vertical, 12)
+        .overlay(RoundedRectangle(cornerRadius: AlineRadius.card).stroke(AlineColor.creamBorder))
+    }
+
+    private var applyButton: some View {
+        Button {
+            if let url = URL(string: job.applyURL) {
+                openURL(url)
+                askedIfApplied = true
+            }
+        } label: {
+            Text("Apply on \(job.company) ↗").frame(maxWidth: .infinity)
+        }
+        .buttonStyle(AlinePrimaryButtonStyle())
     }
 
     private func toggleLike() {
