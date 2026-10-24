@@ -5,10 +5,10 @@ enum JobsAPIError: Error {
 }
 
 struct JobsAPI {
-    /// Simulator shares the host Mac's network namespace, so localhost reaches the
-    /// FastAPI backend directly. A physical device would need the Mac's LAN IP instead —
-    /// that's a Phase 1 concern once there's a real deployed backend to point at.
-    static let baseURL = URL(string: "http://127.0.0.1:8000")!
+    /// Deployed on Render's free tier — reachable from anywhere (cellular included), no
+    /// shared-WiFi requirement. Free tier spins down after 15 min idle; the generous
+    /// timeout below already accounts for that wake-up plus a cold-start full scrape.
+    static let baseURL = URL(string: "https://aline-backend-wdp6.onrender.com")!
 
     static func fetchJobs() async throws -> [Job] {
         // The backend's cache is instant once warm, but a cold start (or post-TTL refresh)
