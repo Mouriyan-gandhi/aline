@@ -12,8 +12,15 @@ from app.schemas import Job
 from app.filters import is_relevant_job, is_india_location, is_senior_excluded, extract_skills, extract_min_years_experience
 
 
+def _salary(compensation) -> str:
+    """Only what the company chose to publish on the posting."""
+    if not isinstance(compensation, dict) or compensation.get("shouldDisplayCompensationOnJobPostings") is False:
+        return ""
+    return compensation.get("scrapeableCompensationSalarySummary") or compensation.get("compensationTierSummary") or ""
+
+
 async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:
-    url = f"https://api.ashbyhq.com/posting-api/job-board/{company['slug']}"
+    url = f"https://api.ashbyhq.com/posting-api/job-board/{company['slug']}?includeCompensation=true"
     resp = await client.get(url, timeout=HTTP_TIMEOUT, headers={"User-Agent": USER_AGENT})
     resp.raise_for_status()
     postings = resp.json().get("jobs", [])
@@ -45,5 +52,8 @@ async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:
             extracted_skills=extract_skills(f"{title} {description}"),
             description=description,
             min_years_experience=extract_min_years_experience(description),
+            employment_type=post.get("employmentType") or "",
+            workplace_type=post.get("workplaceType") or ("Remote" if post.get("isRemote") else ""),
+            salary=_salary(post.get("compensation")),
         ))
     return results

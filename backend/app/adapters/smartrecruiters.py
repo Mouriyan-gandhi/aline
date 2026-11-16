@@ -32,12 +32,16 @@ async def _fetch_description(client: httpx.AsyncClient, slug: str, post_id: str)
         )
         resp.raise_for_status()
         sections = (resp.json().get("jobAd") or {}).get("sections") or {}
+        # Each section keeps its own heading so job_enrich files Qualifications under
+        # Requirements instead of reading one undivided block.
+        headings = {"jobDescription": "Job Description", "qualifications": "Qualifications",
+                    "additionalInformation": "Additional Information"}
         parts = [
-            sections[key]["text"]
-            for key in ("jobDescription", "qualifications", "additionalInformation")
+            f"{headings[key]}:\n{html_to_text(sections[key]['text'])}"
+            for key in headings
             if sections.get(key, {}).get("text")
         ]
-        return html_to_text(" ".join(parts))
+        return "\n\n".join(parts)
     except (httpx.HTTPError, ValueError, KeyError):
         return ""
 
@@ -115,5 +119,6 @@ async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:
             extracted_skills=extract_skills(f"{title} {description}"),
             description=description,
             min_years_experience=extract_min_years_experience(description),
+            employment_type=(post.get("typeOfEmployment") or {}).get("label") or "",
         ))
     return results

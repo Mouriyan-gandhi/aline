@@ -233,6 +233,16 @@ def init_db() -> None:
                 PRIMARY KEY (user_id, job_id)
             );
 
+            CREATE TABLE IF NOT EXISTS files (
+                id TEXT NOT NULL,
+                user_id TEXT NOT NULL REFERENCES users(id),
+                filename TEXT NOT NULL,
+                content_type TEXT NOT NULL,
+                data BLOB NOT NULL,
+                created_at TEXT NOT NULL,
+                PRIMARY KEY (user_id, id)
+            );
+
             CREATE INDEX IF NOT EXISTS idx_discussions_category ON discussions(category);
             CREATE INDEX IF NOT EXISTS idx_comments_discussion ON comments(discussion_id);
             CREATE INDEX IF NOT EXISTS idx_questions_company ON interview_questions(company);
@@ -530,6 +540,7 @@ def delete_account(device_id: str) -> None:
         conn.execute("DELETE FROM interview_questions WHERE user_id = ?", (user_id,))
         conn.execute("DELETE FROM resumes WHERE user_id = ?", (user_id,))
         conn.execute("DELETE FROM job_marks WHERE user_id = ?", (user_id,))
+        conn.execute("DELETE FROM files WHERE user_id = ?", (user_id,))
         conn.execute("DELETE FROM likes WHERE user_id = ?", (user_id,))
         conn.execute("DELETE FROM saved_posts WHERE user_id = ?", (user_id,))
         conn.execute("DELETE FROM followed_companies WHERE user_id = ?", (user_id,))
@@ -885,3 +896,27 @@ def set_job_mark(user_id: str, job_id: str, job_json: Optional[str], liked: Opti
             (user_id, job_id, new_liked, new_applied, applied_at, snapshot, now),
         )
     return {"job_id": job_id, "liked": bool(new_liked), "applied": bool(new_applied), "applied_at": applied_at}
+
+
+# MARK: - Files (achievement attachments)
+
+def put_file(user_id: str, file_id: str, filename: str, content_type: str, data: bytes) -> None:
+    with _connection() as conn:
+        conn.execute(
+            """
+            INSERT INTO files (id, user_id, filename, content_type, data, created_at) VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT(user_id, id) DO UPDATE SET filename = excluded.filename,
+                content_type = excluded.content_type, data = excluded.data, created_at = excluded.created_at
+            """,
+            (file_id, user_id, filename, content_type, data, _now()),
+        )
+
+
+def get_file(user_id: str, file_id: str) -> Optional[sqlite3.Row]:
+    with _connection() as conn:
+        return conn.execute("SELECT * FROM files WHERE user_id = ? AND id = ?", (user_id, file_id)).fetchone()
+
+
+def delete_file(user_id: str, file_id: str) -> None:
+    with _connection() as conn:
+        conn.execute("DELETE FROM files WHERE user_id = ? AND id = ?", (user_id, file_id))

@@ -183,12 +183,28 @@ _INTERN_PATTERN = re.compile(r"\b(intern|internship|co-?op|apprentice(ship)?|tra
 _CONTRACT_PATTERN = re.compile(r"\b(contract(or)?|temporary|fixed[- ]term|freelance)\b", re.IGNORECASE)
 
 
-def job_type(title: str, description: str) -> str:
+def job_type(title: str, description: str, stated: str = "") -> str:
+    stated = stated.lower().replace("-", "").replace("_", "").replace(" ", "")
+    if "intern" in stated:
+        return "internship"
+    if any(word in stated for word in ("contract", "temporary", "temp", "freelance")):
+        return "contract"
     if _INTERN_PATTERN.search(title):
         return "internship"
     if _CONTRACT_PATTERN.search(title):
         return "contract"
     return "full_time"
+
+
+def _stated_work_mode(stated: str) -> Optional[str]:
+    stated = stated.lower().replace("-", "").replace("_", "").replace(" ", "")
+    if "hybrid" in stated:
+        return "hybrid"
+    if "remote" in stated or "telecommute" in stated:
+        return "remote"
+    if "onsite" in stated or "office" in stated:
+        return "on_site"
+    return None
 
 
 def work_mode(location: str, description: str) -> str:
@@ -227,8 +243,8 @@ def eligible_grad_years(title: str, description: str) -> str:
 def enrich(job: Job) -> Job:
     sections = split_sections(job.description)
     return job.model_copy(update={
-        "job_type": job_type(job.title, job.description),
-        "work_mode": work_mode(job.location, job.description),
+        "job_type": job_type(job.title, job.description, job.employment_type),
+        "work_mode": _stated_work_mode(job.workplace_type) or work_mode(job.location, job.description),
         "about": _about(sections, job.description),
         "minimum_qualifications": sections["minimum"][:_MAX_ITEMS],
         "preferred_qualifications": sections["preferred"][:_MAX_ITEMS],

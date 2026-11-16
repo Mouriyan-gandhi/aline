@@ -62,7 +62,13 @@ async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:
         # inline HTML (e.g. "<br/>"), same risk as Greenhouse/Ashby — see html_to_text.
         description = html_to_text(job.get("description") or "")
         qualifications = html_to_text(job.get("basic_qualifications") or "")
-        full_text = f"{description} {qualifications}"
+        preferred = html_to_text(job.get("preferred_qualifications") or "")
+        # Headed sections, so job_enrich can tell basic from preferred qualifications.
+        full_text = description
+        if qualifications:
+            full_text += f"\n\nBasic Qualifications:\n{qualifications}"
+        if preferred:
+            full_text += f"\n\nPreferred Qualifications:\n{preferred}"
         if is_senior_excluded(title, full_text):
             continue
 

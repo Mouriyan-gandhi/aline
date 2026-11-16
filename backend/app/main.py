@@ -13,8 +13,10 @@ from app.adapters import amazon, ashby, greenhouse, lever, smartrecruiters, work
 from app.community import router as community_router
 from app.community_db import get_or_create_user, list_job_marks, set_job_mark
 from app.community_db import init_db as init_community_db
+from app.demo_questions import seed_demo_questions
 from app.companies import COMPANIES, NEEDS_REVIEW
 from app.feedback import router as feedback_router
+from app.files import router as files_router
 from app.interview import router as interview_router
 from app.job_enrich import enrich
 from app.profile import router as profile_router
@@ -36,6 +38,7 @@ app.add_middleware(
 app.include_router(community_router)
 app.include_router(profile_router)
 app.include_router(feedback_router)
+app.include_router(files_router)
 app.include_router(interview_router)
 app.include_router(resumes_router)
 
@@ -203,6 +206,9 @@ async def refresh_cache():
 @app.on_event("startup")
 async def on_startup():
     init_community_db()
+    seeded = seed_demo_questions()
+    if seeded:
+        logger.info("Seeded %d DEMO interview questions (set SEED_DEMO_QUESTIONS=0 to stop)", seeded)
     asyncio.create_task(refresh_cache())
 
 

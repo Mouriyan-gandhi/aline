@@ -35,7 +35,9 @@ async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:
             department=department,
             location=location,
             apply_url=job.get("absolute_url") or f"https://boards.greenhouse.io/{company['slug']}",
-            posted_at=job.get("updated_at"),
+            # first_published is when the posting went live; updated_at moves on every edit,
+            # which made long-open roles look brand new.
+            posted_at=job.get("first_published") or job.get("updated_at"),
             extracted_skills=extract_skills(f"{title} {description}"),
             description=description,
             min_years_experience=extract_min_years_experience(description),

@@ -121,6 +121,27 @@ def _location_from_ld_json(data: dict) -> str:
     return unescape_text(joined)
 
 
+def _employment_type(value) -> str:
+    if isinstance(value, list):
+        value = value[0] if value else ""
+    return value if isinstance(value, str) else ""
+
+
+def _salary(base_salary) -> str:
+    """schema.org MonetaryAmount — rarely present on Workday tenants, used when it is."""
+    if not isinstance(base_salary, dict):
+        return ""
+    value = base_salary.get("value") or {}
+    if not isinstance(value, dict):
+        return ""
+    low, high = value.get("minValue"), value.get("maxValue")
+    if not low and not high:
+        return ""
+    amount = f"{low:,} – {high:,}" if low and high and low != high else f"{low or high:,}"
+    unit = (value.get("unitText") or "").lower()
+    return " ".join(p for p in [base_salary.get("currency") or "", amount, f"per {unit}" if unit else ""] if p)
+
+
 async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:
     """
     `company["slug"]` here is the tenant's base career-site URL, e.g.
@@ -207,6 +228,9 @@ async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:
             extracted_skills=extract_skills(f"{title} {description}"),
             description=description,
             min_years_experience=extract_min_years_experience(description),
+            employment_type=_employment_type(ld_json.get("employmentType")),
+            workplace_type="Remote" if ld_json.get("jobLocationType") == "TELECOMMUTE" else "",
+            salary=_salary(ld_json.get("baseSalary")),
         ))
 
     # Second dedup layer: the URL-level dedup above doesn't catch two DIFFERENT URLs (e.g.

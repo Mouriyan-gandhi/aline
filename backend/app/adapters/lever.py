@@ -8,6 +8,16 @@ from app.schemas import Job
 from app.filters import is_relevant_job, is_india_location, is_senior_excluded, extract_skills, extract_min_years_experience
 
 
+def _salary(salary_range) -> str:
+    if not isinstance(salary_range, dict) or not salary_range.get("min"):
+        return ""
+    currency = salary_range.get("currency") or ""
+    low, high = salary_range.get("min"), salary_range.get("max")
+    interval = (salary_range.get("interval") or "").replace("-", " ")
+    amount = f"{low:,} – {high:,}" if high and high != low else f"{low:,}"
+    return " ".join(part for part in [currency, amount, interval] if part)
+
+
 async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:
     url = f"https://api.lever.co/v0/postings/{company['slug']}?mode=json"
     resp = await client.get(url, timeout=HTTP_TIMEOUT, headers={"User-Agent": USER_AGENT})
@@ -31,6 +41,15 @@ async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:
         # descriptionPlain is already plain text when present; description (the fallback)
         # is real HTML — same risk as Greenhouse/Ashby, see html_to_text's docstring.
         description = post.get("descriptionPlain") or html_to_text(post.get("description") or "")
+        # descriptionPlain is only the intro: Lever keeps Responsibilities / Qualifications as
+        # separate structured `lists` ({text: heading, content: "<li>…"}), which were being
+        # dropped entirely. Appended as "Heading:" + one bullet per line so job_enrich can file
+        # each under the right tab.
+        for section in post.get("lists") or []:
+            heading = (section.get("text") or "").strip().rstrip(":")
+            items = html_to_text(section.get("content") or "")
+            if heading and items:
+                description += f"\n\n{heading}:\n" + "\n".join(f"- {line}" for line in items.splitlines() if line.strip())
         if is_senior_excluded(title, description):
             continue
 
@@ -54,5 +73,8 @@ async def scrape(company: dict, client: httpx.AsyncClient) -> list[Job]:
             extracted_skills=extract_skills(f"{title} {description}"),
             description=description,
             min_years_experience=extract_min_years_experience(description),
+            employment_type=categories.get("commitment") or "",
+            workplace_type=post.get("workplaceType") or "",
+            salary=_salary(post.get("salaryRange")),
         ))
     return results
