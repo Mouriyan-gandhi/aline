@@ -2,35 +2,44 @@ import SwiftUI
 
 // MARK: - Discover Feed View (Left Screen in Reference Image)
 public struct DiscoverFeedView: View {
+    @AppStorage("userFullName") private var userFullName: String = "Aarav Sharma"
+    @State private var searchActive: Bool = false
+    @State private var screenHeight: CGFloat = 900
+    @State private var topInset: CGFloat = 59
     @ObservedObject public var viewModel: DiscoverViewModel
     @ObservedObject public var navViewModel: AppNavigationViewModel
     @ObservedObject public var resumeViewModel: ResumeViewModel
     @State private var showingDetailFor: Opportunity? = nil
-    @State private var showingAllOpportunities: Bool = false
+    @State private var showingRecommendedAll: Bool = false
+    @State private var showingExploreMoreAll: Bool = false
     @State private var highlightedCardId: String? = nil
+
+    private var dynamicFirstName: String {
+        let activeName = !navViewModel.currentUserFullName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            ? navViewModel.currentUserFullName
+            : userFullName
+        return activeName.components(separatedBy: " ").first ?? activeName
+    }
 
     public var body: some View {
         ZStack(alignment: .bottom) {
             DiscoverBackgroundArtwork()
 
             ScrollView(.vertical, showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: AlineSpacing.section) {
                     // Top User Bar
                     HStack(alignment: .center) {
-                        Text("Aarav Sharma")
-                            .font(.system(size: 18, weight: .bold))
+                        Text("Hey \(dynamicFirstName)!")
+                            .font(.system(size: 24, weight: .bold, design: .default))
                             .foregroundColor(AlineTheme.inkPrimary)
 
                         Spacer()
 
                         // Notifications Bell
                         Button {
-                            navViewModel.showNotificationsSheet = true
+                            navViewModel.openNotifications(category: .opportunities)
                         } label: {
                             ZStack {
-                                Circle()
-                                    .stroke(Color.black.opacity(0.12), lineWidth: 1)
-                                    .frame(width: 44, height: 44)
                                 Image(systemName: "bell")
                                     .font(.system(size: 18, weight: .semibold))
                                     .foregroundColor(AlineTheme.inkPrimary)
@@ -42,67 +51,37 @@ public struct DiscoverFeedView: View {
                                         .offset(x: 10, y: -10)
                                 }
                             }
+                            .frame(width: 40, height: 40)
+                            .alineGlassCircle()
                         }
                         .buttonStyle(.plain)
                     }
                     .padding(.horizontal, 24)
                     .padding(.top, 12)
 
-                    // Hero Headline
+                    // Dynamic Hero Headline (Changes to LIKED or APPLIED OPPORTUNITIES)
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("EXPLORE\nVACANCIES")
+                        Text(headlineTitle)
                             .font(.system(size: 32, weight: .black, design: .default))
                             .lineSpacing(2)
                             .foregroundColor(AlineTheme.inkPrimary)
-                        Text("\(viewModel.filteredOpportunities.count) Top Opportunities")
+                        Text(headlineSubtitle)
                             .font(.system(size: 12, weight: .bold))
                             .foregroundColor(AlineTheme.inkSecondary)
                     }
                     .padding(.horizontal, 24)
-                    .padding(.top, 4)
 
                     // Interactive Search Bar with Filter Icon Near It (No Word "Filters")
                     HStack(spacing: 10) {
-                        HStack(spacing: 8) {
-                            Image(systemName: "magnifyingglass")
-                                .font(.system(size: 15, weight: .bold))
-                                .foregroundColor(AlineTheme.inkSecondary)
-
-                            TextField("Search 130+ roles, companies, or skills...", text: $viewModel.searchQuery)
-                                .font(.system(size: 14))
-
-                            if !viewModel.searchQuery.isEmpty {
-                                Button {
-                                    viewModel.searchQuery = ""
-                                } label: {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .font(.system(size: 15))
-                                        .foregroundColor(AlineTheme.inkSecondary)
-                                }
-                                .buttonStyle(.plain)
-                            }
-                        }
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 11)
-                        .background(Color.white)
-                        .clipShape(Capsule())
-                        .overlay(
-                            Capsule().stroke(Color.black.opacity(0.08), lineWidth: 1)
-                        )
+                        AlineSearchField("Search roles, companies, or skills", text: $viewModel.searchQuery, isActive: $searchActive)
 
                         // Filter Icon Button (no word "Filters", right next to search bar)
+                        if !searchActive {
                         Button {
                             viewModel.showFilterSheet = true
                         } label: {
                             ZStack {
-                                Circle()
-                                    .fill(viewModel.activeFilterCount > 0 ? AlineTheme.pillDark : Color.white)
-                                    .frame(width: 44, height: 44)
-                                    .overlay(
-                                        Circle().stroke(Color.black.opacity(0.10), lineWidth: 1)
-                                    )
-                                    .shadow(color: Color.black.opacity(0.04), radius: 2, x: 0, y: 1)
-
+                                Color.clear.frame(width: 44, height: 44)
                                 Image(systemName: "slider.horizontal.3")
                                     .font(.system(size: 16, weight: .bold))
                                     .foregroundColor(viewModel.activeFilterCount > 0 ? .white : AlineTheme.inkPrimary)
@@ -114,8 +93,10 @@ public struct DiscoverFeedView: View {
                                         .offset(x: 10, y: -10)
                                 }
                             }
+.alineGlassCircle(selected: viewModel.activeFilterCount > 0)
                         }
                         .buttonStyle(.plain)
+                        }
                     }
                     .padding(.horizontal, 24)
 
@@ -134,14 +115,7 @@ public struct DiscoverFeedView: View {
                                         .foregroundColor(isSelected ? .white : AlineTheme.inkPrimary)
                                         .padding(.horizontal, 22)
                                         .padding(.vertical, 8)
-                                        .background(
-                                            Capsule()
-                                                .fill(isSelected ? AlineTheme.pillDark : Color.white)
-                                        )
-                                        .overlay(
-                                            Capsule()
-                                                .stroke(Color.black.opacity(isSelected ? 0 : 0.08), lineWidth: 1)
-                                        )
+                                        .alineGlassCapsule(selected: isSelected)
                                 }
                                 .buttonStyle(.plain)
                             }
@@ -149,76 +123,40 @@ public struct DiscoverFeedView: View {
                         .padding(.horizontal, 24)
                     }
 
-                    // Top Recommended Section Header
-                    if !viewModel.filteredOpportunities.isEmpty {
-                        HStack(alignment: .center) {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("TOP RECOMMENDED")
-                                    .font(.system(size: 11, weight: .heavy))
-                                    .foregroundColor(AlineTheme.inkSecondary)
-                                    .tracking(0.6)
-                                Text("Showing \(min(10, viewModel.filteredOpportunities.count)) of \(viewModel.filteredOpportunities.count)")
-                                    .font(.system(size: 13, weight: .semibold))
+                    if viewModel.selectedFilterTab == .liked {
+                        // MARK: - Liked Opportunities (Proper Vertical Scroll, Non-Overlapping)
+                        let likedJobs = viewModel.filteredOpportunities
+                        if likedJobs.isEmpty {
+                            VStack(spacing: 12) {
+                                Image(systemName: "heart.slash")
+                                    .font(.system(size: 32, weight: .bold))
+                                    .foregroundColor(AlineTheme.inkMuted)
+                                    .padding(.top, 30)
+                                Text("No liked opportunities yet")
+                                    .font(.system(size: 16, weight: .bold))
                                     .foregroundColor(AlineTheme.inkPrimary)
+                                Text("Tap the heart icon on any job card to save it here.")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(AlineTheme.inkSecondary)
                             }
-
-                            Spacer()
-                        }
-                        .padding(.horizontal, 24)
-                        .padding(.top, 4)
-                    }
-
-                    // Content Area: Empty State OR Normal Horizontal Scroll
-                    if viewModel.filteredOpportunities.isEmpty {
-                        VStack(spacing: 12) {
-                            Image(systemName: "magnifyingglass")
-                                .font(.system(size: 32, weight: .bold))
-                                .foregroundColor(AlineTheme.inkMuted)
-                                .padding(.top, 30)
-                            Text("No opportunities found")
-                                .font(.system(size: 16, weight: .bold))
-                                .foregroundColor(AlineTheme.inkPrimary)
-                            Text("Try adjusting your filters or search keywords.")
-                                .font(.system(size: 13))
-                                .foregroundColor(AlineTheme.inkSecondary)
-                            Button {
-                                viewModel.resetFilters()
-                            } label: {
-                                Text("Reset Filters")
-                                    .font(.system(size: 13, weight: .bold))
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 8)
-                                    .background(Capsule().fill(AlineTheme.pillDark))
-                            }
-                            .padding(.top, 4)
-                            .padding(.bottom, 30)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .background(Color.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                .stroke(Color.black.opacity(0.08), lineWidth: 1)
-                        )
-                        .padding(.horizontal, 24)
-                    } else {
-                        // Normal Horizontal Scroll (Only the Top 10 Recommended Cards)
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 16) {
-                                let topRecommended = Array(viewModel.filteredOpportunities.prefix(10))
-
-                                ForEach(topRecommended) { opp in
-                                    let isHighlighted = (opp.id == (highlightedCardId ?? topRecommended.first?.id))
-
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 30)
+                            .background(Color.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                    .stroke(Color.black.opacity(0.08), lineWidth: 1)
+                            )
+                            .padding(.horizontal, 24)
+                        } else {
+                            LazyVStack(spacing: AlineSpacing.card) {
+                                ForEach(likedJobs) { opp in
                                     StackedOpportunityCard(
                                         opportunity: opp,
                                         isExpanded: true,
-                                        isHighlighted: isHighlighted,
+                                        isHighlighted: false,
                                         onSelect: {
-                                            withAnimation(AlineTheme.cardSpring) {
-                                                highlightedCardId = opp.id
-                                            }
+                                            showingDetailFor = opp
                                         },
                                         onOpenDetail: {
                                             showingDetailFor = opp
@@ -229,46 +167,202 @@ public struct DiscoverFeedView: View {
                                             }
                                         }
                                     )
-                                    .frame(width: 330, height: 226)
                                 }
                             }
                             .padding(.horizontal, 24)
-                            .padding(.vertical, 8)
+                        }
+                    } else if viewModel.selectedFilterTab == .applied {
+                        // MARK: - Applied Opportunities (Proper Vertical Scroll, Non-Overlapping)
+                        let appliedJobs = viewModel.filteredOpportunities
+                        if appliedJobs.isEmpty {
+                            VStack(spacing: 12) {
+                                Image(systemName: "briefcase")
+                                    .font(.system(size: 32, weight: .bold))
+                                    .foregroundColor(AlineTheme.inkMuted)
+                                    .padding(.top, 30)
+                                Text("No applied opportunities yet")
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundColor(AlineTheme.inkPrimary)
+                                Text("Jobs you apply to will automatically appear here.")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(AlineTheme.inkSecondary)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 30)
+                            .background(Color.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                    .stroke(Color.black.opacity(0.08), lineWidth: 1)
+                            )
+                            .padding(.horizontal, 24)
+                        } else {
+                            LazyVStack(spacing: 16) {
+                                ForEach(appliedJobs) { opp in
+                                    StackedOpportunityCard(
+                                        opportunity: opp,
+                                        isExpanded: true,
+                                        isHighlighted: false,
+                                        onSelect: {
+                                            showingDetailFor = opp
+                                        },
+                                        onOpenDetail: {
+                                            showingDetailFor = opp
+                                        },
+                                        onLike: {
+                                            withAnimation(AlineTheme.cardSpring) {
+                                                viewModel.toggleLike(for: opp.id)
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                            .padding(.horizontal, 24)
+                        }
+                    } else {
+                        // MARK: - Recommended Tab Feed
+                        let recommendedJobs = viewModel.recommendedOpportunities
+                        let exploreJobs = viewModel.exploreMoreOpportunities
+
+                        // Recommended Section Header
+                        if !recommendedJobs.isEmpty {
+                            HStack(alignment: .center) {
+                                Text("Showing \(min(10, recommendedJobs.count)) of \(recommendedJobs.count)")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundColor(AlineTheme.inkPrimary)
+
+                                Spacer()
+
+                                if recommendedJobs.count > 10 {
+                                    Button {
+                                        showingRecommendedAll = true
+                                    } label: {
+                                        HStack(spacing: 4) {
+                                            Text("View More")
+                                                .font(.system(size: 13, weight: .bold))
+                                            Image(systemName: "chevron.right")
+                                                .font(.system(size: 11, weight: .bold))
+                                        }
+                                        .foregroundColor(AlineTheme.inkPrimary)
+                                        .padding(.horizontal, 14)
+                                        .padding(.vertical, 7)
+                                        .alineGlassCapsule(selected: false)
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                            .padding(.horizontal, 24)
                         }
 
-                        // Small "View More" option below the cards
-                        if viewModel.filteredOpportunities.count > 10 {
-                            HStack {
-                                Spacer()
-                                Button {
-                                    showingAllOpportunities = true
-                                } label: {
-                                    HStack(spacing: 5) {
-                                        Text("View More")
-                                            .font(.system(size: 13, weight: .bold))
-                                        Image(systemName: "chevron.right")
-                                            .font(.system(size: 11, weight: .bold))
-                                    }
+                        // Content Area: Empty State OR Normal Horizontal Scroll (>85% Match)
+                        if recommendedJobs.isEmpty {
+                            VStack(spacing: 12) {
+                                Image(systemName: "magnifyingglass")
+                                    .font(.system(size: 32, weight: .bold))
+                                    .foregroundColor(AlineTheme.inkMuted)
+                                    .padding(.top, 30)
+                                Text("No recommended opportunities found")
+                                    .font(.system(size: 16, weight: .bold))
                                     .foregroundColor(AlineTheme.inkPrimary)
-                                    .padding(.horizontal, 14)
-                                    .padding(.vertical, 7)
-                                    .background(Color.white)
-                                    .clipShape(Capsule())
-                                    .overlay(
-                                        Capsule().stroke(Color.black.opacity(0.12), lineWidth: 1)
-                                    )
-                                    .shadow(color: Color.black.opacity(0.04), radius: 2, x: 0, y: 1)
+                                Text("Try adjusting your filters or search keywords.")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(AlineTheme.inkSecondary)
+                                Button {
+                                    viewModel.resetFilters()
+                                } label: {
+                                    Text("Reset Filters")
+                                        .font(.system(size: 13, weight: .bold))
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 8)
+                                        .alineGlassCapsule(selected: true)
                                 }
-                                .buttonStyle(.plain)
+                                .padding(.top, 4)
+                                .padding(.bottom, 30)
                             }
+                            .frame(maxWidth: .infinity)
+                            .background(Color.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                    .stroke(Color.black.opacity(0.08), lineWidth: 1)
+                            )
                             .padding(.horizontal, 24)
-                            .padding(.top, 4)
+                        } else {
+                            // Normal Horizontal Scroll (Only Top 10 Recommended Cards > 85% Match)
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 16) {
+                                    let topRecommended = Array(recommendedJobs.prefix(10))
+
+                                    ForEach(topRecommended) { opp in
+                                        StackedOpportunityCard(
+                                            opportunity: opp,
+                                            isExpanded: true,
+                                            isHighlighted: false,
+                                            onSelect: {
+                                                showingDetailFor = opp
+                                            },
+                                            onOpenDetail: {
+                                                showingDetailFor = opp
+                                            },
+                                            onLike: {
+                                                withAnimation(AlineTheme.cardSpring) {
+                                                    viewModel.toggleLike(for: opp.id)
+                                                }
+                                            }
+                                        )
+                                        .frame(width: 330, height: 226)
+                                    }
+                                }
+                                .padding(.horizontal, 24)
+                                .padding(.vertical, 4)
+                            }
+                        }
+
+                        // MARK: - Explore More Section (Sticky Pinned Header & Compact List Cards)
+                        if !exploreJobs.isEmpty {
+                            LazyVStack(spacing: AlineSpacing.card, pinnedViews: [.sectionHeaders]) {
+                                Section {
+                                    VStack(spacing: AlineSpacing.card) {
+                                        ForEach(Array(exploreJobs.prefix(10))) { opp in
+                                            CompactExploreOpportunityCard(
+                                                opportunity: opp,
+                                                onOpenDetail: {
+                                                    showingDetailFor = opp
+                                                }
+                                            )
+                                        }
+                                    }
+                                    .padding(.horizontal, 24)
+                                } header: {
+                                    ExploreMorePinnedHeader(
+                                        count: exploreJobs.count,
+                                        screenHeight: screenHeight,
+                                        onViewMore: {
+                                            showingExploreMoreAll = true
+                                        }
+                                    )
+                                }
+                            }
                         }
                     }
 
                     Spacer(minLength: 110) // Room for floating tab bar
                 }
             }
+.scrollDismissesKeyboard(.interactively)
+.scrollEdgeEffectHidden(true, for: .top)
+        }
+        .onGeometryChange(for: CGFloat.self) { proxy in
+            proxy.size.height + proxy.safeAreaInsets.top + proxy.safeAreaInsets.bottom
+        } action: { screenHeight = $0 }
+        .onGeometryChange(for: CGFloat.self) { $0.safeAreaInsets.top } action: { topInset = $0 }
+        // Status-bar cap: same page gradient, so scrolling content never shows behind the time / Wi-Fi icons
+        .overlay(alignment: .top) {
+            DiscoverBlendedBackground(screenHeight: screenHeight)
+                .frame(height: topInset)
+                .ignoresSafeArea(edges: .top)
+                .allowsHitTesting(false)
         }
         .fullScreenCover(item: $showingDetailFor) { opportunity in
             JobDetailView(
@@ -278,24 +372,119 @@ public struct DiscoverFeedView: View {
                 resumeViewModel: resumeViewModel
             )
         }
-        .fullScreenCover(isPresented: $showingAllOpportunities) {
+        .fullScreenCover(isPresented: $showingRecommendedAll) {
             AllOpportunitiesView(
                 viewModel: viewModel,
                 navViewModel: navViewModel,
-                resumeViewModel: resumeViewModel
+                resumeViewModel: resumeViewModel,
+                title: "Recommended",
+                isExploreMore: false
+            )
+        }
+        .fullScreenCover(isPresented: $showingExploreMoreAll) {
+            AllOpportunitiesView(
+                viewModel: viewModel,
+                navViewModel: navViewModel,
+                resumeViewModel: resumeViewModel,
+                title: "Explore More",
+                isExploreMore: true
             )
         }
         .sheet(isPresented: $viewModel.showFilterSheet) {
             DiscoverFilterSheet(viewModel: viewModel)
         }
+        .onChange(of: navViewModel.targetOpportunity) { _, newOpp in
+            if let opp = newOpp {
+                showingDetailFor = opp
+                navViewModel.targetOpportunity = nil
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .userProfileDidUpdate)) { notif in
+            if let updated = notif.object as? UserProfile {
+                let clean = updated.name.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !clean.isEmpty {
+                    navViewModel.currentUserFullName = clean
+                }
+            }
+        }
+        .environment(\.colorScheme, .light)
+    }
+
+    private var headlineTitle: String {
+        "EXPLORE\nOPPORTUNITIES"
+    }
+
+    private var headlineSubtitle: String {
+        switch viewModel.selectedFilterTab {
+        case .recommended:
+            return "\(viewModel.filteredOpportunities.count) Top Opportunities"
+        case .liked:
+            return "\(viewModel.filteredOpportunities.count) Liked Opportunities"
+        case .applied:
+            return "\(viewModel.filteredOpportunities.count) Applied Opportunities"
+        }
+    }
+}
+
+// MARK: - Explore More Pinned Section Header (Sticky at top, seamless background matching Discover artwork)
+public struct ExploreMorePinnedHeader: View {
+    public let count: Int
+    public let screenHeight: CGFloat
+    public let onViewMore: () -> Void
+
+    public init(count: Int, screenHeight: CGFloat, onViewMore: @escaping () -> Void) {
+        self.count = count
+        self.screenHeight = screenHeight
+        self.onViewMore = onViewMore
+    }
+
+    public var body: some View {
+        HStack(alignment: .center) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Explore More")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(AlineTheme.inkPrimary)
+                Text("Showing \(min(10, count)) of \(count)")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(AlineTheme.inkSecondary)
+            }
+
+            Spacer()
+
+            if count > 10 {
+                Button {
+                    onViewMore()
+                } label: {
+                    HStack(spacing: 4) {
+                        Text("View More")
+                            .font(.system(size: 13, weight: .bold))
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 11, weight: .bold))
+                    }
+                    .foregroundColor(AlineTheme.inkPrimary)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 7)
+                    .alineGlassCapsule(selected: false)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 24)
+        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity)
+        .background(DiscoverBlendedBackground(screenHeight: screenHeight).ignoresSafeArea(edges: .top))
+        .contentShape(Rectangle())
     }
 }
 
 // MARK: - All Opportunities View (Normal Vertical Scroll, No Stack, No Overlap)
 public struct AllOpportunitiesView: View {
+    @State private var searchActive: Bool = false
     @ObservedObject public var viewModel: DiscoverViewModel
     @ObservedObject public var navViewModel: AppNavigationViewModel
     @ObservedObject public var resumeViewModel: ResumeViewModel
+    public let title: String
+    public let isExploreMore: Bool
     @Environment(\.dismiss) private var dismiss
 
     @State private var showingDetailFor: Opportunity? = nil
@@ -304,16 +493,27 @@ public struct AllOpportunitiesView: View {
     public init(
         viewModel: DiscoverViewModel,
         navViewModel: AppNavigationViewModel,
-        resumeViewModel: ResumeViewModel
+        resumeViewModel: ResumeViewModel,
+        title: String = "All Opportunities",
+        isExploreMore: Bool = false
     ) {
         self.viewModel = viewModel
         self.navViewModel = navViewModel
         self.resumeViewModel = resumeViewModel
+        self.title = title
+        self.isExploreMore = isExploreMore
+    }
+
+    private var displayOpportunities: [Opportunity] {
+        if isExploreMore {
+            return viewModel.exploreMoreOpportunities
+        } else {
+            return viewModel.recommendedOpportunities
+        }
     }
 
     public var body: some View {
         ZStack {
-            // Background strictly purple, yellow, and green
             DiscoverBackgroundArtwork()
 
             VStack(spacing: 0) {
@@ -326,20 +526,17 @@ public struct AllOpportunitiesView: View {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 18, weight: .bold))
                             .foregroundColor(AlineTheme.inkPrimary)
-                            .frame(width: 44, height: 44)
-                            .background(Color.white)
-                            .clipShape(Circle())
-                            .overlay(
-                                Circle().stroke(Color.black.opacity(0.10), lineWidth: 1)
-                            )
+                            .frame(width: 40, height: 40)
+                        .contentShape(Circle())
                     }
                     .buttonStyle(.plain)
+                    .alineGlassCircleButton()
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("All Opportunities")
+                        Text(title)
                             .font(.system(size: 20, weight: .bold))
                             .foregroundColor(AlineTheme.inkPrimary)
-                        Text("\(viewModel.filteredOpportunities.count) Total Vacancies")
+                        Text("\(displayOpportunities.count) Total Vacancies")
                             .font(.system(size: 12, weight: .semibold))
                             .foregroundColor(AlineTheme.inkSecondary)
                     }
@@ -353,46 +550,15 @@ public struct AllOpportunitiesView: View {
 
                 // Search Bar with Filter Icon Near It (No Word "Filters")
                 HStack(spacing: 10) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "magnifyingglass")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(AlineTheme.inkSecondary)
-
-                        TextField("Search all roles, companies, or skills...", text: $viewModel.searchQuery)
-                            .font(.system(size: 14))
-
-                        if !viewModel.searchQuery.isEmpty {
-                            Button {
-                                viewModel.searchQuery = ""
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(AlineTheme.inkSecondary)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 10)
-                    .background(Color.white)
-                    .clipShape(Capsule())
-                    .overlay(
-                        Capsule().stroke(Color.black.opacity(0.08), lineWidth: 1)
-                    )
+                    AlineSearchField("Search roles, companies, or skills", text: $viewModel.searchQuery, isActive: $searchActive)
 
                     // Filter Icon Button (no word "Filters", right next to search bar)
+                    if !searchActive {
                     Button {
                         viewModel.showFilterSheet = true
                     } label: {
                         ZStack {
-                            Circle()
-                                .fill(viewModel.activeFilterCount > 0 ? AlineTheme.pillDark : Color.white)
-                                .frame(width: 42, height: 42)
-                                .overlay(
-                                    Circle().stroke(Color.black.opacity(0.10), lineWidth: 1)
-                                )
-                                .shadow(color: Color.black.opacity(0.04), radius: 2, x: 0, y: 1)
-
+                            Color.clear.frame(width: 44, height: 44)
                             Image(systemName: "slider.horizontal.3")
                                 .font(.system(size: 15, weight: .bold))
                                 .foregroundColor(viewModel.activeFilterCount > 0 ? .white : AlineTheme.inkPrimary)
@@ -404,14 +570,16 @@ public struct AllOpportunitiesView: View {
                                     .offset(x: 10, y: -10)
                             }
                         }
+.alineGlassCircle(selected: viewModel.activeFilterCount > 0)
                     }
                     .buttonStyle(.plain)
+                    }
                 }
                 .padding(.horizontal, 20)
                 .padding(.bottom, 12)
 
                 // Normal Vertical Scroll: NO stack, NO overlapping cards
-                if viewModel.filteredOpportunities.isEmpty {
+                if displayOpportunities.isEmpty {
                     VStack(spacing: 12) {
                         Image(systemName: "magnifyingglass")
                             .font(.system(size: 34, weight: .bold))
@@ -431,7 +599,7 @@ public struct AllOpportunitiesView: View {
                                 .foregroundColor(.white)
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 8)
-                                .background(Capsule().fill(AlineTheme.pillDark))
+                                .alineGlassCapsule(selected: true)
                         }
                         .padding(.top, 4)
                         Spacer()
@@ -439,34 +607,52 @@ public struct AllOpportunitiesView: View {
                     .frame(maxWidth: .infinity)
                 } else {
                     ScrollView(.vertical, showsIndicators: false) {
-                        LazyVStack(spacing: 16) {
-                            ForEach(viewModel.filteredOpportunities) { opp in
-                                let isHighlighted = (opp.id == highlightedCardId)
-
-                                StackedOpportunityCard(
-                                    opportunity: opp,
-                                    isExpanded: true,
-                                    isHighlighted: isHighlighted,
-                                    onSelect: {
-                                        withAnimation(AlineTheme.fastSpring) {
-                                            highlightedCardId = opp.id
+                        if isExploreMore {
+                            // Same spacing and insets as Explore More on the Discover page
+                            LazyVStack(spacing: AlineSpacing.card) {
+                                ForEach(displayOpportunities) { opp in
+                                    CompactExploreOpportunityCard(
+                                        opportunity: opp,
+                                        onOpenDetail: {
+                                            showingDetailFor = opp
                                         }
-                                    },
-                                    onOpenDetail: {
-                                        showingDetailFor = opp
-                                    },
-                                    onLike: {
-                                        withAnimation(AlineTheme.cardSpring) {
-                                            viewModel.toggleLike(for: opp.id)
-                                        }
-                                    }
-                                )
+                                    )
+                                }
                             }
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 10)
+                            .padding(.bottom, 34)
+                        } else {
+                            LazyVStack(spacing: 16) {
+                                ForEach(displayOpportunities) { opp in
+                                    let isHighlighted = (opp.id == highlightedCardId)
+
+                                    StackedOpportunityCard(
+                                        opportunity: opp,
+                                        isExpanded: true,
+                                        isHighlighted: isHighlighted,
+                                        onSelect: {
+                                            withAnimation(AlineTheme.fastSpring) {
+                                                highlightedCardId = opp.id
+                                            }
+                                        },
+                                        onOpenDetail: {
+                                            showingDetailFor = opp
+                                        },
+                                        onLike: {
+                                            withAnimation(AlineTheme.cardSpring) {
+                                                viewModel.toggleLike(for: opp.id)
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 10)
+                            .padding(.bottom, 34)
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 10)
-                        .padding(.bottom, 34)
                     }
+.scrollDismissesKeyboard(.interactively)
                 }
             }
         }
@@ -481,6 +667,21 @@ public struct AllOpportunitiesView: View {
         .sheet(isPresented: $viewModel.showFilterSheet) {
             DiscoverFilterSheet(viewModel: viewModel)
         }
+        .onChange(of: navViewModel.targetOpportunity) { _, newOpp in
+            if let opp = newOpp {
+                showingDetailFor = opp
+                navViewModel.targetOpportunity = nil
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .userProfileDidUpdate)) { notif in
+            if let updated = notif.object as? UserProfile {
+                let clean = updated.name.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !clean.isEmpty {
+                    navViewModel.currentUserFullName = clean
+                }
+            }
+        }
+        .environment(\.colorScheme, .light)
     }
 }
 
@@ -591,7 +792,7 @@ public struct SearchableMultiSelectFilter: View {
 
                             Button {
                                 withAnimation(AlineTheme.fastSpring) {
-                                    selected.remove(item)
+                                    _ = selected.remove(item)
                                 }
                             } label: {
                                 Image(systemName: "xmark")
@@ -617,16 +818,25 @@ public struct SearchableMultiSelectFilter: View {
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(AlineTheme.inkSecondary)
 
-                TextField(placeholder, text: $searchText)
-                    .font(.system(size: 14))
-                    .focused($isFieldFocused)
-                    .autocorrectionDisabled()
-                    .textInputAutocapitalization(.never)
-                    .onTapGesture {
-                        withAnimation(AlineTheme.fastSpring) {
-                            isExpanded = true
-                        }
+                TextField(
+                    "",
+                    text: $searchText,
+                    prompt: Text(placeholder)
+                        .foregroundColor(AlineTheme.inkSecondary)
+                )
+                .font(.system(size: 14))
+                .foregroundColor(AlineTheme.inkPrimary)
+                .tint(AlineTheme.inkPrimary)
+                .focused($isFieldFocused)
+                .submitLabel(.search)
+                .onSubmit { isFieldFocused = false }
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
+                .onTapGesture {
+                    withAnimation(AlineTheme.fastSpring) {
+                        isExpanded = true
                     }
+                }
 
                 if !searchText.isEmpty {
                     Button {
@@ -653,13 +863,8 @@ public struct SearchableMultiSelectFilter: View {
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
-            .background(Color.white)
-            .clipShape(Capsule())
-            .overlay(
-                Capsule()
-                    .stroke(Color.black.opacity(isExpanded || isFieldFocused ? 0.20 : 0.08), lineWidth: 1)
-            )
-            .shadow(color: Color.black.opacity(0.03), radius: 3, x: 0, y: 1)
+            .alineGlassCapsule(selected: false, interactive: false)
+            .environment(\.colorScheme, .light)
 
             // Dropdown List for Search and Selection
             if isExpanded || !searchText.isEmpty {
@@ -669,7 +874,7 @@ public struct SearchableMultiSelectFilter: View {
                     if !trimmed.isEmpty && !cleanOptions.contains(where: { $0.caseInsensitiveCompare(trimmed) == .orderedSame }) {
                         Button {
                             withAnimation(AlineTheme.fastSpring) {
-                                selected.insert(trimmed)
+                                _ = selected.insert(trimmed)
                                 searchText = ""
                             }
                         } label: {
@@ -704,7 +909,7 @@ public struct SearchableMultiSelectFilter: View {
                                     Button {
                                         withAnimation(AlineTheme.fastSpring) {
                                             if isSelected {
-                                                selected.remove(option)
+                                                _ = selected.remove(option)
                                             } else {
                                                 selected.insert(option)
                                             }
@@ -736,6 +941,7 @@ public struct SearchableMultiSelectFilter: View {
                                 }
                             }
                         }
+.scrollDismissesKeyboard(.interactively)
                         .frame(maxHeight: 160)
                     }
                 }
@@ -749,6 +955,7 @@ public struct SearchableMultiSelectFilter: View {
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
+        .environment(\.colorScheme, .light)
     }
 }
 
@@ -820,19 +1027,32 @@ public struct DiscoverFilterSheet: View {
         "Zerodha",
         "Groww"
     ]
-    let gradYearsList = ["All Years", "2027 – 2028", "2026", "2025", "Freshers (0 yrs)"]
+    let gradYearsList: [String] = ["All Years"] + (2015...2030).reversed().map { String($0) }
+    let postedTimeOptions = ["All", "Recent", "Newest to Oldest", "Oldest to Newest"]
 
     public var body: some View {
         ZStack(alignment: .bottom) {
-            // Background matching Discover Screen (Creme base + blurred pastel circles & sparkle stars)
-            DiscoverBackgroundArtwork()
+            // Clean Creme Background (no colorful gradient)
+            Color(AlineTheme.canvasBackground)
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Header: Title & Reset All
-                HStack(alignment: .center) {
+                // Header: Cross Button near Title & Reset All
+                HStack(alignment: .center, spacing: 12) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundColor(AlineTheme.inkPrimary)
+                            .frame(width: 40, height: 40)
+                        .contentShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .alineGlassCircleButton()
+
                     Text("Filters")
-                        .font(.system(size: 26, weight: .heavy, design: .default))
+                        .font(.system(size: 24, weight: .heavy, design: .default))
                         .foregroundColor(AlineTheme.inkPrimary)
 
                     Spacer()
@@ -847,12 +1067,7 @@ public struct DiscoverFilterSheet: View {
                             .foregroundColor(AlineTheme.inkSecondary)
                             .padding(.horizontal, 14)
                             .padding(.vertical, 7)
-                            .background(Color.white)
-                            .clipShape(Capsule())
-                            .overlay(
-                                Capsule().stroke(Color.black.opacity(0.08), lineWidth: 1)
-                            )
-                            .shadow(color: Color.black.opacity(0.03), radius: 2, x: 0, y: 1)
+                            .alineGlassCapsule(selected: false)
                     }
                     .buttonStyle(.plain)
                 }
@@ -883,15 +1098,7 @@ public struct DiscoverFilterSheet: View {
                                             .foregroundColor(isSelected ? .white : AlineTheme.inkPrimary)
                                             .padding(.horizontal, 18)
                                             .padding(.vertical, 9)
-                                            .background(
-                                                Capsule()
-                                                    .fill(isSelected ? Color.black : Color.white)
-                                            )
-                                            .overlay(
-                                                Capsule()
-                                                    .stroke(Color.black.opacity(isSelected ? 0 : 0.08), lineWidth: 1)
-                                            )
-                                            .shadow(color: Color.black.opacity(isSelected ? 0.12 : 0.03), radius: 3, x: 0, y: 1)
+                                            .alineGlassCapsule(selected: isSelected)
                                     }
                                     .buttonStyle(.plain)
                                 }
@@ -933,17 +1140,11 @@ public struct DiscoverFilterSheet: View {
                                         Text(mode)
                                             .font(.system(size: 14, weight: isSelected ? .bold : .semibold))
                                             .foregroundColor(isSelected ? .white : AlineTheme.inkPrimary)
-                                            .padding(.horizontal, 18)
+                                            .lineLimit(1)
+                                            .fixedSize(horizontal: true, vertical: false)
+                                            .padding(.horizontal, 13)
                                             .padding(.vertical, 9)
-                                            .background(
-                                                Capsule()
-                                                    .fill(isSelected ? Color.black : Color.white)
-                                            )
-                                            .overlay(
-                                                Capsule()
-                                                    .stroke(Color.black.opacity(isSelected ? 0 : 0.08), lineWidth: 1)
-                                            )
-                                            .shadow(color: Color.black.opacity(isSelected ? 0.12 : 0.03), radius: 3, x: 0, y: 1)
+                                            .alineGlassCapsule(selected: isSelected)
                                     }
                                     .buttonStyle(.plain)
                                 }
@@ -951,7 +1152,36 @@ public struct DiscoverFilterSheet: View {
                             }
                         }
 
-                        // 5. MORE FILTERS COLLAPSIBLE SECTION
+                        // 5. POSTED TIME / RECENCY
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("POSTED TIME")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundColor(AlineTheme.inkSecondary)
+                                .tracking(0.6)
+
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 8) {
+                                    ForEach(postedTimeOptions, id: \.self) { option in
+                                        let isSelected = viewModel.filterPostedTime == option
+                                        Button {
+                                            withAnimation(AlineTheme.fastSpring) {
+                                                viewModel.filterPostedTime = option
+                                            }
+                                        } label: {
+                                            Text(option)
+                                                .font(.system(size: 14, weight: isSelected ? .bold : .semibold))
+                                                .foregroundColor(isSelected ? .white : AlineTheme.inkPrimary)
+                                                .padding(.horizontal, 18)
+                                                .padding(.vertical, 9)
+                                                .alineGlassCapsule(selected: isSelected)
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
+                                }
+                            }
+                        }
+
+                        // 6. MORE FILTERS COLLAPSIBLE SECTION
                         Button {
                             withAnimation(AlineTheme.cardSpring) {
                                 viewModel.isMoreFiltersExpanded.toggle()
@@ -972,7 +1202,7 @@ public struct DiscoverFilterSheet: View {
                                         .font(.system(size: 11, weight: .bold))
                                         .foregroundColor(.white)
                                         .frame(width: 20, height: 20)
-                                        .background(Circle().fill(Color.black))
+                                        .alineGlassCircle(selected: true)
                                 }
 
                                 Spacer()
@@ -983,15 +1213,7 @@ public struct DiscoverFilterSheet: View {
                             }
                             .padding(.horizontal, 18)
                             .padding(.vertical, 14)
-                            .background(
-                                Capsule()
-                                    .fill(Color.white)
-                            )
-                            .overlay(
-                                Capsule()
-                                    .stroke(Color.black.opacity(0.08), lineWidth: 1)
-                            )
-                            .shadow(color: Color.black.opacity(0.03), radius: 3, x: 0, y: 1)
+                            .alineGlassCapsule(selected: false)
                         }
                         .buttonStyle(.plain)
 
@@ -1038,36 +1260,17 @@ public struct DiscoverFilterSheet: View {
                                         }
                                     }
 
-                                    VStack(spacing: 0) {
-                                        ForEach(Array(gradYearsList.enumerated()), id: \.element) { index, yr in
-                                            let isSelected = viewModel.filterGradYear == yr
-                                            Button {
-                                                withAnimation(AlineTheme.fastSpring) {
-                                                    viewModel.filterGradYear = yr
-                                                }
-                                            } label: {
-                                                HStack {
-                                                    Text(yr)
-                                                        .font(.system(size: 14, weight: isSelected ? .bold : .regular))
-                                                        .foregroundColor(AlineTheme.inkPrimary)
-                                                    Spacer()
-                                                    if isSelected {
-                                                        Image(systemName: "checkmark")
-                                                            .font(.system(size: 12, weight: .bold))
-                                                            .foregroundColor(Color.black)
-                                                    }
-                                                }
-                                                .padding(.horizontal, 16)
-                                                .padding(.vertical, 10)
-                                                .background(isSelected ? Color(red: 0.94, green: 0.93, blue: 0.90) : Color.white)
-                                            }
-                                            .buttonStyle(.plain)
-
-                                            if index < gradYearsList.count - 1 {
-                                                Divider().opacity(0.08)
-                                            }
+                                    Picker("Graduation Year", selection: $viewModel.filterGradYear) {
+                                        ForEach(gradYearsList, id: \.self) { yr in
+                                            Text(yr)
+                                                .font(.system(size: 16, weight: .semibold))
+                                                .foregroundColor(AlineTheme.inkPrimary)
+                                                .tag(yr)
                                         }
                                     }
+                                    .pickerStyle(.wheel)
+                                    .frame(height: 125)
+                                    .frame(maxWidth: .infinity)
                                     .background(Color.white)
                                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                                     .overlay(
@@ -1075,6 +1278,7 @@ public struct DiscoverFilterSheet: View {
                                             .stroke(Color.black.opacity(0.08), lineWidth: 1)
                                     )
                                     .shadow(color: Color.black.opacity(0.03), radius: 3, x: 0, y: 1)
+                                    .environment(\.colorScheme, .light)
                                 }
                             }
                             .padding(.top, 4)
@@ -1086,6 +1290,7 @@ public struct DiscoverFilterSheet: View {
                     .padding(.horizontal, 24)
                     .padding(.vertical, 14)
                 }
+.scrollDismissesKeyboard(.interactively)
 
                 Spacer(minLength: 0)
             }
@@ -1103,49 +1308,23 @@ public struct DiscoverFilterSheet: View {
                 )
                 .frame(height: 20)
 
-                HStack(spacing: 12) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Text("Close")
+                Button {
+                    dismiss()
+                } label: {
+                    HStack(spacing: 6) {
+                        Text("Apply Filters")
                             .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(AlineTheme.inkPrimary)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 54)
-                            .background(
-                                Capsule()
-                                    .fill(Color.white)
-                            )
-                            .overlay(
-                                Capsule()
-                                    .stroke(Color.black.opacity(0.12), lineWidth: 1)
-                            )
-                            .shadow(color: Color.black.opacity(0.04), radius: 3, x: 0, y: 1)
-                    }
-                    .buttonStyle(.plain)
-
-                    Button {
-                        dismiss()
-                    } label: {
-                        HStack(spacing: 6) {
-                            Text("Apply Filters")
-                                .font(.system(size: 16, weight: .bold))
-                            if viewModel.activeFilterCount > 0 {
-                                Text("(\(viewModel.activeFilterCount))")
-                                    .font(.system(size: 15, weight: .bold))
-                            }
+                        if viewModel.activeFilterCount > 0 {
+                            Text("(\(viewModel.activeFilterCount))")
+                                .font(.system(size: 15, weight: .bold))
                         }
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 54)
-                        .background(
-                            Capsule()
-                                .fill(Color.black)
-                                .shadow(color: Color.black.opacity(0.16), radius: 10, x: 0, y: 4)
-                        )
                     }
-                    .buttonStyle(.plain)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 54)
+                    .alineGlassCapsule(selected: true)
                 }
+                .buttonStyle(.plain)
                 .padding(.horizontal, 24)
                 .padding(.bottom, 20)
                 .background(Color(red: 0.98, green: 0.97, blue: 0.95))
@@ -1154,6 +1333,7 @@ public struct DiscoverFilterSheet: View {
         }
         .presentationDetents([.fraction(0.88), .large])
         .presentationDragIndicator(.visible)
+        .environment(\.colorScheme, .light)
     }
 }
 

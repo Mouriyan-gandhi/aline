@@ -9,10 +9,10 @@ public enum AlineTheme {
     public static let canvasBackground = Color(red: 0.985, green: 0.982, blue: 0.965) // Light Creme
     public static let surfaceWhite = Color.white
 
-    // Background Palette: Light Blue · Light Yellow · Light Pink
-    public static let bgBlue = Color(red: 0.84, green: 0.92, blue: 0.99)
-    public static let bgYellow = Color(red: 1.0, green: 0.96, blue: 0.78)
-    public static let bgPink = Color(red: 0.99, green: 0.88, blue: 0.92)
+    // Background Palette: Light Yellow · Subtle Pink · Subtle Icy Sky Blue (Lighter)
+    public static let bgYellow = Color(red: 0.996, green: 0.980, blue: 0.88)
+    public static let bgPink = Color(red: 0.996, green: 0.930, blue: 0.920)
+    public static let bgBlue = Color(red: 0.88, green: 0.955, blue: 0.998)
 
     public static let cardMint = Color(red: 0.82, green: 0.93, blue: 0.85)       // Ola
     public static let cardLavender = Color(red: 0.77, green: 0.82, blue: 0.96)   // Flipkart
@@ -37,6 +37,18 @@ public enum AlineTheme {
     public static let cardSpring = Animation.spring(response: 0.45, dampingFraction: 0.80)
     public static let fastSpring = Animation.spring(response: 0.30, dampingFraction: 0.82)
     public static let tabSpring = Animation.spring(response: 0.38, dampingFraction: 0.78)
+}
+
+// MARK: - Spacing Scale (use these everywhere so every screen has the same rhythm)
+public enum AlineSpacing {
+    /// Horizontal inset of screen content
+    public static let screenInset: CGFloat = 24
+    /// Gap between major sections on a screen (header block → search → filters → list …)
+    public static let section: CGFloat = 20
+    /// Gap between a section's title row and its content
+    public static let sectionHeader: CGFloat = 12
+    /// Gap between cards / rows in a list
+    public static let card: CGFloat = 12
 }
 
 // MARK: - SF Pro Typography Extensions

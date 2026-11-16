@@ -1,6 +1,26 @@
 import SwiftUI
 
-// MARK: - Floating Bottom Navigation Bar (Transparent Glassmorphism)
+// MARK: - Keyboard Dismissal
+/// Single-line text fields: the return key submits and closes the keyboard.
+private struct AlineKeyboardDismissal: ViewModifier {
+    let label: SubmitLabel
+    @FocusState private var isFocused: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .focused($isFocused)
+            .submitLabel(label)
+            .onSubmit { isFocused = false }
+    }
+}
+
+public extension View {
+    func alineKeyboardDismissal(_ label: SubmitLabel = .done) -> some View {
+        modifier(AlineKeyboardDismissal(label: label))
+    }
+}
+
+// MARK: - Floating Tab Bar (Custom Glass Navigation Bar)
 public struct FloatingTabBar: View {
     @Binding public var currentTab: AppTab
     @Namespace private var tabAnimation
@@ -10,7 +30,7 @@ public struct FloatingTabBar: View {
     }
 
     public var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 6) {
             ForEach(AppTab.allCases) { tab in
                 let isSelected = currentTab == tab
                 Button {
@@ -18,44 +38,51 @@ public struct FloatingTabBar: View {
                         currentTab = tab
                     }
                 } label: {
-                    ZStack {
-                        if isSelected {
-                            Circle()
-                                .fill(AlineTheme.pillDark)
-                                .frame(width: 46, height: 46)
-                                .shadow(color: Color.black.opacity(0.18), radius: 6, x: 0, y: 3)
-                                .matchedGeometryEffect(id: "activeTabBubble", in: tabAnimation)
-                        }
-
+                    VStack(spacing: 3) {
                         Image(systemName: tab.iconName)
-                            .font(.system(size: 20, weight: isSelected ? .bold : .semibold))
-                            .foregroundColor(isSelected ? .white : AlineTheme.inkPrimary.opacity(0.75))
-                            .frame(width: 46, height: 46)
+                            .font(.system(size: 17, weight: isSelected ? .bold : .medium))
+
+                        Text(tab.title)
+                            .font(.system(size: 10, weight: isSelected ? .bold : .medium))
+                            .lineLimit(1)
                     }
+                    .foregroundColor(isSelected ? .white : AlineTheme.inkPrimary.opacity(0.72))
+                    .frame(width: 68, height: 50)
+                    .background(
+                        Group {
+                            if isSelected {
+                                Capsule()
+                                    .fill(AlineTheme.pillDark)
+                                    .shadow(color: Color.black.opacity(0.18), radius: 6, x: 0, y: 3)
+                                    .matchedGeometryEffect(id: "activeTabBubble", in: tabAnimation)
+                            }
+                        }
+                    )
                 }
                 .buttonStyle(.plain)
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
         .background(
             ZStack {
                 // Frosted ultra-thin glass material with background blur
                 Capsule()
                     .fill(.ultraThinMaterial)
+                    .environment(\.colorScheme, .light)
 
-                // Translucent milky white tint for crystal glass depth
+                // Translucent milky white tint for luminous glass depth
                 Capsule()
-                    .fill(Color.white.opacity(0.65))
+                    .fill(Color.white.opacity(0.85))
 
                 // Refractive specular highlight border
                 Capsule()
                     .stroke(
                         LinearGradient(
                             colors: [
-                                Color.white.opacity(0.92),
-                                Color.white.opacity(0.40),
-                                Color.black.opacity(0.06)
+                                Color.white,
+                                Color.white.opacity(0.70),
+                                Color.white.opacity(0.35)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -63,11 +90,179 @@ public struct FloatingTabBar: View {
                         lineWidth: 1.2
                     )
             }
-            .shadow(color: Color.black.opacity(0.08), radius: 20, x: 0, y: 8)
+            .shadow(color: Color.black.opacity(0.10), radius: 18, x: 0, y: 7)
             .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 1)
         )
-        .padding(.horizontal, 24)
+        .padding(.horizontal, 20)
         .padding(.bottom, 6)
+        .environment(\.colorScheme, .light)
+    }
+}
+
+// MARK: - Liquid Glass Shape Helpers (iOS 17+ compatible with ultraThinMaterial & native fallback)
+@available(iOS 26.0, *)
+private func alineGlass(selected: Bool, tint: Color, interactive: Bool) -> Glass {
+    var glass = Glass.regular
+    if selected { glass = glass.tint(tint) }
+    return glass
+}
+
+public extension View {
+    @ViewBuilder
+    func alineGlassCapsule(selected: Bool = false, tint: Color = AlineTheme.pillDark, interactive: Bool = false) -> some View {
+        if #available(iOS 26.0, *) {
+            background(selected ? tint : Color.clear, in: Capsule())
+                .glassEffect(alineGlass(selected: selected, tint: tint, interactive: interactive), in: Capsule())
+        } else {
+            background(
+                Capsule()
+                    .fill(selected ? tint : Color.white.opacity(0.88))
+            )
+            .overlay(
+                Capsule()
+                    .stroke(selected ? Color.clear : Color.black.opacity(0.08), lineWidth: 1)
+            )
+            .shadow(color: Color.black.opacity(0.03), radius: 3, x: 0, y: 1)
+        }
+    }
+
+    @ViewBuilder
+    func alineGlassCircle(selected: Bool = false, tint: Color = AlineTheme.pillDark, interactive: Bool = false) -> some View {
+        if #available(iOS 26.0, *) {
+            background(selected ? tint : Color.clear, in: Circle())
+                .glassEffect(alineGlass(selected: selected, tint: tint, interactive: interactive), in: Circle())
+        } else {
+            background(
+                Circle()
+                    .fill(selected ? tint : Color.white.opacity(0.88))
+            )
+            .overlay(
+                Circle()
+                    .stroke(selected ? Color.clear : Color.black.opacity(0.08), lineWidth: 1)
+            )
+            .shadow(color: Color.black.opacity(0.03), radius: 3, x: 0, y: 1)
+        }
+    }
+
+    @ViewBuilder
+    func alineGlassCircleButton() -> some View {
+        if #available(iOS 26.0, *) {
+            self.glassEffect(.regular, in: Circle())
+        } else {
+            self.background(
+                Circle()
+                    .fill(Color.white.opacity(0.92))
+            )
+            .overlay(
+                Circle()
+                    .stroke(Color.black.opacity(0.08), lineWidth: 1)
+            )
+            .shadow(color: Color.black.opacity(0.03), radius: 3, x: 0, y: 1)
+        }
+    }
+
+    @ViewBuilder
+    func alineGlassPill() -> some View {
+        if #available(iOS 26.0, *) {
+            self.glassEffect(.regular, in: Capsule())
+        } else {
+            self.background(
+                Capsule()
+                    .fill(Color.white.opacity(0.92))
+            )
+            .overlay(
+                Capsule()
+                    .stroke(Color.black.opacity(0.08), lineWidth: 1)
+            )
+            .shadow(color: Color.black.opacity(0.03), radius: 3, x: 0, y: 1)
+        }
+    }
+
+    @ViewBuilder
+    func alineGlassProminentButton() -> some View {
+        if #available(iOS 26.0, *) {
+            self.buttonStyle(.glassProminent)
+                .buttonBorderShape(.capsule)
+                .tint(AlineTheme.pillDark)
+        } else {
+            self.buttonStyle(.borderedProminent)
+                .buttonBorderShape(.capsule)
+                .tint(AlineTheme.pillDark)
+        }
+    }
+}
+
+// MARK: - Search Field (glass capsule + glass cancel button, compatible with iOS 17+)
+public struct AlineSearchField: View {
+    public let placeholder: String
+    @Binding public var text: String
+    @Binding public var isActive: Bool
+    /// Puts the cursor in the field as soon as it appears (for search bars revealed by a button)
+    public var focusOnAppear: Bool = false
+    @FocusState private var focused: Bool
+
+    public init(_ placeholder: String, text: Binding<String>, isActive: Binding<Bool> = .constant(false), focusOnAppear: Bool = false) {
+        self.placeholder = placeholder
+        self._text = text
+        self._isActive = isActive
+        self.focusOnAppear = focusOnAppear
+    }
+
+    public var body: some View {
+        HStack(spacing: 10) {
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(AlineTheme.inkSecondary)
+
+                TextField(
+                    "",
+                    text: $text,
+                    prompt: Text(placeholder).foregroundColor(AlineTheme.inkSecondary)
+                )
+                    .font(.system(size: 16))
+                    .foregroundColor(AlineTheme.inkPrimary)
+                    .tint(AlineTheme.inkPrimary)
+                    .focused($focused)
+                    .submitLabel(.search)
+                    .onSubmit { focused = false }
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+
+                if !text.isEmpty {
+                    Button {
+                        text = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(AlineTheme.inkMuted)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 14)
+            .frame(height: 44)
+            .alineGlassPill()
+
+            if focused {
+                Button {
+                    text = ""
+                    focused = false
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(AlineTheme.inkPrimary)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .alineGlassCircleButton()
+                .transition(.opacity.combined(with: .scale(scale: 0.8)))
+            }
+        }
+        .environment(\.colorScheme, .light)
+        .animation(AlineTheme.fastSpring, value: focused)
+        .onChange(of: focused) { _, newValue in isActive = newValue }
+        .onAppear { if focusOnAppear { focused = true } }
     }
 }
 
@@ -115,440 +310,177 @@ public struct GoogleGView: View {
     }
 }
 
-// MARK: - Company Brand Logo Component (White Circle with Authentic Company Icon)
+// MARK: - Company Brand Logo Asset Resolver
+public func companyLogoAsset(for companyName: String) -> String? {
+    let name = companyName.lowercased().replacingOccurrences(of: " ", with: "")
+    if name.contains("apple") { return "company_apple" }
+    if name.contains("google") { return "company_google" }
+    if name.contains("flipkart") { return "company_flipkart" }
+    if name.contains("ola") { return "company_ola" }
+    if name.contains("microsoft") { return "company_microsoft" }
+    if name.contains("meta") { return "company_meta" }
+    if name.contains("facebook") { return "company_facebook" }
+    if name.contains("amazon") { return "company_amazon" }
+    if name.contains("netflix") { return "company_netflix" }
+    if name.contains("spotify") { return "company_spotify" }
+    if name.contains("uber") { return "company_uber" }
+    if name.contains("airbnb") { return "company_airbnb" }
+    if name.contains("swiggy") { return "company_swiggy" }
+    if name.contains("zomato") { return "company_zomato" }
+    if name.contains("cred") { return "company_cred" }
+    if name.contains("razorpay") { return "company_razorpay" }
+    if name.contains("phonepe") { return "company_phonepe" }
+    if name.contains("stripe") { return "company_stripe" }
+    if name.contains("figma") { return "company_figma" }
+    if name.contains("notion") { return "company_notion" }
+    if name.contains("github") { return "company_github" }
+    if name.contains("openai") { return "company_openai" }
+    if name.contains("anthropic") { return "company_anthropic" }
+    if name.contains("databricks") { return "company_databricks" }
+    if name.contains("snowflake") { return "company_snowflake" }
+    if name.contains("nvidia") { return "company_nvidia" }
+    if name.contains("linear") { return "company_linear" }
+    if name.contains("adobe") { return "company_adobe" }
+    if name.contains("canva") { return "company_canva" }
+    if name.contains("atlassian") { return "company_atlassian" }
+    if name.contains("goldman") { return "company_goldmansachs" }
+    if name.contains("jpmorgan") || name.contains("morgan") { return "company_jpmorgan" }
+    if name.contains("citadel") { return "company_citadel" }
+    if name.contains("zepto") { return "company_zepto" }
+    if name.contains("janestreet") || name.contains("jane") { return "company_janestreet" }
+    if name.contains("meesho") { return "company_meesho" }
+    if name.contains("groww") { return "company_groww" }
+    if name.contains("zerodha") { return "company_zerodha" }
+    if name.contains("discord") { return "company_discord" }
+    if name.contains("duolingo") { return "company_duolingo" }
+    if name.contains("linkedin") { return "company_linkedin" }
+    if name.contains("salesforce") { return "company_salesforce" }
+    if name.contains("cloudflare") { return "company_cloudflare" }
+    if name.contains("supabase") { return "company_supabase" }
+    if name.contains("vercel") { return "company_vercel" }
+    if name.contains("browserstack") { return "company_browserstack" }
+    if name.contains("retool") { return "company_retool" }
+    if name.contains("hasura") { return "company_hasura" }
+    if name.contains("postman") { return "company_postman" }
+    if name.contains("palantir") { return "company_palantir" }
+    if name.contains("cisco") { return "company_cisco" }
+    if name.contains("intel") { return "company_intel" }
+    if name.contains("amd") { return "company_amd" }
+    return nil
+}
+
+// MARK: - Company Brand Logo Component (Authentic Image Assets from Reference Sheets)
 public struct CompanyLogoBadge: View {
     public let companyName: String
     public let size: CGFloat
     public let isSquircle: Bool
 
-    public init(companyName: String, size: CGFloat = 48, isSquircle: Bool = false) {
+    public init(companyName: String, size: CGFloat = 48, isSquircle: Bool = true) {
         self.companyName = companyName
         self.size = size
         self.isSquircle = isSquircle
     }
 
     public var body: some View {
-        ZStack {
-            if isSquircle {
-                RoundedRectangle(cornerRadius: size * 0.26, style: .continuous)
-                    .fill(Color.white)
-                    .frame(width: size, height: size)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: size * 0.26, style: .continuous)
-                            .stroke(Color.black.opacity(0.08), lineWidth: 1)
-                    )
-                    .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
-            } else {
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: size, height: size)
-                    .overlay(
-                        Circle().stroke(Color.black.opacity(0.06), lineWidth: 1)
-                    )
-                    .shadow(color: Color.black.opacity(0.04), radius: 2, x: 0, y: 1)
-            }
-
-            iconContent
-        }
-    }
-
-    @ViewBuilder
-    private var iconContent: some View {
-        let name = companyName.lowercased()
-        if name.contains("ola") {
-            // Ola: Black ring with neon lime/yellow circle and center dot
+        if let assetName = companyLogoAsset(for: companyName) {
             ZStack {
-                Circle()
-                    .stroke(Color.black, lineWidth: size * 0.13)
-                    .frame(width: size * 0.62, height: size * 0.62)
-                Circle()
-                    .fill(Color(red: 0.83, green: 0.91, blue: 0.05)) // Ola neon lime
-                    .frame(width: size * 0.36, height: size * 0.36)
-                Circle()
-                    .fill(Color.black)
-                    .frame(width: size * 0.16, height: size * 0.16)
-            }
-        } else if name.contains("flipkart") {
-            // Flipkart: Yellow shopping bag with blue serif 'f'
-            ZStack {
-                RoundedRectangle(cornerRadius: size * 0.10, style: .continuous)
-                    .fill(Color(red: 1.0, green: 0.85, blue: 0.0)) // Flipkart yellow
-                    .frame(width: size * 0.58, height: size * 0.58)
-                Text("f")
-                    .font(.system(size: size * 0.38, weight: .black, design: .serif))
-                    .italic()
-                    .foregroundColor(Color(red: 0.16, green: 0.45, blue: 0.94)) // Flipkart blue
-                    .offset(x: -size * 0.02, y: -size * 0.02)
-            }
-        } else if name.contains("apple") {
-            // Apple: Black Apple icon
-            Image(systemName: "apple.logo")
-                .font(.system(size: size * 0.54, weight: .semibold))
-                .foregroundColor(.black)
-        } else if name.contains("google") {
-            // Google: 4-color 'G'
-            GoogleGView(size: size * 0.60)
-        } else if name.contains("microsoft") {
-            Grid(horizontalSpacing: 2, verticalSpacing: 2) {
-                GridRow {
-                    Rectangle().fill(Color(red: 0.95, green: 0.32, blue: 0.16)).frame(width: size * 0.22, height: size * 0.22)
-                    Rectangle().fill(Color(red: 0.49, green: 0.73, blue: 0.08)).frame(width: size * 0.22, height: size * 0.22)
-                }
-                GridRow {
-                    Rectangle().fill(Color(red: 0.02, green: 0.65, blue: 0.93)).frame(width: size * 0.22, height: size * 0.22)
-                    Rectangle().fill(Color(red: 1.0, green: 0.73, blue: 0.0)).frame(width: size * 0.22, height: size * 0.22)
+                if isSquircle {
+                    Image(assetName)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: size, height: size)
+                        .clipShape(RoundedRectangle(cornerRadius: size * 0.24, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: size * 0.24, style: .continuous)
+                                .stroke(Color.black.opacity(0.08), lineWidth: 1)
+                        )
+                } else {
+                    Image(assetName)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: size, height: size)
+                        .clipShape(Circle())
+                        .overlay(
+                            Circle()
+                                .stroke(Color.black.opacity(0.08), lineWidth: 1)
+                        )
                 }
             }
-        } else if name.contains("meta") || name.contains("facebook") {
-            Image(systemName: "infinity")
-                .font(.system(size: size * 0.52, weight: .heavy))
-                .foregroundColor(Color(red: 0.04, green: 0.40, blue: 0.95))
-        } else if name.contains("amazon") {
-            VStack(spacing: -size * 0.05) {
-                Text("a")
-                    .font(.system(size: size * 0.44, weight: .black, design: .rounded))
-                    .foregroundColor(Color(red: 0.1, green: 0.12, blue: 0.16))
-                Image(systemName: "arrow.right")
-                    .font(.system(size: size * 0.16, weight: .black))
-                    .foregroundColor(Color(red: 1.0, green: 0.60, blue: 0.0))
-                    .rotationEffect(.degrees(12))
-            }
-        } else if name.contains("netflix") {
-            Text("N")
-                .font(.system(size: size * 0.60, weight: .black, design: .serif))
-                .foregroundColor(Color(red: 0.89, green: 0.04, blue: 0.08))
-        } else if name.contains("spotify") {
-            ZStack {
-                Circle()
-                    .fill(Color(red: 0.11, green: 0.84, blue: 0.38))
-                    .frame(width: size * 0.64, height: size * 0.64)
-                Image(systemName: "waveform")
-                    .font(.system(size: size * 0.36, weight: .heavy))
-                    .foregroundColor(.black)
-            }
-        } else if name.contains("uber") {
-            ZStack {
-                Circle()
-                    .fill(Color.black)
-                    .frame(width: size * 0.64, height: size * 0.64)
-                Text("U")
-                    .font(.system(size: size * 0.42, weight: .black, design: .default))
-                    .foregroundColor(.white)
-            }
-        } else if name.contains("airbnb") {
-            Image(systemName: "triangle.circle.fill")
-                .font(.system(size: size * 0.56, weight: .bold))
-                .foregroundColor(Color(red: 1.0, green: 0.35, blue: 0.40))
-        } else if name.contains("swiggy") {
-            ZStack {
-                Circle()
-                    .fill(Color(red: 0.99, green: 0.50, blue: 0.10))
-                    .frame(width: size * 0.64, height: size * 0.64)
-                Image(systemName: "location.fill")
-                    .font(.system(size: size * 0.32, weight: .black))
-                    .foregroundColor(.white)
-                    .rotationEffect(.degrees(135))
-            }
-        } else if name.contains("zomato") {
-            ZStack {
-                RoundedRectangle(cornerRadius: size * 0.14, style: .continuous)
-                    .fill(Color(red: 0.89, green: 0.17, blue: 0.22))
-                    .frame(width: size * 0.64, height: size * 0.64)
-                Text("z")
-                    .font(.system(size: size * 0.44, weight: .black, design: .rounded))
-                    .foregroundColor(.white)
-            }
-        } else if name.contains("cred") {
-            ZStack {
-                Circle()
-                    .fill(Color.black)
-                    .frame(width: size * 0.64, height: size * 0.64)
-                Image(systemName: "shield.lefthalf.filled")
-                    .font(.system(size: size * 0.34, weight: .bold))
-                    .foregroundColor(.white)
-            }
-        } else if name.contains("razorpay") {
-            ZStack {
-                RoundedRectangle(cornerRadius: size * 0.14, style: .continuous)
-                    .fill(Color(red: 0.05, green: 0.35, blue: 0.85))
-                    .frame(width: size * 0.64, height: size * 0.64)
-                Image(systemName: "bolt.fill")
-                    .font(.system(size: size * 0.36, weight: .heavy))
-                    .foregroundColor(.white)
-            }
-        } else if name.contains("phonepe") {
-            ZStack {
-                Circle()
-                    .fill(Color(red: 0.41, green: 0.15, blue: 0.69))
-                    .frame(width: size * 0.64, height: size * 0.64)
-                Text("पे")
-                    .font(.system(size: size * 0.36, weight: .heavy))
-                    .foregroundColor(.white)
-            }
-        } else if name.contains("stripe") {
-            ZStack {
-                RoundedRectangle(cornerRadius: size * 0.14, style: .continuous)
-                    .fill(Color(red: 0.39, green: 0.36, blue: 0.95))
-                    .frame(width: size * 0.64, height: size * 0.64)
-                Text("S")
-                    .font(.system(size: size * 0.40, weight: .heavy, design: .rounded))
-                    .foregroundColor(.white)
-            }
-        } else if name.contains("figma") {
-            VStack(spacing: 1) {
-                HStack(spacing: 1) {
-                    Circle().fill(Color(red: 0.95, green: 0.35, blue: 0.25)).frame(width: size * 0.16, height: size * 0.16)
-                    Circle().fill(Color(red: 1.0, green: 0.55, blue: 0.20)).frame(width: size * 0.16, height: size * 0.16)
-                }
-                HStack(spacing: 1) {
-                    Circle().fill(Color(red: 0.65, green: 0.35, blue: 0.95)).frame(width: size * 0.16, height: size * 0.16)
-                    Circle().fill(Color(red: 0.10, green: 0.75, blue: 0.95)).frame(width: size * 0.16, height: size * 0.16)
-                }
-                HStack(spacing: 1) {
-                    Circle().fill(Color(red: 0.05, green: 0.80, blue: 0.45)).frame(width: size * 0.16, height: size * 0.16)
-                    Spacer().frame(width: size * 0.16)
-                }
-            }
-        } else if name.contains("notion") {
-            ZStack {
-                RoundedRectangle(cornerRadius: size * 0.12, style: .continuous)
-                    .stroke(Color.black, lineWidth: size * 0.04)
-                    .frame(width: size * 0.60, height: size * 0.60)
-                Text("N")
-                    .font(.system(size: size * 0.40, weight: .black, design: .serif))
-                    .foregroundColor(.black)
-            }
-        } else if name.contains("github") {
-            ZStack {
-                Circle()
-                    .fill(Color(red: 0.14, green: 0.16, blue: 0.19))
-                    .frame(width: size * 0.64, height: size * 0.64)
-                Image(systemName: "chevron.left.forwardslash.chevron.right")
-                    .font(.system(size: size * 0.26, weight: .bold))
-                    .foregroundColor(.white)
-            }
-        } else if name.contains("openai") {
-            ZStack {
-                Circle()
-                    .fill(Color(red: 0.06, green: 0.64, blue: 0.50))
-                    .frame(width: size * 0.64, height: size * 0.64)
-                Image(systemName: "sparkles")
-                    .font(.system(size: size * 0.32, weight: .heavy))
-                    .foregroundColor(.white)
-            }
-        } else if name.contains("anthropic") {
-            ZStack {
-                RoundedRectangle(cornerRadius: size * 0.14, style: .continuous)
-                    .fill(Color(red: 0.85, green: 0.47, blue: 0.34))
-                    .frame(width: size * 0.64, height: size * 0.64)
-                Text("A")
-                    .font(.system(size: size * 0.40, weight: .black, design: .serif))
-                    .foregroundColor(.white)
-            }
-        } else if name.contains("databricks") {
-            Image(systemName: "square.3.layers.3d.down.right.fill")
-                .font(.system(size: size * 0.48, weight: .bold))
-                .foregroundColor(Color(red: 1.0, green: 0.22, blue: 0.16))
-        } else if name.contains("snowflake") {
-            Image(systemName: "snowflake")
-                .font(.system(size: size * 0.52, weight: .bold))
-                .foregroundColor(Color(red: 0.18, green: 0.68, blue: 0.94))
-        } else if name.contains("nvidia") {
-            ZStack {
-                Circle()
-                    .fill(Color(red: 0.46, green: 0.73, blue: 0.0))
-                    .frame(width: size * 0.64, height: size * 0.64)
-                Image(systemName: "eye.fill")
-                    .font(.system(size: size * 0.34, weight: .heavy))
-                    .foregroundColor(.white)
-            }
-        } else if name.contains("linear") {
-            ZStack {
-                Circle()
-                    .fill(Color(red: 0.36, green: 0.38, blue: 0.94))
-                    .frame(width: size * 0.64, height: size * 0.64)
-                Image(systemName: "line.diagonal")
-                    .font(.system(size: size * 0.38, weight: .black))
-                    .foregroundColor(.white)
-            }
-        } else if name.contains("canva") {
-            ZStack {
-                Circle()
-                    .fill(Color(red: 0.0, green: 0.77, blue: 0.86))
-                    .frame(width: size * 0.64, height: size * 0.64)
-                Text("C")
-                    .font(.system(size: size * 0.44, weight: .black, design: .rounded))
-                    .foregroundColor(.white)
-            }
-        } else if name.contains("atlassian") {
-            Image(systemName: "triangle.fill")
-                .font(.system(size: size * 0.46, weight: .bold))
-                .foregroundColor(Color(red: 0.0, green: 0.32, blue: 0.84))
-        } else if name.contains("adobe") {
-            ZStack {
-                RoundedRectangle(cornerRadius: size * 0.14, style: .continuous)
-                    .fill(Color(red: 0.90, green: 0.0, blue: 0.0))
-                    .frame(width: size * 0.64, height: size * 0.64)
-                Text("A")
-                    .font(.system(size: size * 0.42, weight: .black, design: .default))
-                    .foregroundColor(.white)
-            }
-        } else if name.contains("goldman") {
-            ZStack {
-                RoundedRectangle(cornerRadius: size * 0.14, style: .continuous)
-                    .fill(Color(red: 0.12, green: 0.34, blue: 0.58))
-                    .frame(width: size * 0.64, height: size * 0.64)
-                Text("GS")
-                    .font(.system(size: size * 0.32, weight: .black, design: .rounded))
-                    .foregroundColor(.white)
-            }
-        } else if name.contains("morgan") {
-            ZStack {
-                RoundedRectangle(cornerRadius: size * 0.14, style: .continuous)
-                    .fill(Color(red: 0.15, green: 0.20, blue: 0.26))
-                    .frame(width: size * 0.64, height: size * 0.64)
-                Text("MS")
-                    .font(.system(size: size * 0.32, weight: .black, design: .rounded))
-                    .foregroundColor(.white)
-            }
-        } else if name.contains("citadel") {
-            ZStack {
-                Circle()
-                    .fill(Color(red: 0.05, green: 0.14, blue: 0.28))
-                    .frame(width: size * 0.64, height: size * 0.64)
-                Image(systemName: "building.columns.fill")
-                    .font(.system(size: size * 0.34, weight: .bold))
-                    .foregroundColor(.white)
-            }
-        } else if name.contains("jane street") {
-            ZStack {
-                Circle()
-                    .fill(Color(red: 0.08, green: 0.32, blue: 0.20))
-                    .frame(width: size * 0.64, height: size * 0.64)
-                Text("JS")
-                    .font(.system(size: size * 0.32, weight: .black, design: .monospaced))
-                    .foregroundColor(.white)
-            }
-        } else if name.contains("zepto") {
-            ZStack {
-                Circle()
-                    .fill(Color(red: 0.30, green: 0.05, blue: 0.60))
-                    .frame(width: size * 0.64, height: size * 0.64)
-                Image(systemName: "bolt.fill")
-                    .font(.system(size: size * 0.34, weight: .heavy))
-                    .foregroundColor(Color(red: 1.0, green: 0.84, blue: 0.0))
-            }
-        } else if name.contains("meesho") {
-            ZStack {
-                RoundedRectangle(cornerRadius: size * 0.14, style: .continuous)
-                    .fill(Color(red: 0.95, green: 0.18, blue: 0.50))
-                    .frame(width: size * 0.64, height: size * 0.64)
-                Text("M")
-                    .font(.system(size: size * 0.42, weight: .heavy, design: .rounded))
-                    .foregroundColor(.white)
-            }
-        } else if name.contains("groww") {
-            ZStack {
-                Circle()
-                    .fill(Color(red: 0.0, green: 0.82, blue: 0.61))
-                    .frame(width: size * 0.64, height: size * 0.64)
-                Image(systemName: "chart.line.uptrend.xyaxis")
-                    .font(.system(size: size * 0.32, weight: .heavy))
-                    .foregroundColor(.white)
-            }
-        } else if name.contains("zerodha") {
-            ZStack {
-                RoundedRectangle(cornerRadius: size * 0.14, style: .continuous)
-                    .fill(Color(red: 0.22, green: 0.58, blue: 0.94))
-                    .frame(width: size * 0.64, height: size * 0.64)
-                Image(systemName: "skew")
-                    .font(.system(size: size * 0.36, weight: .heavy))
-                    .foregroundColor(.white)
-            }
-        } else if name.contains("discord") {
-            ZStack {
-                Circle()
-                    .fill(Color(red: 0.35, green: 0.40, blue: 0.95))
-                    .frame(width: size * 0.64, height: size * 0.64)
-                Image(systemName: "gamecontroller.fill")
-                    .font(.system(size: size * 0.32, weight: .heavy))
-                    .foregroundColor(.white)
-            }
-        } else if name.contains("duolingo") {
-            ZStack {
-                Circle()
-                    .fill(Color(red: 0.35, green: 0.80, blue: 0.01))
-                    .frame(width: size * 0.64, height: size * 0.64)
-                Image(systemName: "eyes")
-                    .font(.system(size: size * 0.36, weight: .heavy))
-                    .foregroundColor(.white)
-            }
-        } else if name.contains("linkedin") {
-            ZStack {
-                RoundedRectangle(cornerRadius: size * 0.14, style: .continuous)
-                    .fill(Color(red: 0.04, green: 0.40, blue: 0.76))
-                    .frame(width: size * 0.64, height: size * 0.64)
-                Text("in")
-                    .font(.system(size: size * 0.38, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
-            }
-        } else if name.contains("salesforce") {
-            Image(systemName: "cloud.fill")
-                .font(.system(size: size * 0.52, weight: .bold))
-                .foregroundColor(Color(red: 0.0, green: 0.63, blue: 0.88))
-        } else if name.contains("cloudflare") {
-            Image(systemName: "cloud.sun.fill")
-                .font(.system(size: size * 0.50, weight: .bold))
-                .foregroundColor(Color(red: 0.95, green: 0.50, blue: 0.13))
-        } else if name.contains("supabase") {
-            Image(systemName: "bolt.fill")
-                .font(.system(size: size * 0.52, weight: .heavy))
-                .foregroundColor(Color(red: 0.24, green: 0.81, blue: 0.56))
-        } else if name.contains("vercel") {
-            Image(systemName: "triangle.fill")
-                .font(.system(size: size * 0.48, weight: .black))
-                .foregroundColor(.black)
-        } else if name.contains("retool") {
-            Image(systemName: "wrench.and.screwdriver.fill")
-                .font(.system(size: size * 0.46, weight: .bold))
-                .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.25))
-        } else if name.contains("hasura") {
-            Image(systemName: "paperplane.fill")
-                .font(.system(size: size * 0.46, weight: .bold))
-                .foregroundColor(Color(red: 0.1, green: 0.2, blue: 0.8))
-        } else if name.contains("postman") {
-            ZStack {
-                Circle()
-                    .fill(Color(red: 1.0, green: 0.42, blue: 0.22))
-                    .frame(width: size * 0.64, height: size * 0.64)
-                Image(systemName: "figure.walk")
-                    .font(.system(size: size * 0.34, weight: .heavy))
-                    .foregroundColor(.white)
-            }
-        } else if name.contains("palantir") {
-            Image(systemName: "circle.circle")
-                .font(.system(size: size * 0.52, weight: .black))
-                .foregroundColor(.black)
-        } else if name.contains("cisco") {
-            Image(systemName: "waveform.path")
-                .font(.system(size: size * 0.48, weight: .black))
-                .foregroundColor(Color(red: 0.11, green: 0.63, blue: 0.84))
-        } else if name.contains("intel") {
-            Text("intel")
-                .font(.system(size: size * 0.26, weight: .black, design: .rounded))
-                .foregroundColor(Color(red: 0.0, green: 0.41, blue: 0.71))
-        } else if name.contains("amd") {
-            Image(systemName: "chevron.right.2")
-                .font(.system(size: size * 0.42, weight: .black))
-                .foregroundColor(Color(red: 0.0, green: 0.64, blue: 0.42))
-        } else if name.contains("browserstack") {
-            Image(systemName: "laptopcomputer.and.iphone")
-                .font(.system(size: size * 0.44, weight: .bold))
-                .foregroundColor(Color(red: 0.15, green: 0.45, blue: 0.85))
+            .shadow(color: Color.black.opacity(0.04), radius: 3, x: 0, y: 1)
         } else {
-            Text(String(companyName.prefix(1)).uppercased())
-                .font(.system(size: size * 0.50, weight: .heavy, design: .rounded))
-                .foregroundColor(AlineTheme.inkPrimary)
+            let lower = companyName.lowercased().replacingOccurrences(of: " ", with: "")
+            if lower.contains("tcs") || lower.contains("tata") {
+                ZStack {
+                    RoundedRectangle(cornerRadius: size * 0.24, style: .continuous)
+                        .fill(Color.white)
+                        .frame(width: size, height: size)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: size * 0.24, style: .continuous)
+                                .stroke(Color.black.opacity(0.08), lineWidth: 1)
+                        )
+                    Text("tcs")
+                        .font(.system(size: size * 0.38, weight: .bold, design: .rounded))
+                        .foregroundColor(Color(white: 0.22))
+                }
+                .shadow(color: Color.black.opacity(0.04), radius: 3, x: 0, y: 1)
+            } else if lower.contains("infosys") {
+                ZStack {
+                    RoundedRectangle(cornerRadius: size * 0.24, style: .continuous)
+                        .fill(Color.white)
+                        .frame(width: size, height: size)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: size * 0.24, style: .continuous)
+                                .stroke(Color.black.opacity(0.08), lineWidth: 1)
+                        )
+                    Text("Infosys")
+                        .font(.system(size: size * 0.24, weight: .heavy, design: .default))
+                        .foregroundColor(Color(red: 0.05, green: 0.44, blue: 0.78))
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 2)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 3)
+                                .stroke(Color(red: 0.05, green: 0.44, blue: 0.78).opacity(0.4), lineWidth: 0.8)
+                        )
+                }
+                .shadow(color: Color.black.opacity(0.04), radius: 3, x: 0, y: 1)
+            } else if lower.contains("wells") {
+                ZStack {
+                    RoundedRectangle(cornerRadius: size * 0.24, style: .continuous)
+                        .fill(Color(red: 0.78, green: 0.08, blue: 0.12))
+                        .frame(width: size, height: size)
+                    VStack(spacing: 0.5) {
+                        Text("WELLS")
+                            .font(.system(size: size * 0.19, weight: .black, design: .serif))
+                        Text("FARGO")
+                            .font(.system(size: size * 0.19, weight: .black, design: .serif))
+                    }
+                    .foregroundColor(.white)
+                }
+                .shadow(color: Color.black.opacity(0.04), radius: 3, x: 0, y: 1)
+            } else {
+                // Fallback for unlisted companies
+                ZStack {
+                    if isSquircle {
+                        RoundedRectangle(cornerRadius: size * 0.24, style: .continuous)
+                            .fill(Color.white)
+                            .frame(width: size, height: size)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: size * 0.24, style: .continuous)
+                                    .stroke(Color.black.opacity(0.08), lineWidth: 1)
+                            )
+                    } else {
+                        Circle()
+                            .fill(Color.white)
+                            .frame(width: size, height: size)
+                            .overlay(Circle().stroke(Color.black.opacity(0.08), lineWidth: 1))
+                    }
+
+                    Text(String(companyName.prefix(1)).uppercased())
+                        .font(.system(size: size * 0.44, weight: .bold, design: .rounded))
+                        .foregroundColor(AlineTheme.inkPrimary)
+                }
+                .shadow(color: Color.black.opacity(0.04), radius: 3, x: 0, y: 1)
+            }
         }
     }
 }
@@ -594,21 +526,17 @@ public struct StackedOpportunityCard: View {
 
                 Spacer(minLength: 6)
 
-                // Match score badge in header (ALWAYS strictly 1 single line)
-                HStack(spacing: 4) {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 10, weight: .bold))
-                    Text("\(opportunity.matchScore)% Match")
-                        .font(.system(size: 11, weight: .bold))
-                        .lineLimit(1)
-                }
-                .foregroundColor(Color(red: 0.15, green: 0.45, blue: 0.30))
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(Color(red: 0.90, green: 0.96, blue: 0.90))
-                .clipShape(Capsule())
-                .fixedSize(horizontal: true, vertical: false)
-                .shadow(color: Color.black.opacity(0.04), radius: 2, x: 0, y: 1)
+                // Match score badge in header (ALWAYS strictly 1 single line, no sparkle icon)
+                Text("\(opportunity.matchScore)% Match")
+                    .font(.system(size: 11, weight: .bold))
+                    .lineLimit(1)
+                    .foregroundColor(opportunity.matchBadgeForegroundColor)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(opportunity.matchBadgeBackgroundColor)
+                    .clipShape(Capsule())
+                    .fixedSize(horizontal: true, vertical: false)
+                    .shadow(color: Color.black.opacity(0.04), radius: 2, x: 0, y: 1)
             }
             .padding(.horizontal, 18)
             .padding(.top, 16)
@@ -644,8 +572,7 @@ public struct StackedOpportunityCard: View {
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 42)
-                                .background(AlineTheme.pillDark)
-                                .clipShape(Capsule())
+                                .alineGlassCapsule(selected: true)
                         }
                         .buttonStyle(.plain)
 
@@ -678,17 +605,17 @@ public struct StackedOpportunityCard: View {
             RoundedRectangle(cornerRadius: 28, style: .continuous)
                 .fill(Color.white)
                 .shadow(
-                    color: Color.black.opacity(isHighlighted ? 0.12 : 0.05),
-                    radius: isHighlighted ? 12 : 6,
+                    color: Color.black.opacity(0.05),
+                    radius: 6,
                     x: 0,
-                    y: isHighlighted ? 5 : 2
+                    y: 2
                 )
         )
         .overlay(
             RoundedRectangle(cornerRadius: 28, style: .continuous)
                 .stroke(
-                    isHighlighted ? AlineTheme.pillDark : Color.black.opacity(0.08),
-                    lineWidth: isHighlighted ? 2.0 : 1.0
+                    Color.black.opacity(0.08),
+                    lineWidth: 1.0
                 )
         )
         .contentShape(Rectangle())
@@ -697,6 +624,102 @@ public struct StackedOpportunityCard: View {
                 onSelect()
             }
         }
+    }
+}
+
+// MARK: - Compact Explore Opportunity Card (Small List Card for Explore More Section)
+public struct CompactExploreOpportunityCard: View {
+    public let opportunity: Opportunity
+    public let onOpenDetail: () -> Void
+
+    public init(
+        opportunity: Opportunity,
+        onOpenDetail: @escaping () -> Void
+    ) {
+        self.opportunity = opportunity
+        self.onOpenDetail = onOpenDetail
+    }
+
+    private var shortLocation: String {
+        opportunity.location.components(separatedBy: ",").first ?? opportunity.location
+    }
+
+    public var body: some View {
+        Button {
+            onOpenDetail()
+        } label: {
+            VStack(alignment: .leading, spacing: 12) {
+                // Row 1: company (logo + name) on the left, match score on the right
+                HStack(spacing: 10) {
+                    CompanyLogoBadge(companyName: opportunity.companyName, size: 36, isSquircle: true)
+
+                    Text(opportunity.companyName)
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundColor(AlineTheme.inkPrimary)
+                        .lineLimit(1)
+
+                    Spacer(minLength: 8)
+
+                    Text("\(opportunity.matchScore)% Match")
+                        .font(.system(size: 12, weight: .bold))
+                        .lineLimit(1)
+                        .foregroundColor(opportunity.matchBadgeForegroundColor)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(opportunity.matchBadgeBackgroundColor)
+                        .clipShape(Capsule())
+                        .fixedSize(horizontal: true, vertical: false)
+                }
+
+                // Row 2: job role, full width so it is never cut off
+                // Always reserves two lines, so every card in a list is the same height
+                Text(opportunity.roleTitle)
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundColor(AlineTheme.inkPrimary)
+                    .lineLimit(2, reservesSpace: true)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                // Row 3: quiet meta line
+                HStack(spacing: 6) {
+                    Text(shortLocation)
+                    Text("·")
+                    Text(opportunity.opportunityType.rawValue)
+                    Text("·")
+                    Text(opportunity.recency)
+                    Spacer(minLength: 0)
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 11, weight: .bold))
+                }
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(AlineTheme.inkMuted)
+                .lineLimit(1)
+            }
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(Color.white)
+                    .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 1.5)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .stroke(Color.black.opacity(0.08), lineWidth: 1.0)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+#Preview("Explore More cards") {
+    ZStack {
+        DiscoverBackgroundArtwork()
+        VStack(spacing: AlineSpacing.card) {
+            ForEach(Array(Opportunity.samples.prefix(4))) { opp in
+                CompactExploreOpportunityCard(opportunity: opp, onOpenDetail: {})
+            }
+        }
+        .padding(.horizontal, 24)
     }
 }
 
@@ -771,18 +794,20 @@ public struct ViewMoreCard: View {
 
 // MARK: - White Pill Badge (Same color as Card)
 public struct WhitePillChip: View {
-    public let icon: String
+    public let icon: String?
     public let text: String
 
-    public init(icon: String, text: String) {
+    public init(icon: String? = nil, text: String) {
         self.icon = icon
         self.text = text
     }
 
     public var body: some View {
         HStack(spacing: 4) {
-            Image(systemName: icon)
-                .font(.system(size: 10, weight: .semibold))
+            if let icon = icon, !icon.isEmpty {
+                Image(systemName: icon)
+                    .font(.system(size: 10, weight: .semibold))
+            }
             Text(text)
                 .font(.system(size: 11, weight: .semibold))
                 .lineLimit(1)
@@ -791,11 +816,7 @@ public struct WhitePillChip: View {
         .foregroundColor(AlineTheme.inkPrimary)
         .padding(.horizontal, 9)
         .padding(.vertical, 5)
-        .background(Color.white)
-        .clipShape(Capsule())
-        .overlay(
-            Capsule().stroke(Color.black.opacity(0.10), lineWidth: 1)
-        )
+        .background(Capsule().fill(Color.black.opacity(0.06)))
         .fixedSize(horizontal: true, vertical: false)
     }
 }
@@ -845,98 +866,65 @@ public struct AppLogoView: View {
     }
 
     public var body: some View {
-        Group {
-            if let uiImage = UIImage(named: "AppLogo") ?? UIImage(contentsOfFile: "/Users/user27/Documents/Aline/Aline/Resources/Assets.xcassets/AppLogo.imageset/logo_1024.png") {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-            } else {
-                Image(systemName: "sparkles")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .foregroundColor(AlineTheme.inkPrimary)
-            }
-        }
+        Image("AppLogo")
+            .resizable()
+            .aspectRatio(contentMode: .fit)
         .frame(width: size, height: size)
         .clipShape(RoundedRectangle(cornerRadius: size * 0.22, style: .continuous))
         .shadow(color: Color.black.opacity(0.06), radius: 3, x: 0, y: 1)
     }
 }
 
-// MARK: - Discover Decorative Canvas Background (Light Blue · Light Yellow · Light Pink Subtle Blurred Circles)
+// MARK: - Discover Background Gradient (Top-to-Bottom Light Yellow · Subtle Pink · Subtle Icy Sky Blue)
 public struct DiscoverBackgroundArtwork: View {
     public init() {}
 
-    // Richer pastel palette colors: Blue, Yellow, Pink
-    private let lightBlue = Color(red: 0.76, green: 0.88, blue: 0.98)
-    private let lightYellow = Color(red: 1.0, green: 0.93, blue: 0.70)
-    private let lightPink = Color(red: 0.98, green: 0.82, blue: 0.88)
-    private let canvasCreme = Color(red: 0.988, green: 0.985, blue: 0.972)
+    // Subtle pastel palette colors: warm light yellow at top, subtle warm blush in middle, lighter subtle icy sky blue at bottom
+    private let lightYellow = Color(red: 0.996, green: 0.980, blue: 0.88)
+    private let subtlePink = Color(red: 0.996, green: 0.930, blue: 0.920)
+    private let icySkyBlue = Color(red: 0.88, green: 0.955, blue: 0.998)
 
     public var body: some View {
-        ZStack {
-            // Base warm creme canvas
-            canvasCreme
-                .ignoresSafeArea()
+        LinearGradient(
+            stops: [
+                .init(color: lightYellow, location: 0.0),
+                .init(color: subtlePink, location: 0.40),
+                .init(color: icySkyBlue, location: 0.88)
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+        .ignoresSafeArea()
+    }
+}
 
-            // Soft, blurred radial ambient circles
-            GeometryReader { geo in
-                let w = geo.size.width
-                let h = geo.size.height
+// MARK: - Blended Header Background
+/// Paints the exact slice of the Discover page gradient that sits behind this view, so a pinned header
+/// covers scrolling content while looking identical to the page (and the status bar area above it).
+public struct DiscoverBlendedBackground: View {
+    public let screenHeight: CGFloat
 
-                ZStack {
-                    // 1. Light Blue - Top Left
-                    Circle()
-                        .fill(lightBlue.opacity(0.62))
-                        .frame(width: w * 0.46, height: w * 0.46)
-                        .blur(radius: 64)
-                        .position(x: w * 0.16, y: h * 0.08)
+    public init(screenHeight: CGFloat) {
+        self.screenHeight = screenHeight
+    }
 
-                    // 2. Light Pink - Top Right
-                    Circle()
-                        .fill(lightPink.opacity(0.62))
-                        .frame(width: w * 0.44, height: w * 0.44)
-                        .blur(radius: 66)
-                        .position(x: w * 0.86, y: h * 0.14)
-
-                    // 3. Light Yellow - Center Left
-                    Circle()
-                        .fill(lightYellow.opacity(0.58))
-                        .frame(width: w * 0.42, height: w * 0.42)
-                        .blur(radius: 62)
-                        .position(x: w * 0.12, y: h * 0.38)
-
-                    // 4. Light Blue - Center Right
-                    Circle()
-                        .fill(lightBlue.opacity(0.60))
-                        .frame(width: w * 0.42, height: w * 0.42)
-                        .blur(radius: 64)
-                        .position(x: w * 0.88, y: h * 0.52)
-
-                    // 5. Light Pink - Mid / Center
-                    Circle()
-                        .fill(lightPink.opacity(0.60))
-                        .frame(width: w * 0.44, height: w * 0.44)
-                        .blur(radius: 68)
-                        .position(x: w * 0.35, y: h * 0.68)
-
-                    // 6. Light Yellow - Bottom Right
-                    Circle()
-                        .fill(lightYellow.opacity(0.62))
-                        .frame(width: w * 0.46, height: w * 0.46)
-                        .blur(radius: 68)
-                        .position(x: w * 0.84, y: h * 0.86)
-
-                    // 7. Light Blue - Bottom Left
-                    Circle()
-                        .fill(lightBlue.opacity(0.60))
-                        .frame(width: w * 0.42, height: w * 0.42)
-                        .blur(radius: 64)
-                        .position(x: w * 0.15, y: h * 0.94)
-                }
-            }
-            .ignoresSafeArea()
+    public var body: some View {
+        GeometryReader { proxy in
+            let top = proxy.frame(in: .global).minY
+            LinearGradient(
+                stops: [
+                    .init(color: AlineTheme.bgYellow, location: 0.0),
+                    .init(color: AlineTheme.bgPink, location: 0.40),
+                    .init(color: AlineTheme.bgBlue, location: 0.88)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .frame(width: proxy.size.width, height: screenHeight)
+            .offset(y: -top)
         }
+        .clipped()
+        .allowsHitTesting(false)
     }
 }
 
@@ -1032,8 +1020,7 @@ public struct StackedResumeCard: View {
                                     .foregroundColor(.white)
                                     .padding(.horizontal, 6)
                                     .padding(.vertical, 3)
-                                    .background(AlineTheme.pillDark)
-                                    .clipShape(Capsule())
+                                    .alineGlassCapsule(selected: true)
                             }
                         }
 
@@ -1097,8 +1084,7 @@ public struct StackedResumeCard: View {
                             .foregroundColor(.white)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 10)
-                            .background(AlineTheme.pillDark)
-                            .clipShape(Capsule())
+                            .alineGlassCapsule(selected: true)
                         }
                         .buttonStyle(.plain)
 
@@ -1114,8 +1100,7 @@ public struct StackedResumeCard: View {
                             .foregroundColor(AlineTheme.inkPrimary)
                             .padding(.horizontal, 14)
                             .padding(.vertical, 10)
-                            .background(Color.white)
-                            .clipShape(Capsule())
+                            .alineGlassCapsule(selected: false)
                         }
                         .buttonStyle(.plain)
 
@@ -1168,15 +1153,6 @@ public struct StackedResumeCard: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            // Floating Navigation Bar
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Floating Navigation Bar")
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(AlineTheme.inkSecondary)
-
-                FloatingTabBar(currentTab: .constant(.discover))
-            }
-
             // Sample Opportunity Card
             if let sampleOpp = Opportunity.samples.first {
                 VStack(alignment: .leading, spacing: 10) {
@@ -1200,3 +1176,26 @@ public struct StackedResumeCard: View {
 
 
 
+
+// MARK: - Close Button (the one ✕ used on every sheet and full-screen page)
+/// 40pt glass circle, bold ✕: identical to the Profile sheets' close button
+public struct AlineCloseButton: View {
+    public let action: () -> Void
+
+    public init(action: @escaping () -> Void) {
+        self.action = action
+    }
+
+    public var body: some View {
+        Button(action: action) {
+            Image(systemName: "xmark")
+                .font(.system(size: 17, weight: .bold))
+                .foregroundColor(AlineTheme.inkPrimary)
+                .frame(width: 40, height: 40)
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .alineGlassCircleButton()
+        .accessibilityLabel("Close")
+    }
+}

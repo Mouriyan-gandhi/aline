@@ -11,7 +11,16 @@ public struct JobDetailView: View {
 
     @State private var selectedTab: DetailTab = .overview
     @State private var showingApplyConfirmation: Bool = false
+    /// Set when the user leaves for the company site; asked "Did you apply?" when they come back
+    @State private var awaitingApplyCheck: Bool = false
+    @State private var showingDidApplyPrompt: Bool = false
+    @Environment(\.scenePhase) private var scenePhase
     @State private var isResumeMatchExpanded: Bool = false
+
+    private static let resumeMatchID = "resumeMatchCard"
+
+    /// Skills from the Skills tab that weren't found on the resume
+    private var missingSkills: [String] { ResumeViewModel.missingSkills(for: liveOpportunity) }
 
     private var liveOpportunity: Opportunity {
         viewModel.opportunities.first(where: { $0.id == opportunity.id }) ?? opportunity
@@ -30,20 +39,22 @@ public struct JobDetailView: View {
             DiscoverBackgroundArtwork()
                 .ignoresSafeArea()
 
+            ScrollViewReader { proxy in
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 20) {
-                    // Top Bar (Chevron '<' on Left, Heart Like on Right)
+                    // Top Bar (Consistent Circular Back Button on Left, Circular Heart Like on Right)
                     HStack {
                         Button {
                             dismiss()
                         } label: {
                             Image(systemName: "chevron.left")
-                                .font(.system(size: 20, weight: .bold))
+                                .font(.system(size: 18, weight: .bold))
                                 .foregroundColor(AlineTheme.inkPrimary)
-                                .frame(width: 44, height: 44, alignment: .leading)
-                                .contentShape(Rectangle())
+                                .frame(width: 40, height: 40)
+                            .contentShape(Circle())
                         }
                         .buttonStyle(.plain)
+                        .alineGlassCircleButton()
 
                         Spacer()
 
@@ -53,12 +64,13 @@ public struct JobDetailView: View {
                             }
                         } label: {
                             Image(systemName: liveOpportunity.isLiked ? "heart.fill" : "heart")
-                                .font(.system(size: 22, weight: .bold))
+                                .font(.system(size: 20, weight: .bold))
                                 .foregroundColor(liveOpportunity.isLiked ? .red : AlineTheme.inkPrimary)
-                                .frame(width: 44, height: 44, alignment: .trailing)
-                                .contentShape(Rectangle())
+                                .frame(width: 40, height: 40)
+                            .contentShape(Circle())
                         }
                         .buttonStyle(.plain)
+                        .alineGlassCircleButton()
                     }
                     .padding(.horizontal, 24)
                     .padding(.top, 8)
@@ -73,19 +85,15 @@ public struct JobDetailView: View {
 
                         Spacer()
 
-                        HStack(spacing: 5) {
-                            Image(systemName: "arrow.up.right")
-                                .font(.system(size: 11, weight: .bold))
-                            Text("\(liveOpportunity.matchScore)% Match")
-                                .font(.system(size: 13, weight: .bold))
-                        }
-                        .foregroundColor(Color(red: 0.12, green: 0.58, blue: 0.32))
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                        .background(
-                            Capsule()
-                                .fill(Color(red: 0.90, green: 0.97, blue: 0.92))
-                        )
+                        Text("\(liveOpportunity.matchScore)% Match")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(liveOpportunity.matchBadgeForegroundColor)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .background(
+                                Capsule()
+                                    .fill(liveOpportunity.matchBadgeBackgroundColor)
+                            )
                     }
                     .padding(.horizontal, 24)
 
@@ -99,16 +107,6 @@ public struct JobDetailView: View {
                     }
                     .padding(.horizontal, 24)
 
-                    // Info Chips Row (Location, Opportunity Type, Work Mode, Salary)
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            WhitePillChip(icon: "mappin", text: liveOpportunity.location)
-                            WhitePillChip(icon: "briefcase", text: liveOpportunity.opportunityType.rawValue)
-                            WhitePillChip(icon: "building.2", text: liveOpportunity.workMode.rawValue)
-                            WhitePillChip(icon: "dollarsign", text: liveOpportunity.salaryRange)
-                        }
-                        .padding(.horizontal, 24)
-                    }
 
                     // Subheadings / Tabs with Active Underline Indicator Bar (Overview, Requirements, Responsibilities, Skills)
                     ScrollView(.horizontal, showsIndicators: false) {
@@ -163,51 +161,90 @@ public struct JobDetailView: View {
                     Spacer(minLength: 120) // Room for sticky Apply button
                 }
             }
+.scrollDismissesKeyboard(.interactively)
+            // Opening Resume Match brings the whole card into view
+            .onChange(of: isResumeMatchExpanded) { _, expanded in
+                guard expanded else { return }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    withAnimation(AlineTheme.fastSpring) {
+                        proxy.scrollTo(Self.resumeMatchID, anchor: .top)
+                    }
+                }
+            }
+            }
 
-            // Sticky Bottom Action Bar with "Apply on Company Site ↗"
+            // Sticky Bottom Action Bar with "Apply on Company Site"
             VStack(spacing: 0) {
-                LinearGradient(
-                    colors: [
-                        Color(red: 0.98, green: 0.97, blue: 0.95).opacity(0.0),
-                        Color(red: 0.98, green: 0.97, blue: 0.95).opacity(0.85),
-                        Color(red: 0.98, green: 0.97, blue: 0.95)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 24)
-
                 VStack {
                     Button {
-                        viewModel.markApplied(for: liveOpportunity.id)
-                        showingApplyConfirmation = true
+                        // Don't assume they applied: ask when they come back from the company site
                         if let url = URL(string: liveOpportunity.externalCareersURL) {
+                            awaitingApplyCheck = true
                             openURL(url)
                         }
                     } label: {
                         HStack(spacing: 8) {
-                            Text(liveOpportunity.isApplied ? "Applied on \(liveOpportunity.applicationDate ?? "Today")" : "Apply on Company Site")
+                            if liveOpportunity.isApplied {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.system(size: 16, weight: .bold))
+                            }
+                            Text(liveOpportunity.isApplied ? "Applied" : "Apply on Company Site")
                                 .font(.system(size: 16, weight: .bold))
-                            Image(systemName: "arrow.up.right")
-                                .font(.system(size: 14, weight: .bold))
                         }
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 56)
-                        .background(
-                            Capsule()
-                                .fill(Color.black)
-                                .shadow(color: Color.black.opacity(0.18), radius: 12, x: 0, y: 5)
-                        )
+                        .alineGlassCapsule(selected: true)
                     }
                     .buttonStyle(.plain)
                 }
                 .padding(.horizontal, 24)
+                .padding(.top, 12)
                 .padding(.bottom, 16)
-                .background(Color(red: 0.98, green: 0.97, blue: 0.95))
+                .background(
+                    Rectangle()
+                        .fill(.ultraThinMaterial)
+                        .mask(
+                            LinearGradient(
+                                stops: [
+                                    .init(color: .clear, location: 0.0),
+                                    .init(color: .black.opacity(0.7), location: 0.25),
+                                    .init(color: .black, location: 1.0)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .ignoresSafeArea(edges: .bottom)
+                )
             }
             .ignoresSafeArea(.keyboard)
         }
+        // Back from the company site: ask whether they actually applied
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active && awaitingApplyCheck {
+                awaitingApplyCheck = false
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                    showingDidApplyPrompt = true
+                }
+            }
+        }
+        .alert(applyPromptTitle, isPresented: $showingDidApplyPrompt) {
+            Button("Yes, I applied") {
+                withAnimation(AlineTheme.fastSpring) {
+                    viewModel.markApplied(for: liveOpportunity.id)
+                }
+            }
+            Button("Not yet", role: .cancel) {}
+        } message: {
+            Text("We'll move \(liveOpportunity.roleTitle) at \(liveOpportunity.companyName) to your Applied list.")
+        }
+    }
+
+    private var applyPromptTitle: String {
+        liveOpportunity.opportunityType == .internship
+            ? "Did you apply for this internship?"
+            : "Did you apply for this job?"
     }
 
     // MARK: - Overview Content (Matching Reference Screenshot)
@@ -231,9 +268,8 @@ public struct JobDetailView: View {
                 .opacity(0.25)
                 .padding(.vertical, 4)
 
-            // Metadata Rows (Company, Location, Job Type, Work Mode, Eligible Graduates)
+            // Metadata Rows (Location, Job Type, Work Mode, Eligible Graduates; company is already in the header)
             VStack(spacing: 14) {
-                metadataRow(title: "Company", value: liveOpportunity.companyName)
                 metadataRow(title: "Location", value: liveOpportunity.location)
                 metadataRow(title: "Job Type", value: liveOpportunity.opportunityType.rawValue)
                 metadataRow(title: "Work Mode", value: liveOpportunity.workMode.rawValue)
@@ -271,12 +307,12 @@ public struct JobDetailView: View {
                     // Document Icon Badge (Darker coral squircle)
                     ZStack {
                         RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .fill(Color(red: 0.96, green: 0.72, blue: 0.73))
+                            .fill(JobSkillChip.missingIconFill)
                             .frame(width: 44, height: 44)
 
                         Image(systemName: "doc.text.fill")
                             .font(.system(size: 20))
-                            .foregroundColor(Color(red: 0.65, green: 0.18, blue: 0.20))
+                            .foregroundColor(JobSkillChip.missingText)
                     }
 
                     VStack(alignment: .leading, spacing: 3) {
@@ -284,34 +320,48 @@ public struct JobDetailView: View {
                             .font(.system(size: 15, weight: .bold))
                             .foregroundColor(AlineTheme.inkPrimary)
 
-                        let count = liveOpportunity.missingKeywords.count
-                        Text(count == 1 ? "We found 1 missing keyword" : "We found \(count) missing keywords")
+                        Text(matchSummary)
                             .font(.system(size: 13, weight: .regular))
                             .foregroundColor(AlineTheme.inkSecondary)
                     }
 
                     Spacer()
 
-                    Image(systemName: isResumeMatchExpanded ? "chevron.up" : "chevron.right")
+                    Image(systemName: "chevron.down")
+                        .rotationEffect(.degrees(isResumeMatchExpanded ? 180 : 0))
                         .font(.system(size: 14, weight: .bold))
                         .foregroundColor(AlineTheme.inkPrimary)
                 }
             }
             .buttonStyle(.plain)
 
-            // Missing Keywords Details (Shown when tapped/expanded or in detail tabs)
+            // Missing Skills & Keywords Details (Shown when tapped/expanded)
             if isResumeMatchExpanded {
                 VStack(alignment: .leading, spacing: 10) {
+                    if !missingSkills.isEmpty {
+                        Text("Missing Skills:")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(AlineTheme.inkPrimary)
+
+                        SkillChipFlow(spacing: 8) {
+                            ForEach(missingSkills, id: \.self) { skill in
+                                JobSkillChip(title: skill, isMatched: false)
+                            }
+                        }
+                        .padding(.bottom, 4)
+                    }
+
+                    if !liveOpportunity.missingKeywords.isEmpty {
                     Text("Missing Keywords to Add:")
                         .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(Color(red: 0.65, green: 0.18, blue: 0.20))
+                        .foregroundColor(AlineTheme.inkPrimary)
 
                     ForEach(liveOpportunity.missingKeywords) { kw in
                         VStack(alignment: .leading, spacing: 4) {
                             HStack(spacing: 6) {
                                 Image(systemName: "exclamationmark.circle.fill")
                                     .font(.system(size: 12))
-                                    .foregroundColor(Color(red: 0.78, green: 0.20, blue: 0.22))
+                                    .foregroundColor(JobSkillChip.missingText)
                                 Text(kw.keyword)
                                     .font(.system(size: 13, weight: .bold))
                                     .foregroundColor(AlineTheme.inkPrimary)
@@ -325,27 +375,22 @@ public struct JobDetailView: View {
                         .background(Color.white.opacity(0.70))
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                     }
+                    }
 
                     Button {
                         dismiss()
-                        resumeViewModel.setTargetOpportunity(opportunity)
+                        // Resume tab asks which resume to tailor, then hands this job to the AI chat
+                        resumeViewModel.startTailoring(for: liveOpportunity)
                         withAnimation(AlineTheme.tabSpring) {
                             navViewModel.currentTab = .resume
                         }
                     } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "sparkles")
-                                .font(.system(size: 12, weight: .bold))
-                            Text("Tailor Resume with AI")
-                                .font(.system(size: 13, weight: .bold))
-                            Image(systemName: "arrow.right")
-                                .font(.system(size: 11, weight: .bold))
-                        }
+                        Text("Tailor Resume with AI")
+                            .font(.system(size: 13, weight: .bold))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 10)
-                        .background(Color.black)
-                        .clipShape(Capsule())
+                        .alineGlassCapsule(selected: true)
                     }
                     .buttonStyle(.plain)
                     .padding(.top, 4)
@@ -355,8 +400,26 @@ public struct JobDetailView: View {
         .padding(18)
         .background(
             RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(Color(red: 0.99, green: 0.86, blue: 0.86)) // Exact red/coral pastel from user screenshot
+                .fill(JobSkillChip.missingCardFill) // Same soft red family as the missing skill chips, a touch lighter
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .stroke(JobSkillChip.missingCardBorder, lineWidth: 1)
+                .allowsHitTesting(false)
+        )
+        .id(Self.resumeMatchID)
+    }
+
+    private var matchSummary: String {
+        let skills = missingSkills.count
+        let keywords = liveOpportunity.missingKeywords.count
+        func plural(_ n: Int, _ word: String) -> String { "\(n) missing \(word)\(n == 1 ? "" : "s")" }
+        switch (skills, keywords) {
+        case (0, 0): return "Your resume covers this role"
+        case (_, 0): return "We found \(plural(skills, "skill"))"
+        case (0, _): return "We found \(plural(keywords, "keyword"))"
+        default: return "We found \(plural(skills, "skill")) and \(plural(keywords, "keyword"))"
+        }
     }
 
     // MARK: - Requirements Content
@@ -405,8 +468,6 @@ public struct JobDetailView: View {
                 }
             }
 
-            // Resume Match & Missing Keywords in Red/Coral format
-            resumeMatchCoralCard
         }
     }
 
@@ -444,19 +505,105 @@ public struct JobDetailView: View {
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(AlineTheme.inkPrimary)
 
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 95), spacing: 8)], spacing: 8) {
+                // Left-aligned chips that wrap like text, all one line high
+                SkillChipFlow(spacing: 8) {
                     ForEach(liveOpportunity.skills, id: \.self) { skill in
-                        SkillTagView(
-                            title: skill,
-                            isHighlighted: liveOpportunity.detectedKeywords.contains(skill)
-                        )
+                        JobSkillChip(title: skill, isMatched: liveOpportunity.detectedKeywords.contains(skill))
                     }
                 }
-            }
 
-            // Resume Match & Missing Keywords in Red/Coral format
-            resumeMatchCoralCard
+                // Legend for the two chip colors
+                HStack(spacing: 14) {
+                    legendItem(color: Color.black.opacity(0.18), text: "On your profile")
+                    legendItem(color: JobSkillChip.missingText, text: "Missing")
+                }
+                .padding(.top, 2)
+            }
         }
+    }
+
+    private func legendItem(color: Color, text: String) -> some View {
+        HStack(spacing: 5) {
+            Circle()
+                .fill(color)
+                .frame(width: 7, height: 7)
+            Text(text)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(AlineTheme.inkSecondary)
+        }
+    }
+}
+
+// MARK: - Job Skill Chip (soft grey when it is on the user's profile, mild red when it is missing)
+private struct JobSkillChip: View {
+    let title: String
+    let isMatched: Bool
+
+    static let missingText = Color(red: 0.65, green: 0.18, blue: 0.20)
+    // Solid soft reds, so the tint doesn't shift over the page's yellow-to-blue background
+    static let missingFill = Color(red: 0.97, green: 0.85, blue: 0.85)
+    static let missingCardFill = Color(red: 0.99, green: 0.91, blue: 0.91)
+    static let missingCardBorder = Color(red: 0.65, green: 0.18, blue: 0.20).opacity(0.20)
+    static let missingIconFill = Color(red: 0.96, green: 0.80, blue: 0.80)
+    static let matchedFill = Color.black.opacity(0.05)
+
+    var body: some View {
+        Text(title)
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundColor(isMatched ? AlineTheme.inkPrimary : Self.missingText)
+            .lineLimit(1)
+            .fixedSize()
+            .padding(.horizontal, 14)
+            .padding(.vertical, 7)
+            .background(
+                Capsule()
+                    .fill(isMatched ? Self.matchedFill : Self.missingFill)
+            )
+    }
+}
+
+// MARK: - Skill Chip Flow (chips sit side by side and wrap to the next line like text)
+private struct SkillChipFlow: Layout {
+    var spacing: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let rows = arrange(subviews, width: proposal.width ?? .infinity)
+        let height = rows.last.map { $0.y + $0.height } ?? 0
+        return CGSize(width: proposal.width ?? rows.map(\.width).max() ?? 0, height: height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        for row in arrange(subviews, width: bounds.width) {
+            var x = bounds.minX
+            for index in row.indices {
+                let size = subviews[index].sizeThatFits(.unspecified)
+                subviews[index].place(at: CGPoint(x: x, y: bounds.minY + row.y), proposal: ProposedViewSize(size))
+                x += size.width + spacing
+            }
+        }
+    }
+
+    private func arrange(_ subviews: Subviews, width: CGFloat) -> [(indices: [Int], y: CGFloat, width: CGFloat, height: CGFloat)] {
+        var rows: [(indices: [Int], y: CGFloat, width: CGFloat, height: CGFloat)] = []
+        var current: [Int] = []
+        var rowWidth: CGFloat = 0
+        var rowHeight: CGFloat = 0
+        var y: CGFloat = 0
+        for index in subviews.indices {
+            let size = subviews[index].sizeThatFits(.unspecified)
+            if !current.isEmpty, rowWidth + spacing + size.width > width {
+                rows.append((current, y, rowWidth, rowHeight))
+                y += rowHeight + spacing
+                current = []
+                rowWidth = 0
+                rowHeight = 0
+            }
+            rowWidth += (current.isEmpty ? 0 : spacing) + size.width
+            rowHeight = max(rowHeight, size.height)
+            current.append(index)
+        }
+        if !current.isEmpty { rows.append((current, y, rowWidth, rowHeight)) }
+        return rows
     }
 }
 

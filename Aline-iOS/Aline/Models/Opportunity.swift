@@ -52,10 +52,56 @@ public struct MissingKeyword: Identifiable, Hashable {
     public let placeholderTemplate: String
 }
 
-// MARK: - Mock Dataset for Discover Feed (130+ Opportunities)
 public extension Opportunity {
     static var samples: [Opportunity] {
         return dataset
+    }
+
+    // Dynamic Match Score Badging Colors
+    // > 85: Green | 60-85: Yellow | < 60: Red
+    var matchBadgeForegroundColor: Color {
+        if matchScore > 85 {
+            return Color(red: 0.12, green: 0.58, blue: 0.30)
+        } else if matchScore >= 60 {
+            return Color(red: 0.70, green: 0.48, blue: 0.05)
+        } else {
+            return Color(red: 0.85, green: 0.20, blue: 0.22)
+        }
+    }
+
+    var matchBadgeBackgroundColor: Color {
+        if matchScore > 85 {
+            return Color(red: 0.88, green: 0.96, blue: 0.90)
+        } else if matchScore >= 60 {
+            return Color(red: 0.99, green: 0.95, blue: 0.80)
+        } else {
+            return Color(red: 0.99, green: 0.88, blue: 0.88)
+        }
+    }
+
+    // Parsed recency in minutes for chronological sorting & filtering
+    var recencyInMinutes: Int {
+        let text = recency.lowercased().trimmingCharacters(in: .whitespaces)
+        if text.contains("just now") || text.isEmpty {
+            return 0
+        }
+        if text.contains("m ago") {
+            let num = Int(text.replacingOccurrences(of: "m ago", with: "").trimmingCharacters(in: .whitespaces)) ?? 10
+            return num
+        }
+        if text.contains("h ago") {
+            let num = Int(text.replacingOccurrences(of: "h ago", with: "").trimmingCharacters(in: .whitespaces)) ?? 1
+            return num * 60
+        }
+        if text.contains("d ago") {
+            let num = Int(text.replacingOccurrences(of: "d ago", with: "").trimmingCharacters(in: .whitespaces)) ?? 1
+            return num * 1440
+        }
+        if text.contains("w ago") {
+            let num = Int(text.replacingOccurrences(of: "w ago", with: "").trimmingCharacters(in: .whitespaces)) ?? 1
+            return num * 10080
+        }
+        return 99999
     }
 }
 

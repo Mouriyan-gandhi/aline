@@ -7,22 +7,25 @@ public struct OnboardingFlowView: View {
     @State private var currentStep: Int = 1
 
     // Step 1: Opportunity Goal
-    @State private var opportunityGoal: String = "Internship"
+    // Nothing is preselected: the user makes every choice themselves
+    @State private var opportunityGoal: String = ""
 
     // Step 2: Career Stage & Expected Graduation Year
-    @State private var careerStage: String = "3rd year student"
-    @State private var graduationYear: String = "2028"
+    @State private var careerStage: String = ""
+    @State private var graduationYear: String = ""
+
+    private static let graduationYearAnchor = "graduationYearPicker"
 
     // Step 3: Role Interests (Search & Select, Max 3)
     @State private var roleSearchText: String = ""
-    @State private var selectedRoles: Set<String> = ["Software Engineering", "Data Science", "AI / ML"]
+    @State private var selectedRoles: Set<String> = []
     @State private var showMaxRolesWarning: Bool = false
 
     // Step 4: Locations (Pills + Search & Choose Another Location)
     @State private var locationSearchText: String = ""
     @State private var isShowingChooseAnotherLocation: Bool = false
     @State private var visibleLocations: [String] = ["Bengaluru", "Hyderabad", "Chennai", "Mumbai", "Pune", "Delhi NCR"]
-    @State private var selectedLocations: Set<String> = ["Bengaluru", "Hyderabad"]
+    @State private var selectedLocations: Set<String> = []
     @State private var openToAnyLocation: Bool = false
 
     // Step 5: Resume Upload
@@ -111,12 +114,7 @@ public struct OnboardingFlowView: View {
                                 .foregroundColor(AlineTheme.inkSecondary)
                                 .padding(.horizontal, 14)
                                 .padding(.vertical, 6)
-                                .background(Color.white)
-                                .clipShape(Capsule())
-                                .overlay(
-                                    Capsule().stroke(Color.black.opacity(0.08), lineWidth: 1)
-                                )
-                                .shadow(color: Color.black.opacity(0.03), radius: 2, x: 0, y: 1)
+                                .alineGlassCapsule(selected: false)
                         }
                         .buttonStyle(.plain)
                     }
@@ -152,6 +150,7 @@ public struct OnboardingFlowView: View {
                 .padding(.bottom, 16)
 
                 // Main Scrollable Step Content
+                ScrollViewReader { scrollProxy in
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 20) {
                         switch currentStep {
@@ -170,9 +169,22 @@ public struct OnboardingFlowView: View {
                         }
 
                         Spacer(minLength: 110) // Room for sticky bottom button
+                        // Scroll target: aiming at the very end keeps the year card clear of the Continue bar
+                        Color.clear.frame(height: 1).id(Self.graduationYearAnchor)
                     }
                     .padding(.horizontal, 24)
                     .padding(.top, 4)
+                }
+                .scrollDismissesKeyboard(.interactively)
+                // Picking 3rd or 4th year reveals the graduation year below, so bring it into view
+                .onChange(of: careerStage) { _, stage in
+                    guard stage == "3rd year student" || stage == "4th year student" else { return }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                        withAnimation(.easeInOut(duration: 0.45)) {
+                            scrollProxy.scrollTo(Self.graduationYearAnchor, anchor: .bottom)
+                        }
+                    }
+                }
                 }
 
                 Spacer(minLength: 0)
@@ -193,6 +205,7 @@ public struct OnboardingFlowView: View {
 
                 VStack {
                     Button {
+                        guard canContinue else { return }
                         if currentStep < 5 {
                             withAnimation(AlineTheme.fastSpring) {
                                 currentStep += 1
@@ -206,13 +219,12 @@ public struct OnboardingFlowView: View {
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .frame(height: 54)
-                            .background(
-                                Capsule()
-                                    .fill(Color.black)
-                                    .shadow(color: Color.black.opacity(0.18), radius: 10, x: 0, y: 4)
-                            )
+                            .alineGlassCapsule(selected: true)
                     }
                     .buttonStyle(.plain)
+                    .opacity(canContinue ? 1 : 0.4)
+                    .disabled(!canContinue)
+                    .animation(AlineTheme.fastSpring, value: canContinue)
                 }
                 .padding(.horizontal, 24)
                 .padding(.bottom, 20)
@@ -228,8 +240,17 @@ public struct OnboardingFlowView: View {
             switch result {
             case .success(let urls):
                 if let url = urls.first {
+                    let hasAccess = url.startAccessingSecurityScopedResource()
+                    defer { if hasAccess { url.stopAccessingSecurityScopedResource() } }
+
                     uploadedResumeName = url.lastPathComponent
-                    uploadedResumeSize = "1.2 MB · Ready to parse"
+                    if let resources = try? url.resourceValues(forKeys: [.fileSizeKey]),
+                       let size = resources.fileSize {
+                        let mb = Double(size) / (1024.0 * 1024.0)
+                        uploadedResumeSize = String(format: "%.1f MB · Uploaded", mb)
+                    } else {
+                        uploadedResumeSize = "PDF · Uploaded"
+                    }
                 }
             case .failure:
                 break
@@ -237,9 +258,23 @@ public struct OnboardingFlowView: View {
         }
     }
 
+    /// Whether the current step has been answered, so Continue can move on
+    private var canContinue: Bool {
+        switch currentStep {
+        case 1: return !opportunityGoal.isEmpty
+        case 2:
+            guard !careerStage.isEmpty else { return false }
+            let isStudent = careerStage == "3rd year student" || careerStage == "4th year student"
+            return !isStudent || !graduationYear.isEmpty
+        case 3: return !selectedRoles.isEmpty
+        case 4: return openToAnyLocation || !selectedLocations.isEmpty
+        default: return true // resume upload is optional
+        }
+    }
+
     private func completeOnboarding() {
         withAnimation(AlineTheme.fastSpring) {
-            navViewModel.hasCompletedOnboarding = true
+            navViewModel.completeOnboarding()
         }
     }
 
@@ -324,32 +359,8 @@ public struct OnboardingFlowView: View {
                         .foregroundColor(AlineTheme.inkPrimary)
                         .padding(.top, 8)
 
-                    HStack(spacing: 10) {
-                        ForEach(["2026", "2027", "2028", "2029"], id: \.self) { year in
-                            let isSelected = graduationYear == year
-                            Button {
-                                withAnimation(AlineTheme.fastSpring) {
-                                    graduationYear = year
-                                }
-                            } label: {
-                                Text(year)
-                                    .font(.system(size: 14, weight: isSelected ? .bold : .semibold))
-                                    .foregroundColor(isSelected ? .white : AlineTheme.inkPrimary)
-                                    .padding(.horizontal, 18)
-                                    .padding(.vertical, 10)
-                                    .background(
-                                        Capsule()
-                                            .fill(isSelected ? Color.black : Color.white)
-                                    )
-                                    .overlay(
-                                        Capsule()
-                                            .stroke(Color.black.opacity(isSelected ? 0 : 0.08), lineWidth: 1)
-                                    )
-                                    .shadow(color: Color.black.opacity(isSelected ? 0.12 : 0.03), radius: 3, x: 0, y: 1)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
+                    // Calendar-style card: page through years with the arrows, tap one to pick it
+                    GraduationYearPicker(selection: $graduationYear)
                 }
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
@@ -372,35 +383,7 @@ public struct OnboardingFlowView: View {
             }
 
             // Search Bar (Matching Discover Screen Search Bar)
-            HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(AlineTheme.inkSecondary)
-
-                TextField("Search roles", text: $roleSearchText)
-                    .font(.system(size: 14))
-                    .autocorrectionDisabled()
-                    .textInputAutocapitalization(.never)
-
-                if !roleSearchText.isEmpty {
-                    Button {
-                        roleSearchText = ""
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 14))
-                            .foregroundColor(AlineTheme.inkSecondary)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 11)
-            .background(Color.white)
-            .clipShape(Capsule())
-            .overlay(
-                Capsule().stroke(Color.black.opacity(0.08), lineWidth: 1)
-            )
-            .shadow(color: Color.black.opacity(0.03), radius: 3, x: 0, y: 1)
+            AlineSearchField("Search roles", text: $roleSearchText)
 
             // Selection Count Chip
             HStack(spacing: 8) {
@@ -488,7 +471,7 @@ public struct OnboardingFlowView: View {
 
                                 Button {
                                     withAnimation(AlineTheme.fastSpring) {
-                                        selectedRoles.remove(role)
+                                        _ = selectedRoles.remove(role)
                                     }
                                 } label: {
                                     Image(systemName: "xmark")
@@ -558,7 +541,7 @@ public struct OnboardingFlowView: View {
     private func toggleRoleSelection(role: String) {
         withAnimation(AlineTheme.fastSpring) {
             if selectedRoles.contains(role) {
-                selectedRoles.remove(role)
+                _ = selectedRoles.remove(role)
             } else if selectedRoles.count < 3 {
                 selectedRoles.insert(role)
             }
@@ -608,7 +591,7 @@ public struct OnboardingFlowView: View {
                         if !openToAnyLocation {
                             withAnimation(AlineTheme.fastSpring) {
                                 if isSelected {
-                                    selectedLocations.remove(loc)
+                                    _ = selectedLocations.remove(loc)
                                 } else {
                                     selectedLocations.insert(loc)
                                 }
@@ -681,33 +664,7 @@ public struct OnboardingFlowView: View {
                         .buttonStyle(.plain)
                     }
 
-                    HStack(spacing: 8) {
-                        Image(systemName: "magnifyingglass")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundColor(AlineTheme.inkSecondary)
-
-                        TextField("Search city...", text: $locationSearchText)
-                            .font(.system(size: 13))
-                            .autocorrectionDisabled()
-
-                        if !locationSearchText.isEmpty {
-                            Button {
-                                locationSearchText = ""
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .font(.system(size: 13))
-                                    .foregroundColor(AlineTheme.inkSecondary)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(Color(red: 0.98, green: 0.98, blue: 0.98))
-                    .clipShape(Capsule())
-                    .overlay(
-                        Capsule().stroke(Color.black.opacity(0.10), lineWidth: 1)
-                    )
+                    AlineSearchField("Search city", text: $locationSearchText)
 
                     let query = locationSearchText.trimmingCharacters(in: .whitespacesAndNewlines)
                     let matchedCities = searchableCities.filter {
@@ -767,48 +724,16 @@ public struct OnboardingFlowView: View {
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
 
-            // Open to Any Location Option Card
-            Button {
+            // Open to Any Location: same white row with the tick on the right as every other onboarding choice
+            onboardingSelectionRow(
+                title: "Open to any location",
+                subtitle: openToAnyLocation ? "Turn this off to choose specific cities." : nil,
+                isSelected: openToAnyLocation
+            ) {
                 withAnimation(AlineTheme.fastSpring) {
                     openToAnyLocation.toggle()
                 }
-            } label: {
-                HStack(alignment: .top, spacing: 12) {
-                    if openToAnyLocation {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 20))
-                            .foregroundColor(Color.black)
-                    } else {
-                        Circle()
-                            .stroke(Color.black.opacity(0.18), lineWidth: 1.5)
-                            .frame(width: 20, height: 20)
-                            .padding(.top, 1)
-                    }
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Open to any location")
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundColor(AlineTheme.inkPrimary)
-
-                        if openToAnyLocation {
-                            Text("Turn this off to choose specific cities.")
-                                .font(.system(size: 12, weight: .regular))
-                                .foregroundColor(AlineTheme.inkSecondary)
-                        }
-                    }
-
-                    Spacer()
-                }
-                .padding(16)
-                .background(openToAnyLocation ? Color(red: 0.92, green: 0.96, blue: 0.92) : Color.white)
-                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(openToAnyLocation ? Color.black : Color.black.opacity(0.08), lineWidth: openToAnyLocation ? 1.5 : 1)
-                )
-                .shadow(color: Color.black.opacity(0.03), radius: 3, x: 0, y: 1)
             }
-            .buttonStyle(.plain)
         }
     }
 
@@ -887,9 +812,6 @@ public struct OnboardingFlowView: View {
                             .foregroundColor(AlineTheme.inkSecondary)
 
                         Button {
-                            // First try file importer, with instant mock fallback for simulator
-                            uploadedResumeName = "Aditya_Sharma_Resume.pdf"
-                            uploadedResumeSize = "1.2 MB · Uploaded"
                             showFileImporter = true
                         } label: {
                             Text("Upload Resume")
@@ -897,10 +819,7 @@ public struct OnboardingFlowView: View {
                                 .foregroundColor(.white)
                                 .padding(.horizontal, 24)
                                 .padding(.vertical, 12)
-                                .background(
-                                    Capsule()
-                                        .fill(Color.black)
-                                )
+                                .alineGlassCapsule(selected: true)
                         }
                         .buttonStyle(.plain)
                         .padding(.top, 4)
@@ -949,12 +868,7 @@ public struct OnboardingFlowView: View {
                         .foregroundColor(AlineTheme.inkPrimary)
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
-                        .background(Color.white)
-                        .clipShape(Capsule())
-                        .overlay(
-                            Capsule().stroke(Color.black.opacity(0.12), lineWidth: 1)
-                        )
-                        .shadow(color: Color.black.opacity(0.03), radius: 3, x: 0, y: 1)
+                        .alineGlassCapsule(selected: false)
                 }
                 .buttonStyle(.plain)
                 .padding(.top, 4)
@@ -1013,4 +927,108 @@ public struct OnboardingFlowView: View {
     let nav = AppNavigationViewModel()
     nav.hasCompletedOnboarding = false
     return OnboardingFlowView(navViewModel: nav)
+}
+
+// MARK: - Graduation Year Picker (calendar-style card)
+/// Nine years per page in a 3 × 3 grid, ‹ › to move between pages, the chosen year filled black.
+struct GraduationYearPicker: View {
+    @Binding var selection: String
+    @State private var pageStart: Int
+
+    private static let pageSize = 9
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
+    private let firstAllowed: Int
+    private let lastAllowed: Int
+
+    init(selection: Binding<String>) {
+        self._selection = selection
+        let thisYear = Calendar.current.component(.year, from: Date())
+        firstAllowed = thisYear - 9
+        lastAllowed = thisYear + 17
+        // Open on the page that holds the current choice, starting from this year
+        let selected = Int(selection.wrappedValue) ?? thisYear
+        let offset = (selected - thisYear).quotientRoundedDown(by: Self.pageSize) * Self.pageSize
+        self._pageStart = State(initialValue: thisYear + offset)
+    }
+
+    private var years: [Int] { Array(pageStart..<(pageStart + Self.pageSize)) }
+    private var canGoBack: Bool { pageStart - Self.pageSize >= firstAllowed }
+    private var canGoForward: Bool { pageStart + Self.pageSize <= lastAllowed }
+
+    var body: some View {
+        VStack(spacing: 14) {
+            HStack {
+                pageButton("chevron.left", enabled: canGoBack) { pageStart -= Self.pageSize }
+                Spacer()
+                Text("\(String(pageStart)) – \(String(pageStart + Self.pageSize - 1))")
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundColor(AlineTheme.inkPrimary)
+                    .contentTransition(.numericText())
+                Spacer()
+                pageButton("chevron.right", enabled: canGoForward) { pageStart += Self.pageSize }
+            }
+
+            Divider()
+
+            LazyVGrid(columns: columns, spacing: 8) {
+                ForEach(years, id: \.self) { year in
+                    let isSelected = selection == String(year)
+                    Button {
+                        withAnimation(AlineTheme.fastSpring) { selection = String(year) }
+                    } label: {
+                        Text(String(year))
+                            .font(.system(size: 15, weight: isSelected ? .bold : .medium))
+                            .foregroundColor(isSelected ? .white : AlineTheme.inkPrimary)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 40)
+                            .background(Capsule().fill(isSelected ? AlineTheme.pillDark : Color.clear))
+                            .contentShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+                }
+            }
+
+            Divider()
+
+            Text(selection.isEmpty ? "Pick the year you'll graduate" : "Class of \(selection)")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(AlineTheme.inkSecondary)
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(Color.white)
+                .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 4)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .stroke(Color.black.opacity(0.08), lineWidth: 1)
+        )
+    }
+
+    private func pageButton(_ icon: String, enabled: Bool, action: @escaping () -> Void) -> some View {
+        Button {
+            withAnimation(AlineTheme.fastSpring) { action() }
+        } label: {
+            Image(systemName: icon)
+                .font(.system(size: 14, weight: .bold))
+                .foregroundColor(AlineTheme.inkPrimary)
+                .frame(width: 36, height: 36)
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .alineGlassCircleButton()
+        .disabled(!enabled)
+        .opacity(enabled ? 1 : 0.35)
+        .accessibilityLabel(icon == "chevron.left" ? "Earlier years" : "Later years")
+    }
+}
+
+private extension Int {
+    /// Floor division that also works for negative numbers
+    func quotientRoundedDown(by divisor: Int) -> Int {
+        let q = self / divisor
+        return (self % divisor != 0 && (self < 0) != (divisor < 0)) ? q - 1 : q
+    }
 }

@@ -7,46 +7,52 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		3D9133347CCB4882822B540F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBD21F70416B4AF2A1C32405 /* Assets.xcassets */; };
-		B6651D466815433CB7A1DA9F /* AlineApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97051675D3A6449F993DF523 /* AlineApp.swift */; };
-		852F2E02C0C64C57AE71FA72 /* AlineViewModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E828F52CE84C4D22BAC7D125 /* AlineViewModels.swift */; };
-		C5CB9B53F5234F7F87ACB580 /* Resume.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4752CC24650747F09AD66CF4 /* Resume.swift */; };
-		1F2E23C12F14481C88DF2D74 /* UserProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = A104B9BC10464959940AE8CD /* UserProfile.swift */; };
-		9F4DC33B69F7469CAA78AB58 /* Opportunity+Dataset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8952D154697F4E5E84272C2A /* Opportunity+Dataset.swift */; };
-		2449FBE904904FA69BFD3EBD /* Opportunity.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD30B896F43442A0B5D2A6A4 /* Opportunity.swift */; };
-		561FA692CD3C472B9A56DF7E /* InterviewQuestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ADF508ECF5D4767934F80A8 /* InterviewQuestion.swift */; };
-		0609F9CBE9004603BDD65E00 /* Community.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03B991633F764CD494EFC7B6 /* Community.swift */; };
-		3A63B297F47444FF8264931C /* AlineTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC747BCF2024443C9971F581 /* AlineTheme.swift */; };
-		A18791E2345448B8BE411622 /* MainAppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2443720300224449B27CB46E /* MainAppView.swift */; };
-		819931301FB24F30A3B29D01 /* JobDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24586C5AFED24E709DC6B53A /* JobDetailView.swift */; };
-		270AA8CDDC104AC3B1D80BD3 /* DiscoverFeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B49354C2C7B9462DB92CCC9A /* DiscoverFeedView.swift */; };
-		D35E79245B7742C2A7B97F52 /* ResumeDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07868B1165B74217869F856E /* ResumeDashboardView.swift */; };
-		E4C4D3DB3DA0414AB8A8E76E /* AlineComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89BBBCC110504BD990BCBE73 /* AlineComponents.swift */; };
-		3009CF782C7F4A20BAB59D70 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2C398D776AE4ECBA1EB5D4B /* ProfileView.swift */; };
-		DCF951042F6A4FF9B41A5CDE /* CommunityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C304DDCD63DF4DFA81DCFECD /* CommunityView.swift */; };
-		A0FAF261D8E54A719501BC4D /* OnboardingFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E96005F78244F4991577EE9 /* OnboardingFlowView.swift */; };
+		B10000000000000000000001 /* Aline/Views/Splash/SplashScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000001 /* Aline/Views/Splash/SplashScreenView.swift */; };
+		B10000000000000000000002 /* Aline/Views/Auth/AuthenticationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000002 /* Aline/Views/Auth/AuthenticationView.swift */; };
+		B10000000000000000000003 /* Aline/Resources/splash_animation.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000003 /* Aline/Resources/splash_animation.mp4 */; };
+		0609F9CBE9004603BDD65E00 /* Aline/Models/Community.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03B991633F764CD494EFC7B6 /* Aline/Models/Community.swift */; };
+		1F2E23C12F14481C88DF2D74 /* Aline/Models/UserProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = A104B9BC10464959940AE8CD /* Aline/Models/UserProfile.swift */; };
+		2449FBE904904FA69BFD3EBD /* Aline/Models/Opportunity.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD30B896F43442A0B5D2A6A4 /* Aline/Models/Opportunity.swift */; };
+		270AA8CDDC104AC3B1D80BD3 /* Aline/Views/Discover/DiscoverFeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B49354C2C7B9462DB92CCC9A /* Aline/Views/Discover/DiscoverFeedView.swift */; };
+		3009CF782C7F4A20BAB59D70 /* Aline/Views/Profile/ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2C398D776AE4ECBA1EB5D4B /* Aline/Views/Profile/ProfileView.swift */; };
+		3A63B297F47444FF8264931C /* Aline/Theme/AlineTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC747BCF2024443C9971F581 /* Aline/Theme/AlineTheme.swift */; };
+		3D9133347CCB4882822B540F /* Aline/Resources/Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBD21F70416B4AF2A1C32405 /* Aline/Resources/Assets.xcassets */; };
+		561FA692CD3C472B9A56DF7E /* Aline/Models/InterviewQuestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ADF508ECF5D4767934F80A8 /* Aline/Models/InterviewQuestion.swift */; };
+		819931301FB24F30A3B29D01 /* Aline/Views/Discover/JobDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24586C5AFED24E709DC6B53A /* Aline/Views/Discover/JobDetailView.swift */; };
+		852F2E02C0C64C57AE71FA72 /* Aline/ViewModels/AlineViewModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E828F52CE84C4D22BAC7D125 /* Aline/ViewModels/AlineViewModels.swift */; };
+		9F4DC33B69F7469CAA78AB58 /* Aline/Models/Opportunity+Dataset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8952D154697F4E5E84272C2A /* Aline/Models/Opportunity+Dataset.swift */; };
+		A0FAF261D8E54A719501BC4D /* Aline/Views/Onboarding/OnboardingFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E96005F78244F4991577EE9 /* Aline/Views/Onboarding/OnboardingFlowView.swift */; };
+		A18791E2345448B8BE411622 /* Aline/Views/MainAppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2443720300224449B27CB46E /* Aline/Views/MainAppView.swift */; };
+		B6651D466815433CB7A1DA9F /* Aline/AlineApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97051675D3A6449F993DF523 /* Aline/AlineApp.swift */; };
+		C5CB9B53F5234F7F87ACB580 /* Aline/Models/Resume.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4752CC24650747F09AD66CF4 /* Aline/Models/Resume.swift */; };
+		D35E79245B7742C2A7B97F52 /* Aline/Views/Resume/ResumeDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07868B1165B74217869F856E /* Aline/Views/Resume/ResumeDashboardView.swift */; };
+		DCF951042F6A4FF9B41A5CDE /* Aline/Views/Community/CommunityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C304DDCD63DF4DFA81DCFECD /* Aline/Views/Community/CommunityView.swift */; };
+		E4C4D3DB3DA0414AB8A8E76E /* Aline/Views/Components/AlineComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89BBBCC110504BD990BCBE73 /* Aline/Views/Components/AlineComponents.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		C10000000000000000000001 /* Aline/Views/Splash/SplashScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Views/Splash/SplashScreenView.swift; sourceTree = "<group>"; };
+		C10000000000000000000002 /* Aline/Views/Auth/AuthenticationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Views/Auth/AuthenticationView.swift; sourceTree = "<group>"; };
+		C10000000000000000000003 /* Aline/Resources/splash_animation.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = Aline/Resources/splash_animation.mp4; sourceTree = "<group>"; };
+		03B991633F764CD494EFC7B6 /* Aline/Models/Community.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Models/Community.swift; sourceTree = "<group>"; };
+		07868B1165B74217869F856E /* Aline/Views/Resume/ResumeDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Views/Resume/ResumeDashboardView.swift; sourceTree = "<group>"; };
+		0ADF508ECF5D4767934F80A8 /* Aline/Models/InterviewQuestion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Models/InterviewQuestion.swift; sourceTree = "<group>"; };
+		2443720300224449B27CB46E /* Aline/Views/MainAppView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Views/MainAppView.swift; sourceTree = "<group>"; };
+		24586C5AFED24E709DC6B53A /* Aline/Views/Discover/JobDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Views/Discover/JobDetailView.swift; sourceTree = "<group>"; };
+		4752CC24650747F09AD66CF4 /* Aline/Models/Resume.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Models/Resume.swift; sourceTree = "<group>"; };
+		8952D154697F4E5E84272C2A /* Aline/Models/Opportunity+Dataset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Aline/Models/Opportunity+Dataset.swift"; sourceTree = "<group>"; };
+		89BBBCC110504BD990BCBE73 /* Aline/Views/Components/AlineComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Views/Components/AlineComponents.swift; sourceTree = "<group>"; };
+		8E96005F78244F4991577EE9 /* Aline/Views/Onboarding/OnboardingFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Views/Onboarding/OnboardingFlowView.swift; sourceTree = "<group>"; };
+		97051675D3A6449F993DF523 /* Aline/AlineApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/AlineApp.swift; sourceTree = "<group>"; };
+		A104B9BC10464959940AE8CD /* Aline/Models/UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Models/UserProfile.swift; sourceTree = "<group>"; };
+		B49354C2C7B9462DB92CCC9A /* Aline/Views/Discover/DiscoverFeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Views/Discover/DiscoverFeedView.swift; sourceTree = "<group>"; };
+		BC747BCF2024443C9971F581 /* Aline/Theme/AlineTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Theme/AlineTheme.swift; sourceTree = "<group>"; };
+		BD30B896F43442A0B5D2A6A4 /* Aline/Models/Opportunity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Models/Opportunity.swift; sourceTree = "<group>"; };
+		C304DDCD63DF4DFA81DCFECD /* Aline/Views/Community/CommunityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Views/Community/CommunityView.swift; sourceTree = "<group>"; };
+		DBD21F70416B4AF2A1C32405 /* Aline/Resources/Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Aline/Resources/Assets.xcassets; sourceTree = "<group>"; };
+		E828F52CE84C4D22BAC7D125 /* Aline/ViewModels/AlineViewModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/ViewModels/AlineViewModels.swift; sourceTree = "<group>"; };
+		F2C398D776AE4ECBA1EB5D4B /* Aline/Views/Profile/ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Views/Profile/ProfileView.swift; sourceTree = "<group>"; };
 		F938A69DA22041A3B12F37B8 /* Aline.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Aline.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		DBD21F70416B4AF2A1C32405 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Aline/Resources/Assets.xcassets"; sourceTree = "<group>"; };
-		97051675D3A6449F993DF523 /* AlineApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Aline/AlineApp.swift"; sourceTree = "<group>"; };
-		E828F52CE84C4D22BAC7D125 /* AlineViewModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Aline/ViewModels/AlineViewModels.swift"; sourceTree = "<group>"; };
-		4752CC24650747F09AD66CF4 /* Resume.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Aline/Models/Resume.swift"; sourceTree = "<group>"; };
-		A104B9BC10464959940AE8CD /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Aline/Models/UserProfile.swift"; sourceTree = "<group>"; };
-		8952D154697F4E5E84272C2A /* Opportunity+Dataset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Aline/Models/Opportunity+Dataset.swift"; sourceTree = "<group>"; };
-		BD30B896F43442A0B5D2A6A4 /* Opportunity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Aline/Models/Opportunity.swift"; sourceTree = "<group>"; };
-		0ADF508ECF5D4767934F80A8 /* InterviewQuestion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Aline/Models/InterviewQuestion.swift"; sourceTree = "<group>"; };
-		03B991633F764CD494EFC7B6 /* Community.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Aline/Models/Community.swift"; sourceTree = "<group>"; };
-		BC747BCF2024443C9971F581 /* AlineTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Aline/Theme/AlineTheme.swift"; sourceTree = "<group>"; };
-		2443720300224449B27CB46E /* MainAppView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Aline/Views/MainAppView.swift"; sourceTree = "<group>"; };
-		24586C5AFED24E709DC6B53A /* JobDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Aline/Views/Discover/JobDetailView.swift"; sourceTree = "<group>"; };
-		B49354C2C7B9462DB92CCC9A /* DiscoverFeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Aline/Views/Discover/DiscoverFeedView.swift"; sourceTree = "<group>"; };
-		07868B1165B74217869F856E /* ResumeDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Aline/Views/Resume/ResumeDashboardView.swift"; sourceTree = "<group>"; };
-		89BBBCC110504BD990BCBE73 /* AlineComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Aline/Views/Components/AlineComponents.swift"; sourceTree = "<group>"; };
-		F2C398D776AE4ECBA1EB5D4B /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Aline/Views/Profile/ProfileView.swift"; sourceTree = "<group>"; };
-		C304DDCD63DF4DFA81DCFECD /* CommunityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Aline/Views/Community/CommunityView.swift"; sourceTree = "<group>"; };
-		8E96005F78244F4991577EE9 /* OnboardingFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Aline/Views/Onboarding/OnboardingFlowView.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,24 +69,27 @@
 		21DF6D99A1414587916B3DBF = {
 			isa = PBXGroup;
 			children = (
-				97051675D3A6449F993DF523 /* AlineApp.swift */,
-				E828F52CE84C4D22BAC7D125 /* AlineViewModels.swift */,
-				4752CC24650747F09AD66CF4 /* Resume.swift */,
-				A104B9BC10464959940AE8CD /* UserProfile.swift */,
-				8952D154697F4E5E84272C2A /* Opportunity+Dataset.swift */,
-				BD30B896F43442A0B5D2A6A4 /* Opportunity.swift */,
-				0ADF508ECF5D4767934F80A8 /* InterviewQuestion.swift */,
-				03B991633F764CD494EFC7B6 /* Community.swift */,
-				BC747BCF2024443C9971F581 /* AlineTheme.swift */,
-				2443720300224449B27CB46E /* MainAppView.swift */,
-				24586C5AFED24E709DC6B53A /* JobDetailView.swift */,
-				B49354C2C7B9462DB92CCC9A /* DiscoverFeedView.swift */,
-				07868B1165B74217869F856E /* ResumeDashboardView.swift */,
-				89BBBCC110504BD990BCBE73 /* AlineComponents.swift */,
-				F2C398D776AE4ECBA1EB5D4B /* ProfileView.swift */,
-				C304DDCD63DF4DFA81DCFECD /* CommunityView.swift */,
-				8E96005F78244F4991577EE9 /* OnboardingFlowView.swift */,
-				DBD21F70416B4AF2A1C32405 /* Assets.xcassets */,
+				C10000000000000000000001 /* Aline/Views/Splash/SplashScreenView.swift */,
+				C10000000000000000000002 /* Aline/Views/Auth/AuthenticationView.swift */,
+				C10000000000000000000003 /* Aline/Resources/splash_animation.mp4 */,
+				97051675D3A6449F993DF523 /* Aline/AlineApp.swift */,
+				E828F52CE84C4D22BAC7D125 /* Aline/ViewModels/AlineViewModels.swift */,
+				4752CC24650747F09AD66CF4 /* Aline/Models/Resume.swift */,
+				A104B9BC10464959940AE8CD /* Aline/Models/UserProfile.swift */,
+				8952D154697F4E5E84272C2A /* Aline/Models/Opportunity+Dataset.swift */,
+				BD30B896F43442A0B5D2A6A4 /* Aline/Models/Opportunity.swift */,
+				0ADF508ECF5D4767934F80A8 /* Aline/Models/InterviewQuestion.swift */,
+				03B991633F764CD494EFC7B6 /* Aline/Models/Community.swift */,
+				BC747BCF2024443C9971F581 /* Aline/Theme/AlineTheme.swift */,
+				2443720300224449B27CB46E /* Aline/Views/MainAppView.swift */,
+				24586C5AFED24E709DC6B53A /* Aline/Views/Discover/JobDetailView.swift */,
+				B49354C2C7B9462DB92CCC9A /* Aline/Views/Discover/DiscoverFeedView.swift */,
+				07868B1165B74217869F856E /* Aline/Views/Resume/ResumeDashboardView.swift */,
+				89BBBCC110504BD990BCBE73 /* Aline/Views/Components/AlineComponents.swift */,
+				F2C398D776AE4ECBA1EB5D4B /* Aline/Views/Profile/ProfileView.swift */,
+				C304DDCD63DF4DFA81DCFECD /* Aline/Views/Community/CommunityView.swift */,
+				8E96005F78244F4991577EE9 /* Aline/Views/Onboarding/OnboardingFlowView.swift */,
+				DBD21F70416B4AF2A1C32405 /* Aline/Resources/Assets.xcassets */,
 				B184B83848DC48998933B26B /* Products */,
 			);
 			sourceTree = "<group>";
@@ -121,7 +130,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1600;
-				LastUpgradeCheck = 1600;
+				LastUpgradeCheck = 2700;
 				TargetAttributes = {
 					9C67FDDE30774D188DC483D7 = {
 						CreatedOnToolsVersion = 16.0;
@@ -151,7 +160,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3D9133347CCB4882822B540F /* Assets.xcassets in Resources */,
+				B10000000000000000000003 /* Aline/Resources/splash_animation.mp4 in Resources */,
+				3D9133347CCB4882822B540F /* Aline/Resources/Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -162,23 +172,25 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B6651D466815433CB7A1DA9F /* AlineApp.swift in Sources */,
-				852F2E02C0C64C57AE71FA72 /* AlineViewModels.swift in Sources */,
-				C5CB9B53F5234F7F87ACB580 /* Resume.swift in Sources */,
-				1F2E23C12F14481C88DF2D74 /* UserProfile.swift in Sources */,
-				9F4DC33B69F7469CAA78AB58 /* Opportunity+Dataset.swift in Sources */,
-				2449FBE904904FA69BFD3EBD /* Opportunity.swift in Sources */,
-				561FA692CD3C472B9A56DF7E /* InterviewQuestion.swift in Sources */,
-				0609F9CBE9004603BDD65E00 /* Community.swift in Sources */,
-				3A63B297F47444FF8264931C /* AlineTheme.swift in Sources */,
-				A18791E2345448B8BE411622 /* MainAppView.swift in Sources */,
-				819931301FB24F30A3B29D01 /* JobDetailView.swift in Sources */,
-				270AA8CDDC104AC3B1D80BD3 /* DiscoverFeedView.swift in Sources */,
-				D35E79245B7742C2A7B97F52 /* ResumeDashboardView.swift in Sources */,
-				E4C4D3DB3DA0414AB8A8E76E /* AlineComponents.swift in Sources */,
-				3009CF782C7F4A20BAB59D70 /* ProfileView.swift in Sources */,
-				DCF951042F6A4FF9B41A5CDE /* CommunityView.swift in Sources */,
-				A0FAF261D8E54A719501BC4D /* OnboardingFlowView.swift in Sources */,
+				B10000000000000000000001 /* Aline/Views/Splash/SplashScreenView.swift in Sources */,
+				B10000000000000000000002 /* Aline/Views/Auth/AuthenticationView.swift in Sources */,
+				B6651D466815433CB7A1DA9F /* Aline/AlineApp.swift in Sources */,
+				852F2E02C0C64C57AE71FA72 /* Aline/ViewModels/AlineViewModels.swift in Sources */,
+				C5CB9B53F5234F7F87ACB580 /* Aline/Models/Resume.swift in Sources */,
+				1F2E23C12F14481C88DF2D74 /* Aline/Models/UserProfile.swift in Sources */,
+				9F4DC33B69F7469CAA78AB58 /* Aline/Models/Opportunity+Dataset.swift in Sources */,
+				2449FBE904904FA69BFD3EBD /* Aline/Models/Opportunity.swift in Sources */,
+				561FA692CD3C472B9A56DF7E /* Aline/Models/InterviewQuestion.swift in Sources */,
+				0609F9CBE9004603BDD65E00 /* Aline/Models/Community.swift in Sources */,
+				3A63B297F47444FF8264931C /* Aline/Theme/AlineTheme.swift in Sources */,
+				A18791E2345448B8BE411622 /* Aline/Views/MainAppView.swift in Sources */,
+				819931301FB24F30A3B29D01 /* Aline/Views/Discover/JobDetailView.swift in Sources */,
+				270AA8CDDC104AC3B1D80BD3 /* Aline/Views/Discover/DiscoverFeedView.swift in Sources */,
+				D35E79245B7742C2A7B97F52 /* Aline/Views/Resume/ResumeDashboardView.swift in Sources */,
+				E4C4D3DB3DA0414AB8A8E76E /* Aline/Views/Components/AlineComponents.swift in Sources */,
+				3009CF782C7F4A20BAB59D70 /* Aline/Views/Profile/ProfileView.swift in Sources */,
+				DCF951042F6A4FF9B41A5CDE /* Aline/Views/Community/CommunityView.swift in Sources */,
+				A0FAF261D8E54A719501BC4D /* Aline/Views/Onboarding/OnboardingFlowView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -190,10 +202,30 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = BVUMVK79GG;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -201,29 +233,88 @@
 					"DEBUG=1",
 					"$(inherited)",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
+		};
+		AEA1DFACC67143799542C6C2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = BVUMVK79GG;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Aline;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.alineapp3.career;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
 		};
 		B939503FD8F54EC7AA938D4B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = BVUMVK79GG;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				VALIDATE_PRODUCT = YES;
@@ -235,57 +326,29 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = BVUMVK79GG;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Aline";
+				INFOPLIST_KEY_CFBundleDisplayName = Aline;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.aline.career";
+				PRODUCT_BUNDLE_IDENTIFIER = com.alineapp3.career;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
-		};
-		AEA1DFACC67143799542C6C2 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Aline";
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait";
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.aline.career";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		BC80D5CE5E7D46C784A56B82 /* Build configuration list for PBXProject "Aline" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				A610C5FF25364B649359A5E2 /* Debug */,
-				B939503FD8F54EC7AA938D4B /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		3E06721DD3E44783A45131D6 /* Build configuration list for PBXNativeTarget "Aline" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -295,8 +358,16 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		BC80D5CE5E7D46C784A56B82 /* Build configuration list for PBXProject "Aline" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A610C5FF25364B649359A5E2 /* Debug */,
+				B939503FD8F54EC7AA938D4B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
-
 	};
 	rootObject = 7E943994B3724BD2A050F6E2 /* Project object */;
 }
