@@ -1,18 +1,24 @@
 import asyncio
+import json
 import logging
 import time
 from typing import Optional
 
 import httpx
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
 
 from app.adapters import amazon, ashby, greenhouse, lever, smartrecruiters, workable, workday, workday_sitemap
 from app.community import router as community_router
+from app.community_db import get_or_create_user, list_job_marks, set_job_mark
 from app.community_db import init_db as init_community_db
 from app.companies import COMPANIES, NEEDS_REVIEW
 from app.feedback import router as feedback_router
+from app.interview import router as interview_router
+from app.job_enrich import enrich
 from app.profile import router as profile_router
+from app.resumes import router as resumes_router
 from app.schemas import Job
 
 logging.basicConfig(level=logging.INFO)
@@ -30,6 +36,8 @@ app.add_middleware(
 app.include_router(community_router)
 app.include_router(profile_router)
 app.include_router(feedback_router)
+app.include_router(interview_router)
+app.include_router(resumes_router)
 
 ADAPTERS = {
     "greenhouse": greenhouse.scrape,
@@ -83,6 +91,7 @@ def _company_key(company: dict) -> tuple:
 class JobsCache:
     def __init__(self):
         self.jobs: list[Job] = []
+        self.jobs_by_id: dict[str, Job] = {}
         self.last_refreshed: float = 0
         self.last_error: Optional[str] = None
         self.refreshing = False
@@ -174,7 +183,8 @@ async def refresh_cache():
                 del cache.company_jobs[stale_key]
                 cache.company_fail_streak.pop(stale_key, None)
 
-        cache.jobs = [job for jobs in cache.company_jobs.values() for job in jobs]
+        cache.jobs = [enrich(job) for jobs in cache.company_jobs.values() for job in jobs]
+        cache.jobs_by_id = {job.id: job for job in cache.jobs}
         cache.companies_degraded = degraded
         cache.last_refreshed = time.time()
         cache.last_error = None
@@ -198,7 +208,10 @@ async def on_startup():
 
 @app.get("/")
 async def root():
-    return {"service": "aline-backend", "try": ["/health", "/jobs", "/companies", "/community/discussions", "/profile"]}
+    return {
+        "service": "aline-backend",
+        "try": ["/health", "/jobs", "/companies", "/community/discussions", "/interview/questions", "/profile"],
+    }
 
 
 @app.get("/health")
@@ -238,6 +251,50 @@ async def get_jobs():
     elif cache.is_stale():
         asyncio.create_task(refresh_cache())  # serve stale cache, refresh in background
     return cache.jobs
+
+
+class JobMark(BaseModel):
+    job_id: str
+    liked: bool
+    applied: bool
+    applied_at: Optional[str] = None
+    # Snapshot of the job when it was marked — lets Liked/Applied keep showing a posting
+    # after it closes and leaves /jobs.
+    job: Optional[Job] = None
+
+
+class JobMarkRequest(BaseModel):
+    device_id: str = Field(min_length=1)
+    liked: Optional[bool] = None
+    applied: Optional[bool] = None
+
+
+@app.get("/jobs/marks", response_model=list[JobMark])
+async def get_job_marks(device_id: str) -> list[JobMark]:
+    user = get_or_create_user(device_id)
+    marks = []
+    for row in list_job_marks(user["id"]):
+        # Prefer the live (freshest) copy of the job; fall back to the stored snapshot.
+        live = cache.jobs_by_id.get(row["job_id"])
+        snapshot = Job(**json.loads(row["job_json"])) if row["job_json"] else None
+        marks.append(JobMark(
+            job_id=row["job_id"], liked=bool(row["liked"]), applied=bool(row["applied"]),
+            applied_at=row["applied_at"], job=live or snapshot,
+        ))
+    return marks
+
+
+@app.put("/jobs/{job_id}/mark", response_model=JobMark)
+async def put_job_mark(job_id: str, request: JobMarkRequest) -> JobMark:
+    """Partial update: send `liked` and/or `applied`; omitted fields keep their current value."""
+    if request.liked is None and request.applied is None:
+        raise HTTPException(400, "Send liked and/or applied")
+    user = get_or_create_user(request.device_id)
+    live = cache.jobs_by_id.get(job_id)
+    result = set_job_mark(
+        user["id"], job_id, live.model_dump_json() if live else None, liked=request.liked, applied=request.applied,
+    )
+    return JobMark(**result, job=live)
 
 
 def _count_by_platform(companies: list[dict]) -> dict:

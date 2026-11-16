@@ -9,13 +9,13 @@ import json
 from fastapi import APIRouter
 
 from app.community_db import PROFILE_FIELDS, delete_account, get_or_create_user, update_profile
-from app.profile_schemas import ExperienceEntry, ProfileData, ProfileUpdateRequest, ProjectEntry
+from app.profile_schemas import Achievement, ExperienceEntry, ProfileData, ProfileUpdateRequest, ProjectEntry
 
 router = APIRouter(prefix="/profile", tags=["profile"])
 
 # These three columns hold JSON-encoded TEXT in the DB (see community_db.py's migration
 # comment) — everything else on the users row is a plain scalar column.
-JSON_FIELDS = {"skills", "experience", "projects"}
+JSON_FIELDS = {"skills", "experience", "projects", "achievements", "preferences"}
 
 
 def _row_to_profile(row) -> ProfileData:
@@ -23,7 +23,12 @@ def _row_to_profile(row) -> ProfileData:
     skills = json.loads(row["skills"]) if row["skills"] else []
     experience = [ExperienceEntry(**e) for e in json.loads(row["experience"])] if row["experience"] else []
     projects = [ProjectEntry(**p) for p in json.loads(row["projects"])] if row["projects"] else []
-    return ProfileData(username=row["username"], skills=skills, experience=experience, projects=projects, **scalar_fields)
+    achievements = [Achievement(**a) for a in json.loads(row["achievements"])] if row["achievements"] else []
+    preferences = json.loads(row["preferences"]) if row["preferences"] else None
+    return ProfileData(
+        username=row["username"], avatar=row["avatar"], skills=skills, experience=experience, projects=projects,
+        achievements=achievements, preferences=preferences, **scalar_fields,
+    )
 
 
 @router.get("", response_model=ProfileData)

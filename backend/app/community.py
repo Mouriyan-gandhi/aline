@@ -14,6 +14,11 @@ from app.community_db import (
     CATEGORIES,
     TOPICS,
     add_comment,
+    company_stats,
+    delete_comment,
+    increment_share,
+    list_notifications,
+    toggle_comment_like,
     create_discussion,
     get_discussion,
     get_or_create_user,
@@ -26,6 +31,7 @@ from app.community_db import (
 )
 from app.community_schemas import (
     Comment,
+    CompanyCommunity,
     CreateCommentRequest,
     CreateDiscussionRequest,
     Discussion,
@@ -33,20 +39,36 @@ from app.community_schemas import (
     FollowedResponse,
     IdentityRequest,
     LikeResponse,
+    NotificationItem,
     SavedResponse,
+    ShareResponse,
     UserIdentity,
 )
 
 router = APIRouter(prefix="/community", tags=["community"])
 
 
-def _row_to_discussion(row: dict) -> Discussion:
+def _row_to_discussion(row: dict, viewer_id: Optional[str] = None) -> Discussion:
     return Discussion(
         id=row["id"], user_id=row["user_id"], username=row["username"], role_title=row["role_title"],
+        avatar=row.get("avatar"),
         category=row["category"], company=row["company"], title=row["title"], body=row["body"],
         created_at=row["created_at"], likes_count=row["likes_count"], comments_count=row["comments_count"],
         liked_by_me=bool(row["liked_by_me"]), saved_by_me=bool(row["saved_by_me"]),
         topics=json.loads(row["topics"]) if row["topics"] else [],
+        shares_count=row.get("shares_count") or 0,
+        is_mine=viewer_id is not None and row["user_id"] == viewer_id,
+    )
+
+
+def _row_to_comment(c, viewer_id: Optional[str] = None) -> Comment:
+    c = dict(c)
+    return Comment(
+        id=c["id"], discussion_id=c["discussion_id"], user_id=c["user_id"],
+        username=c["username"], role_title=c["role_title"], avatar=c.get("avatar"),
+        body=c["body"], created_at=c["created_at"], parent_id=c.get("parent_id"),
+        likes_count=c.get("likes_count") or 0, liked_by_me=bool(c.get("liked_by_me")),
+        is_mine=viewer_id is not None and c["user_id"] == viewer_id,
     )
 
 
@@ -68,7 +90,7 @@ async def identity(request: IdentityRequest) -> UserIdentity:
     never a new one (see get_or_create_user's lookup-before-insert).
     """
     user = get_or_create_user(request.device_id, request.role_title)
-    return UserIdentity(id=user["id"], username=user["username"], role_title=user["role_title"])
+    return UserIdentity(id=user["id"], username=user["username"], role_title=user["role_title"], avatar=user["avatar"])
 
 
 @router.get("/discussions", response_model=list[Discussion])
@@ -87,7 +109,7 @@ async def get_discussions(
         category, sort, viewer["id"] if viewer else None,
         companies=companies, only_saved=only_saved, topics=topics,
     )
-    return [_row_to_discussion(r) for r in rows]
+    return [_row_to_discussion(r, viewer["id"] if viewer else None) for r in rows]
 
 
 @router.post("/discussions", response_model=Discussion)
@@ -99,7 +121,7 @@ async def post_discussion(request: CreateDiscussionRequest) -> Discussion:
         user["id"], request.category, request.company, request.title, request.body, topics=request.topics
     )
     row = get_discussion(discussion_id, user["id"])
-    return _row_to_discussion(row)
+    return _row_to_discussion(row, user["id"])
 
 
 @router.get("/discussions/{discussion_id}", response_model=DiscussionDetail)
@@ -108,26 +130,75 @@ async def get_discussion_detail(discussion_id: str, device_id: Optional[str] = N
     data = get_discussion(discussion_id, viewer["id"] if viewer else None)
     if data is None:
         raise HTTPException(404, "Discussion not found")
-    comments = [
-        Comment(
-            id=c["id"], discussion_id=c["discussion_id"], user_id=c["user_id"],
-            username=c["username"], role_title=c["role_title"], body=c["body"], created_at=c["created_at"],
-        )
-        for c in data["comments"]
-    ]
-    return DiscussionDetail(**_row_to_discussion(data).model_dump(), comments=comments)
+    viewer_id = viewer["id"] if viewer else None
+    comments = [_row_to_comment(c, viewer_id) for c in data["comments"]]
+    return DiscussionDetail(**_row_to_discussion(data, viewer_id).model_dump(), comments=comments)
 
 
 @router.post("/discussions/{discussion_id}/comments", response_model=Comment)
 async def post_comment(discussion_id: str, request: CreateCommentRequest) -> Comment:
     user = get_or_create_user(request.device_id)
-    row = add_comment(discussion_id, user["id"], request.body)
+    row = add_comment(discussion_id, user["id"], request.body, request.parent_id)
     if row is None:
+        raise HTTPException(404, "Discussion or parent comment not found")
+    return _row_to_comment(row, user["id"])
+
+
+@router.delete("/comments/{comment_id}")
+async def remove_comment(comment_id: str, device_id: str) -> dict:
+    user = get_or_create_user(device_id)
+    result = delete_comment(comment_id, user["id"])
+    if result is None:
+        raise HTTPException(404, "Comment not found")
+    if result is False:
+        raise HTTPException(403, "Only the author can delete a comment")
+    return {"deleted": True}
+
+
+@router.post("/comments/{comment_id}/like", response_model=LikeResponse)
+async def like_comment(comment_id: str, device_id: str) -> LikeResponse:
+    user = get_or_create_user(device_id)
+    liked = toggle_comment_like(comment_id, user["id"])
+    if liked is None:
+        raise HTTPException(404, "Comment not found")
+    return LikeResponse(liked=liked)
+
+
+@router.post("/discussions/{discussion_id}/share", response_model=ShareResponse)
+async def share_discussion(discussion_id: str) -> ShareResponse:
+    count = increment_share(discussion_id)
+    if count is None:
         raise HTTPException(404, "Discussion not found")
-    return Comment(
-        id=row["id"], discussion_id=row["discussion_id"], user_id=row["user_id"],
-        username=row["username"], role_title=row["role_title"], body=row["body"], created_at=row["created_at"],
-    )
+    return ShareResponse(shares_count=count)
+
+
+@router.get("/companies", response_model=list[CompanyCommunity])
+async def get_companies(device_id: Optional[str] = None) -> list[CompanyCommunity]:
+    """Every company in the job-source registry plus any company someone posted about or
+    follows — so a company community exists for each employer the feed shows, with real
+    follower/post counts (zero is a real number, not a placeholder)."""
+    from app.companies import COMPANIES  # local import: companies.py is large and jobs-side
+
+    stats = company_stats()
+    followed = set(list_followed_companies(device_id)) if device_id else set()
+    names = {c["name"] for c in COMPANIES} | set(stats) | followed
+    result = [
+        CompanyCommunity(
+            name=name,
+            followers_count=stats.get(name, {}).get("followers", 0),
+            posts_count=stats.get(name, {}).get("posts", 0),
+            following=name in followed,
+        )
+        for name in names
+    ]
+    result.sort(key=lambda c: (-c.posts_count, -c.followers_count, c.name.lower()))
+    return result
+
+
+@router.get("/notifications", response_model=list[NotificationItem])
+async def get_notifications(device_id: str) -> list[NotificationItem]:
+    user = get_or_create_user(device_id)
+    return [NotificationItem(**row) for row in list_notifications(user["id"])]
 
 
 @router.post("/discussions/{discussion_id}/like", response_model=LikeResponse)
