@@ -123,7 +123,18 @@ public struct ResumeDashboardView: View {
                         .padding(.top, 4)
 
                         // 2. Document Tiles Grid (Master is always shown first; exact screenshot format)
-                        if orderedResumes.isEmpty {
+                        if orderedResumes.isEmpty && viewModel.searchQuery.isEmpty && (viewModel.isLoadingResumes || viewModel.isImportingResume) {
+                            VStack(spacing: 12) {
+                                ProgressView()
+                                    .controlSize(.large)
+                                    .tint(AlineTheme.inkMuted)
+                                Text(viewModel.isImportingResume ? "Reading your resume…" : "Loading your resumes…")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(AlineTheme.inkSecondary)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 80)
+                        } else if orderedResumes.isEmpty {
                             if !viewModel.searchQuery.isEmpty {
                                 // Search Empty State
                                 VStack(spacing: 12) {

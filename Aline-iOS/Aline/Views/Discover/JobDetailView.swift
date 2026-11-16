@@ -229,6 +229,8 @@ public struct JobDetailView: View {
                 }
             }
         }
+        // On-device AI: sections for postings that couldn't be split, and keyword gaps vs. the profile
+        .task(id: opportunity.id) { await viewModel.enrichDetail(for: opportunity.id) }
         .alert(applyPromptTitle, isPresented: $showingDidApplyPrompt) {
             Button("Yes, I applied") {
                 withAnimation(AlineTheme.fastSpring) {

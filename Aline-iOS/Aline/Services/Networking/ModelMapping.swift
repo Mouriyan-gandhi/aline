@@ -360,3 +360,34 @@ extension InterviewQuestion {
         )
     }
 }
+
+extension Opportunity {
+    /// The same opportunity with on-device AI enrichment applied (see DiscoverViewModel.enrichDetail).
+    func enriched(_ enrichment: JobEnrichment, candidateSkills: Set<String>) -> Opportunity {
+        let skills = enrichment.skills ?? self.skills
+        return Opportunity(
+            id: id, companyName: companyName, companySymbol: companySymbol, roleTitle: roleTitle, location: location,
+            opportunityType: opportunityType, workMode: workMode, salaryRange: salaryRange, experienceYears: experienceYears,
+            eligibleGradYears: eligibleGradYears, matchScore: matchScore, recency: recency, cardColor: cardColor,
+            isLiked: isLiked, isApplied: isApplied, applicationDate: applicationDate, externalCareersURL: externalCareersURL,
+            aboutRole: enrichment.about ?? aboutRole,
+            minimumQualifications: enrichment.minimumQualifications ?? minimumQualifications,
+            preferredQualifications: enrichment.preferredQualifications ?? preferredQualifications,
+            applicantTips: applicantTips,
+            responsibilities: enrichment.responsibilities ?? responsibilities,
+            skills: skills,
+            detectedKeywords: skills.filter { candidateSkills.contains($0.lowercased()) },
+            missingKeywords: enrichment.missingKeywords ?? missingKeywords
+        )
+    }
+}
+
+/// What on-device AI added to one job's detail screen; nil fields leave the original as is.
+struct JobEnrichment {
+    var about: String?
+    var minimumQualifications: [String]?
+    var preferredQualifications: [String]?
+    var responsibilities: [String]?
+    var skills: [String]?
+    var missingKeywords: [MissingKeyword]?
+}

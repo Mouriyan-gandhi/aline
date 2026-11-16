@@ -152,6 +152,12 @@ enum LocationAliases {
         ["kolkata", "calcutta"],
     ]
 
+    /// One display name per city: "Bangalore" → "Bengaluru", "Gurgaon" → "Delhi NCR"
+    static func canonical(_ name: String) -> String {
+        guard let group = groups.first(where: { $0.contains(name.lowercased()) }) else { return name }
+        return group[0].split(separator: " ").map { $0.count <= 3 ? $0.uppercased() : $0.capitalized }.joined(separator: " ")
+    }
+
     static func matches(_ preferred: String, jobLocation: String) -> Bool {
         let location = jobLocation.lowercased()
         let key = preferred.lowercased()

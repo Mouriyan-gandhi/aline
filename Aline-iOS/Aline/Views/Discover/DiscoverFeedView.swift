@@ -255,7 +255,11 @@ public struct DiscoverFeedView: View {
                         }
 
                         // Content Area: Empty State OR Normal Horizontal Scroll (>85% Match)
-                        if recommendedJobs.isEmpty {
+                        if recommendedJobs.isEmpty && viewModel.isLoading {
+                            // First fetch (or a cold backend) can take a while: say so instead of "nothing found"
+                            DiscoverLoadingCard()
+                                .padding(.horizontal, 24)
+                        } else if recommendedJobs.isEmpty {
                             VStack(spacing: 12) {
                                 Image(systemName: "magnifyingglass")
                                     .font(.system(size: 32, weight: .bold))
@@ -427,6 +431,35 @@ public struct DiscoverFeedView: View {
 }
 
 // MARK: - Explore More Pinned Section Header (Sticky at top, seamless background matching Discover artwork)
+/// Shown in place of the Recommended cards while the job feed loads — same white card as the
+/// empty state, with a spinner instead of the magnifying glass.
+struct DiscoverLoadingCard: View {
+    var body: some View {
+        VStack(spacing: 12) {
+            ProgressView()
+                .controlSize(.large)
+                .tint(AlineTheme.inkMuted)
+                .padding(.top, 30)
+            Text("Finding opportunities for you")
+                .font(.system(size: 16, weight: .bold))
+                .foregroundColor(AlineTheme.inkPrimary)
+            Text("Fetching the latest openings from company career sites. The first load can take a minute.")
+                .font(.system(size: 13))
+                .foregroundColor(AlineTheme.inkSecondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
+                .padding(.bottom, 30)
+        }
+        .frame(maxWidth: .infinity)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(Color.black.opacity(0.08), lineWidth: 1)
+        )
+    }
+}
+
 public struct ExploreMorePinnedHeader: View {
     public let count: Int
     public let screenHeight: CGFloat
@@ -965,68 +998,12 @@ public struct DiscoverFilterSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     let jobTypes = ["All", "Internship", "Full Time"]
-    let roles = [
-        "All Roles",
-        "Software Development Engineer",
-        "Product Design",
-        "Cloud Solutions Architect",
-        "Machine Learning",
-        "Autonomous Systems",
-        "Battery & Firmware",
-        "Data Science",
-        "UI/UX Prototyper",
-        "Security Engineering"
-    ]
-    let locations = [
-        "All",
-        "Bengaluru, India",
-        "Hyderabad, India",
-        "Mumbai, India",
-        "Gurugram, India",
-        "Noida, India",
-        "Pune, India",
-        "Remote"
-    ]
+    // Filter options come from the jobs actually in the feed (see DiscoverViewModel.rebuildFilterOptions)
+    var roles: [String] { ["All Roles"] + viewModel.roleOptions }
+    var locations: [String] { ["All"] + viewModel.locationOptions }
     let workModes = ["All", "Remote", "Hybrid", "On-site"]
-    let skillsList = [
-        "All Skills",
-        "Python",
-        "Swift",
-        "SwiftUI",
-        "C++",
-        "Java",
-        "Go",
-        "Figma",
-        "Machine Learning",
-        "React",
-        "Kafka",
-        "Docker",
-        "Kubernetes",
-        "SQL"
-    ]
-    let companiesList = [
-        "All Companies",
-        "Ola",
-        "Flipkart",
-        "Apple",
-        "Google",
-        "Microsoft",
-        "Meta",
-        "Amazon",
-        "Netflix",
-        "Spotify",
-        "Uber",
-        "CRED",
-        "Razorpay",
-        "Swiggy",
-        "Zomato",
-        "Stripe",
-        "OpenAI",
-        "Anthropic",
-        "Nvidia",
-        "Zerodha",
-        "Groww"
-    ]
+    var skillsList: [String] { ["All Skills"] + viewModel.skillOptions }
+    var companiesList: [String] { ["All Companies"] + viewModel.companyOptions }
     let gradYearsList: [String] = ["All Years"] + (2015...2030).reversed().map { String($0) }
     let postedTimeOptions = ["All", "Recent", "Newest to Oldest", "Oldest to Newest"]
 

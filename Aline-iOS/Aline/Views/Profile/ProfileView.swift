@@ -1,6 +1,7 @@
 import SwiftUI
 import UniformTypeIdentifiers
 import PDFKit
+import QuickLook
 
 // MARK: - Navigation Routes (Profile → Achievement Gallery → Folder → File)
 public enum ProfileRoute: Hashable {
@@ -81,6 +82,10 @@ public struct ProfileView: View {
                                 subtitle: viewModel.preferences.alertsEnabled ? "Enabled (Push Active)" : "Disabled",
                                 toggle: $viewModel.preferences.alertsEnabled
                             ) {}
+                            .onChange(of: viewModel.preferences.alertsEnabled) { oldValue, enabled in
+                                // Saves the toggle and asks for notification permission (see JobAlerts)
+                                if oldValue != enabled { viewModel.setJobAlerts(enabled) }
+                            }
 
                             ProfileMenuRow(
                                 icon: "questionmark.circle.fill",
@@ -1825,6 +1830,13 @@ extension EditProfileSheet {
         importMessage = "Reading your resume…"
         Task {
             let parsed = await ResumeStructurer.structure(resumeText: text)
+            // Identity fields (name, education, links, summary) only where the form is still empty
+            var identity = draft
+            identity.mergeEmptyFields(from: ResumeProfile(
+                fullName: parsed.fullName, linkedInURL: parsed.linkedInURL, githubURL: parsed.githubURL,
+                portfolioURL: parsed.portfolioURL, summary: parsed.summary, education: parsed.education
+            ))
+            draft = identity
             importAlineResume(ResumeDocument(parsed: parsed, fileName: url.lastPathComponent, fileSize: nil))
         }
     }
@@ -2283,6 +2295,8 @@ public struct AchievementDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var editingItem: AchievementItem?
     @State private var showingDeleteConfirm: Bool = false
+    /// The attachment being shown in Quick Look
+    @State private var previewURL: URL?
 
     private var item: AchievementItem? {
         viewModel.achievements.first { $0.id == achievementId }
@@ -2317,6 +2331,13 @@ public struct AchievementDetailView: View {
                         // File preview
                         VStack(spacing: 14) {
                             AchievementFileIcon(item: item, size: 84)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    // Opens the attached file (downloaded from the backend if needed)
+                                    guard let name = item.attachmentName else { return }
+                                    Task { previewURL = await AttachmentStore.localURL(forAchievement: item.id, filename: name) }
+                                }
+                                .quickLookPreview($previewURL)
                             Text(item.attachmentName ?? "No attachment")
                                 .font(.system(size: 13, weight: .semibold))
                                 .foregroundColor(AlineTheme.inkSecondary)
@@ -2524,6 +2545,9 @@ struct AchievementEditorSheet: View {
         }
         .fileImporter(isPresented: $showingFileImporter, allowedContentTypes: [.pdf, .image]) { result in
             if case .success(let url) = result {
+                let hasAccess = url.startAccessingSecurityScopedResource()
+                AttachmentStore.store(url, forAchievement: draft.id)
+                if hasAccess { url.stopAccessingSecurityScopedResource() }
                 draft.attachmentName = url.lastPathComponent
             }
         }

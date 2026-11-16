@@ -305,10 +305,10 @@ public final class DiscoverViewModel: ObservableObject {
         let activeLocations = selectedLocations.filter { $0 != "All" && !$0.isEmpty }
         if !activeLocations.isEmpty {
             list = list.filter { opp in
-                activeLocations.contains { loc in opp.location.localizedCaseInsensitiveContains(loc) }
+                activeLocations.contains { loc in LocationAliases.matches(loc, jobLocation: opp.location) }
             }
         } else if filterLocation != "All" {
-            list = list.filter { $0.location.localizedCaseInsensitiveContains(filterLocation) }
+            list = list.filter { LocationAliases.matches(filterLocation, jobLocation: $0.location) }
         }
 
         // Role filtering: multiple selection supported + single string fallback
@@ -360,68 +360,18 @@ public final class DiscoverViewModel: ObservableObject {
         return list
     }
 
-    // Only opportunities with match score > 85%
+    /// Match score at or above which a job is Recommended (and can trigger a job alert)
+    public static let recommendedThreshold = 80
+
+    // Every opportunity at 80% match or above
     public var recommendedOpportunities: [Opportunity] {
-        filteredOpportunities.filter { $0.matchScore > 85 }
+        filteredOpportunities.filter { $0.matchScore >= Self.recommendedThreshold }
     }
 
-    // All opportunities with match score <= 85% (showing all roles across tech regardless of onboarding choice)
+    // Everything below 80% (showing all roles across tech regardless of onboarding choice),
+    // with the same search, tab and filters as Recommended
     public var exploreMoreOpportunities: [Opportunity] {
-        var list = opportunities.filter { $0.matchScore <= 85 }
-
-        switch selectedFilterTab {
-        case .recommended:
-            break
-        case .liked:
-            list = list.filter { $0.isLiked }
-        case .applied:
-            list = list.filter { $0.isApplied }
-        }
-
-        if !searchQuery.isEmpty {
-            list = list.filter {
-                $0.roleTitle.localizedCaseInsensitiveContains(searchQuery) ||
-                $0.companyName.localizedCaseInsensitiveContains(searchQuery) ||
-                $0.skills.contains { $0.localizedCaseInsensitiveContains(searchQuery) }
-            }
-        }
-
-        if filterJobType != "All" {
-            let target: Opportunity.OpportunityType = filterJobType == "Full Time" ? .fullTime : .internship
-            list = list.filter { $0.opportunityType == target }
-        }
-
-        if filterWorkMode != "All" {
-            let mode = filterWorkMode.lowercased().replacingOccurrences(of: "-", with: "")
-            list = list.filter {
-                $0.workMode.rawValue.lowercased().replacingOccurrences(of: "-", with: "") == mode
-            }
-        }
-
-        let activeLocations = selectedLocations.filter { $0 != "All" && !$0.isEmpty }
-        if !activeLocations.isEmpty {
-            list = list.filter { opp in
-                activeLocations.contains { loc in opp.location.localizedCaseInsensitiveContains(loc) }
-            }
-        } else if filterLocation != "All" {
-            list = list.filter { $0.location.localizedCaseInsensitiveContains(filterLocation) }
-        }
-
-        if filterGradYear != "All Years" {
-            list = list.filter { $0.eligibleGradYears.localizedCaseInsensitiveContains(filterGradYear) }
-        }
-
-        // Posted Time filter & sorting
-        if filterPostedTime == "Recent" {
-            list = list.filter { $0.recencyInMinutes <= 7 * 1440 }
-            list.sort { $0.recencyInMinutes < $1.recencyInMinutes }
-        } else if filterPostedTime == "Newest to Oldest" {
-            list.sort { $0.recencyInMinutes < $1.recencyInMinutes }
-        } else if filterPostedTime == "Oldest to Newest" {
-            list.sort { $0.recencyInMinutes > $1.recencyInMinutes }
-        }
-
-        return list
+        filteredOpportunities.filter { $0.matchScore < Self.recommendedThreshold }
     }
 
     public func resetFilters() {
@@ -527,19 +477,132 @@ public final class DiscoverViewModel: ObservableObject {
             rebuild()
             isLoading = false
             refreshTask = nil
+            await JobAlerts.notifyNewMatches(opportunities)
         }
+    }
+
+    // MARK: Filter options, from the jobs actually in the feed
+
+    /// Role names that appear in real job titles, most common first (seniority and level
+    /// markers stripped, so "Senior Software Engineer II" counts toward "Software Engineer").
+    @Published public private(set) var roleOptions: [String] = []
+    /// Cities jobs are posted in, most common first
+    @Published public private(set) var locationOptions: [String] = []
+    /// Skills extracted from postings, most common first
+    @Published public private(set) var skillOptions: [String] = []
+    /// Every company with a job in the feed, A–Z
+    @Published public private(set) var companyOptions: [String] = []
+
+    private static let titleNoise: Set<String> = [
+        "senior", "sr", "junior", "jr", "lead", "principal", "staff", "associate", "intern", "internship",
+        "i", "ii", "iii", "iv", "v", "1", "2", "3", "4", "trainee", "graduate", "entry", "level", "new", "grad",
+    ]
+
+    private func rebuildFilterOptions() {
+        func ranked(_ values: [String], minimum: Int = 1) -> [String] {
+            var counts: [String: (display: String, count: Int)] = [:]
+            for value in values where !value.isEmpty {
+                let key = value.lowercased()
+                counts[key] = (counts[key]?.display ?? value, (counts[key]?.count ?? 0) + 1)
+            }
+            return counts.values.filter { $0.count >= minimum }.sorted { $0.count > $1.count }.map(\.display)
+        }
+        roleOptions = ranked(jobs.map { Self.coreRole(from: $0.title) }, minimum: 2)
+        locationOptions = ranked(jobs.flatMap { job in
+            job.location.components(separatedBy: CharacterSet(charactersIn: ",;/|"))
+                .prefix(1)
+                .map { $0.trimmingCharacters(in: .whitespaces) }
+                .filter { !$0.isEmpty && $0.lowercased() != "not specified" && $0.lowercased() != "india" }
+                .map(LocationAliases.canonical)
+        })
+        skillOptions = ranked(jobs.flatMap(\.extractedSkills))
+        companyOptions = Set(jobs.map(\.company)).sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+    }
+
+    /// "Senior Software Engineer II, Payments (Backend)" → "Software Engineer"
+    static func coreRole(from title: String) -> String {
+        var core = title
+        for separator in [" - ", " – ", " — ", ",", "(", "|", ":", "/"] {
+            if let range = core.range(of: separator) { core = String(core[..<range.lowerBound]) }
+        }
+        let words = core.split(separator: " ").map(String.init).filter {
+            !titleNoise.contains($0.lowercased().trimmingCharacters(in: .punctuationCharacters))
+        }
+        return words.joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     /// Re-scores every job against the latest profile, achievements and career preferences.
     public func updateMatching(profile: UserProfile, achievements: [AchievementItem], preferences: CareerPreferences) {
         candidate = MatchEngine.Candidate(profile: profile, achievements: achievements, preferences: preferences)
+        candidateText = Self.describe(profile: profile, achievements: achievements)
+        // Keyword gaps were judged against the old profile
+        for id in enrichments.keys { enrichments[id]?.missingKeywords = nil }
+        keywordChecked.removeAll()
         rebuild()
+    }
+
+    // MARK: Job detail enrichment (on-device AI)
+
+    private var enrichments: [String: JobEnrichment] = [:]
+    private var summarized: Set<String> = []
+    private var keywordChecked: Set<String> = []
+    private var candidateText = ""
+
+    /// Called when a job's detail screen opens. Fills Requirements / Responsibilities with the
+    /// on-device summarizer when the posting couldn't be split into sections, and finds keywords
+    /// the posting wants that the profile doesn't show. Each job is processed once per profile.
+    public func enrichDetail(for id: String) async {
+        guard OnDeviceAI.isAvailable, let job = jobs.first(where: { $0.id == id }) else { return }
+
+        if !summarized.contains(id), job.minimumQualifications.isEmpty || job.responsibilities.isEmpty {
+            summarized.insert(id)
+            if let summary = await OnDeviceAI.summarizeJob(title: job.title, description: job.description) {
+                var enrichment = enrichments[id] ?? JobEnrichment()
+                if !summary.about.isEmpty, job.about.isEmpty || job.about == job.description { enrichment.about = summary.about }
+                if job.minimumQualifications.isEmpty, !summary.minimumQualifications.isEmpty { enrichment.minimumQualifications = summary.minimumQualifications }
+                if job.preferredQualifications.isEmpty, !summary.preferredQualifications.isEmpty { enrichment.preferredQualifications = summary.preferredQualifications }
+                if job.responsibilities.isEmpty, !summary.responsibilities.isEmpty { enrichment.responsibilities = summary.responsibilities }
+                let extra = summary.skills.filter { skill in !job.extractedSkills.contains { $0.caseInsensitiveCompare(skill) == .orderedSame } }
+                if !extra.isEmpty { enrichment.skills = job.extractedSkills + extra }
+                enrichments[id] = enrichment
+                applyEnrichment(id)
+            }
+        }
+
+        if !keywordChecked.contains(id), !candidateText.isEmpty {
+            keywordChecked.insert(id)
+            let current = opportunities.first { $0.id == id }
+            let jobText = ([current?.aboutRole ?? job.about] + (current?.minimumQualifications ?? [])
+                + (current?.preferredQualifications ?? []) + (current?.responsibilities ?? [])).joined(separator: "\n")
+            if let gaps = await OnDeviceAI.missingKeywords(jobTitle: job.title, jobText: jobText, candidateText: candidateText) {
+                var enrichment = enrichments[id] ?? JobEnrichment()
+                enrichment.missingKeywords = gaps
+                    .filter { !candidateText.localizedCaseInsensitiveContains($0.keyword) }
+                    .map { MissingKeyword(keyword: $0.keyword, recommendation: $0.recommendation, placeholderTemplate: $0.example) }
+                enrichments[id] = enrichment
+                applyEnrichment(id)
+            }
+        }
+    }
+
+    private func applyEnrichment(_ id: String) {
+        guard let enrichment = enrichments[id], let index = opportunities.firstIndex(where: { $0.id == id }) else { return }
+        opportunities[index] = opportunities[index].enriched(enrichment, candidateSkills: candidate.skills)
+    }
+
+    /// The profile as plain text for the keyword comparison.
+    static func describe(profile: UserProfile, achievements: [AchievementItem]) -> String {
+        var lines = [profile.titleOrStage, profile.education, profile.bio, "Skills: " + profile.skills.joined(separator: ", ")]
+        for exp in profile.experiences { lines.append("\(exp.title) at \(exp.company)"); lines += exp.bullets }
+        for proj in profile.projects { lines.append("Project \(proj.title) (\(proj.techStack))"); lines += proj.bullets }
+        lines += achievements.map { "\($0.title) \($0.issuer) \($0.descriptionText)" }
+        return lines.filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }.joined(separator: "\n")
     }
 
     /// Opportunities for the notifications sheet: strong matches posted in the last few days.
     public var newMatchingOpportunities: [Opportunity] {
         opportunities
-            .filter { $0.matchScore >= 60 && !$0.recency.isEmpty && $0.recencyInMinutes <= 3 * 1440 }
+            .filter { $0.matchScore >= Self.recommendedThreshold && !$0.recency.isEmpty && $0.recencyInMinutes <= 3 * 1440 }
             .sorted { $0.recencyInMinutes < $1.recencyInMinutes }
             .prefix(20)
             .map { $0 }
@@ -556,8 +619,10 @@ public final class DiscoverViewModel: ObservableObject {
                     appliedAt: appliedAt[job.id].flatMap { $0.isEmpty ? nil : $0 }
                 )
             }
+            .map { opp in enrichments[opp.id].map { opp.enriched($0, candidateSkills: candidate.skills) } ?? opp }
             // Best match first; newest first among equals.
             .sorted { ($0.matchScore, -$0.recencyInMinutes) > ($1.matchScore, -$1.recencyInMinutes) }
+        rebuildFilterOptions()
     }
 }
 
@@ -610,8 +675,12 @@ public final class ResumeViewModel: ObservableObject {
 
     public init() {}
 
+    @Published public private(set) var isLoadingResumes: Bool = false
+
     /// Loads this device's resumes from the backend.
     public func load() async {
+        isLoadingResumes = resumes.isEmpty
+        defer { isLoadingResumes = false }
         guard let stored = try? await AlineAPI.resumes() else { return }
         resumes = stored.map(\.data.document)
         if !resumes.contains(where: \.isDefault), !resumes.isEmpty {
@@ -663,7 +732,7 @@ public final class ResumeViewModel: ObservableObject {
 
     /// Reads an uploaded PDF, structures it (on-device model when available, heuristics
     /// otherwise) and adds it as a new resume.
-    public func importResume(from url: URL) {
+    func importResume(from url: URL, onParsed: ((ResumeProfile) -> Void)? = nil) {
         let hasAccess = url.startAccessingSecurityScopedResource()
         let text = PDFTextExtractor.extractText(from: url)
         let size = (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize).flatMap { $0 }
@@ -677,6 +746,7 @@ public final class ResumeViewModel: ObservableObject {
         isImportingResume = true
         Task {
             let parsed = await ResumeStructurer.structure(resumeText: text)
+            onParsed?(parsed)
             var resume = ResumeDocument(parsed: parsed, fileName: fileName, fileSize: size)
             resume.isDefault = resumes.isEmpty
             resume.cardColor = ResumeRecord.cardPalette[resumes.count % ResumeRecord.cardPalette.count]
@@ -829,8 +899,37 @@ public final class ResumeViewModel: ObservableObject {
         var messages: [AIChatMessage] = []
         let missingCount = skills.count + job.missingKeywords.count
 
+        let background = DiscoverViewModel.describe(profile: profile, achievements: achievements)
+        let resumeText = plainText(of: activeResume)
+        let jobText = ([job.aboutRole] + job.minimumQualifications + job.responsibilities).joined(separator: "\n")
+
+        // A summary aimed at this role, from the resume + profile + achievement gallery
+        if let summary = await OnDeviceAI.tailoredSummary(
+            current: activeResume.summary, role: job.roleTitle, company: job.companyName,
+            jobText: jobText, resumeText: resumeText, background: background
+        ) {
+            messages.append(AIChatMessage(
+                sender: .ai,
+                text: "Start with your summary — this version leads with what fits \(job.roleTitle):",
+                targetKey: "summary",
+                originalText: activeResume.summary,
+                suggestedRewrite: summary.text,
+                reason: summary.note
+            ))
+        }
+        // Profile and achievement items that suit the role but aren't on this resume
+        if let highlights = await OnDeviceAI.profileHighlights(
+            role: job.roleTitle, company: job.companyName, jobText: jobText, resumeText: resumeText, background: background
+        ), !highlights.isEmpty {
+            messages.append(AIChatMessage(
+                sender: .ai,
+                text: "From your profile and achievements, these fit the role but aren't on this resume yet:\n" + highlights.map { "• \($0)" }.joined(separator: "\n")
+            ))
+        }
+
         guard missingCount > 0, !pool.isEmpty else {
-            return [AIChatMessage(sender: .ai, text: "Your resume already covers the skills and keywords for this role. Select any point if you'd like to sharpen it further.")]
+            messages.append(AIChatMessage(sender: .ai, text: "Your resume already covers the skills and keywords for this role. Select any point if you'd like to sharpen it further."))
+            return messages
         }
         messages.append(AIChatMessage(
             sender: .ai,
@@ -839,7 +938,7 @@ public final class ResumeViewModel: ObservableObject {
 
         for keyword in job.missingKeywords.prefix(2) where !pool.isEmpty {
             let target = pool.removeFirst()
-            let rewrite = await OnDeviceAI.tailor(point: target.text, toShow: keyword.keyword, role: job.roleTitle, company: job.companyName)
+            let rewrite = await OnDeviceAI.tailor(point: target.text, toShow: keyword.keyword, role: job.roleTitle, company: job.companyName, background: background)
             messages.append(AIChatMessage(
                 sender: .ai,
                 text: "This point is the best place to show \(keyword.keyword). \(rewrite?.note ?? keyword.recommendation)",
@@ -851,7 +950,7 @@ public final class ResumeViewModel: ObservableObject {
         }
         for skill in skills.prefix(3) where !pool.isEmpty {
             let target = pool.removeFirst()
-            let rewrite = await OnDeviceAI.tailor(point: target.text, toShow: skill, role: job.roleTitle, company: job.companyName)
+            let rewrite = await OnDeviceAI.tailor(point: target.text, toShow: skill, role: job.roleTitle, company: job.companyName, background: background)
             messages.append(AIChatMessage(
                 sender: .ai,
                 text: "\(job.companyName) lists \(skill) as a core skill. Working it into this point makes the match clear:",
@@ -900,7 +999,11 @@ public final class ResumeViewModel: ObservableObject {
         Task {
             // Nothing selected: answer with advice for the whole resume; there's no single point to apply it to
             if targetSnippet.isEmpty {
-                let advice = await OnDeviceAI.adviseOnResume(currentPrompt, resumeText: plainText(of: activeResume))
+                let advice = await OnDeviceAI.adviseOnResume(
+                    currentPrompt, resumeText: plainText(of: activeResume),
+                    background: DiscoverViewModel.describe(profile: profile, achievements: achievements),
+                    targetRole: activeTargetOpportunity.map { "\($0.roleTitle) at \($0.companyName)" }
+                )
                 sessionChatMessages.append(AIChatMessage(
                     sender: .ai,
                     text: advice.map { "\($0)\n\nSelect the point you want changed and I'll write a version you can apply." }
@@ -910,7 +1013,11 @@ public final class ResumeViewModel: ObservableObject {
                 return
             }
 
-            guard let rewrite = await OnDeviceAI.rewrite(targetSnippet, instruction: currentPrompt, context: activeTargetOpportunity.map { "\($0.roleTitle) at \($0.companyName)" }) else {
+            guard let rewrite = await OnDeviceAI.rewrite(
+                targetSnippet, instruction: currentPrompt,
+                context: activeTargetOpportunity.map { "\($0.roleTitle) at \($0.companyName)" },
+                background: DiscoverViewModel.describe(profile: profile, achievements: achievements)
+            ) else {
                 sessionChatMessages.append(AIChatMessage(
                     sender: .ai,
                     text: OnDeviceAI.isAvailable ? "I couldn't write a version of that point. Try rephrasing the request." : OnDeviceAI.unavailableMessage
@@ -1870,6 +1977,9 @@ public final class ProfileViewModel: ObservableObject {
     }
 
     public func deleteAchievement(id: String) {
+        if achievements.contains(where: { $0.id == id && $0.attachmentName != nil }) {
+            AttachmentStore.delete(forAchievement: id)
+        }
         achievements.removeAll { $0.id == id }
         saveAchievements()
         NotificationCenter.default.post(name: .userProfileDidUpdate, object: profile)
@@ -1880,6 +1990,9 @@ public final class ProfileViewModel: ObservableObject {
     }
 
     public func upsertAchievement(_ item: AchievementItem) {
+        if item.attachmentName == nil, achievements.contains(where: { $0.id == item.id && $0.attachmentName != nil }) {
+            AttachmentStore.delete(forAchievement: item.id)
+        }
         if let index = achievements.firstIndex(where: { $0.id == item.id }) {
             achievements[index] = item
         } else {
@@ -1904,6 +2017,19 @@ public final class ProfileViewModel: ObservableObject {
 
         onProfileUpdated?(updated)
         NotificationCenter.default.post(name: .userProfileDidUpdate, object: updated)
+    }
+
+    /// The Opportunity Alerts toggle: asks for notification permission when turned on, and saves.
+    public func setJobAlerts(_ enabled: Bool) {
+        Task {
+            var updated = preferences
+            updated.alertsEnabled = enabled
+            if enabled {
+                updated.isPushAllowedByOS = await JobAlerts.requestPermission()
+                JobAlerts.scheduleBackgroundRefresh()
+            }
+            updatePreferences(updated)
+        }
     }
 
     public func updatePreferences(_ updated: CareerPreferences) {

@@ -124,8 +124,16 @@ public struct MainAppView: View {
             await loadFromBackend()
         }
         .onChange(of: scenePhase) { _, phase in
+            if phase == .background { JobAlerts.scheduleBackgroundRefresh() }
             guard phase == .active, navViewModel.isAuthenticated, navViewModel.hasCompletedOnboarding else { return }
             Task { await loadFromBackend() }
+        }
+        // A tapped Opportunity Alert opens its job
+        .onReceive(NotificationCenter.default.publisher(for: JobAlerts.openJobNotification)) { notif in
+            guard let jobId = notif.object as? String,
+                  let opp = discoverViewModel.opportunities.first(where: { $0.id == jobId }) else { return }
+            navViewModel.currentTab = .discover
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { navViewModel.targetOpportunity = opp }
         }
         .onReceive(discoverViewModel.$opportunities) { _ in
             navViewModel.updateUnreadCount(opportunityIDs: discoverViewModel.newMatchingOpportunities.map(\.id))
@@ -134,7 +142,9 @@ public struct MainAppView: View {
             if let answers = notif.object as? OnboardingAnswers {
                 profileViewModel.applyOnboarding(answers)
                 if let resumeURL = answers.resumeURL {
-                    resumeViewModel.importResume(from: resumeURL)
+                    resumeViewModel.importResume(from: resumeURL) { parsed in
+                        profileViewModel.autofill(from: parsed)
+                    }
                 }
             }
         }
