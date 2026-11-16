@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - Discover Feed View (Left Screen in Reference Image)
 public struct DiscoverFeedView: View {
-    @AppStorage("userFullName") private var userFullName: String = "Aarav Sharma"
+    @AppStorage("userFullName") private var userFullName: String = ""
     @State private var searchActive: Bool = false
     @State private var screenHeight: CGFloat = 900
     @State private var topInset: CGFloat = 59

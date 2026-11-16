@@ -1568,9 +1568,9 @@ public struct TrendingTopicSwipeView: View {
             for p in allPosts where p.id != initial.id {
                 posts.append(p)
             }
-            return posts.isEmpty ? DiscussionPost.samples : posts
+            return posts
         }
-        return allPosts.isEmpty ? DiscussionPost.samples : allPosts
+        return allPosts
     }
 
     private func livePost(for post: DiscussionPost) -> DiscussionPost {
@@ -2219,7 +2219,7 @@ public struct AllTrendingDiscussionsView: View {
                         Button {
                             dismiss()
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                                onSelectPost(viewModel.trendingPosts.first ?? DiscussionPost.samples.first!)
+                                if let top = viewModel.trendingPosts.first { onSelectPost(top) }
                             }
                         } label: {
                             HStack(spacing: 5) {
@@ -2531,6 +2531,13 @@ public struct DiscussionDetailView: View {
     }
 
     public var body: some View {
+        detailContent
+            // The feed carries only counts; the full thread loads when the discussion opens
+            .task(id: post.id) { await viewModel.loadComments(for: post.id) }
+    }
+
+    @ViewBuilder
+    private var detailContent: some View {
         ZStack(alignment: .bottom) {
             DiscoverBackgroundArtwork()
                 .ignoresSafeArea()
@@ -3249,25 +3256,13 @@ public struct CreateDiscussionPostView: View {
 
                     Button {
                         let postCompany = (type == .generalDiscussion) ? nil : (company.isEmpty ? nil : company)
-                        let newPost = DiscussionPost(
-                            id: UUID().uuidString,
+                        viewModel.createPost(
                             type: type,
-                            authorName: DiscussionPost.currentUserName,
-                            isAnonymous: true,
-                            companyName: postCompany,
-                            role: "Applicant",
-                            timeAgo: "Just now",
+                            company: postCompany,
                             title: title.isEmpty ? "Community Experience" : title,
-                            excerpt: content.isEmpty ? "Shared newly on the Aline community." : content,
-                            fullContent: content.isEmpty ? "No extended notes provided." : content,
-                            topics: postCompany != nil ? [postCompany!, type.rawValue] : [type.rawValue],
-                            likesCount: 1,
-                            isLiked: true,
-                            isSaved: false,
-                            comments: [],
-                            avatarImageName: DiscussionPost.currentUserAvatar
+                            content: content.isEmpty ? "No extended notes provided." : content,
+                            topics: postCompany != nil ? [postCompany!, type.rawValue] : [type.rawValue]
                         )
-                        viewModel.posts.insert(newPost, at: 0)
                         dismiss()
                     } label: {
                         Text("Publish")
@@ -5236,39 +5231,14 @@ public struct ContributeQuestionModalView: View {
         guard !trimmed.isEmpty else { return }
         isGeneratingAIAnswer = true
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-            self.solutionText = """
-            // Optimal Solution for \(self.company) (\(self.role))
-            // Topic: \(self.topic.rawValue)
-            
-            1. Core Strategy:
-            Analyze boundary constraints and leverage hashing / sliding window traversal to minimize computational complexity.
-            
-            2. Verified Implementation:
-            func solveOptimal(input: [Int]) -> [Int] {
-                var seen: [Int: Int] = [:]
-                var result: [Int] = []
-                for item in input {
-                    if seen[item] == nil {
-                        seen[item] = 1
-                        result.append(item)
-                    }
-                }
-                return result
+        Task {
+            // On-device model; the contributor reviews the draft before posting it
+            if let solution = await OnDeviceAI.solve(question: trimmed, topic: topic.rawValue, company: company, role: role) {
+                solutionText = solution.answer
+                if hintText.isEmpty { hintText = solution.hint }
+                if approachText.isEmpty { approachText = solution.approach }
             }
-            
-            3. Complexity:
-            Time Complexity: O(N) linear time
-            Space Complexity: O(N) auxiliary space
-            """
-
-            if self.hintText.isEmpty {
-                self.hintText = "Identify invariant properties and consider if ordering allows binary search or early pruning."
-            }
-            if self.approachText.isEmpty {
-                self.approachText = "Recommended Framework: Clarify input edge cases (empty collection, single element), then apply hash-based frequency aggregation."
-            }
-            self.isGeneratingAIAnswer = false
+            isGeneratingAIAnswer = false
         }
     }
 
@@ -6022,7 +5992,7 @@ public struct CompanyCommunityDetailView: View {
 
 #Preview("Discussion Post Detail") {
     let communityVM = CommunityViewModel()
-    let post = communityVM.posts.first ?? DiscussionPost.samples.first!
+    let post = communityVM.posts.first ?? .previewSample
     return NavigationStack {
         DiscussionDetailView(post: post, viewModel: communityVM)
     }
@@ -6030,6 +6000,6 @@ public struct CompanyCommunityDetailView: View {
 
 #Preview("Interview Question Detail") {
     let prepVM = InterviewPrepViewModel()
-    let q = prepVM.questions.first ?? InterviewQuestion.samples.first!
+    let q = prepVM.questions.first ?? .previewSample
     return InterviewQuestionDetailView(question: q, viewModel: prepVM)
 }

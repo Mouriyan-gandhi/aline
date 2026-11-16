@@ -44,9 +44,24 @@ public final class AppNavigationViewModel: ObservableObject {
     @Published public var currentUserPhone: String
     @Published public var showNotificationsSheet: Bool = false
     @Published public var notificationsInitialCategory: NotificationCategory = .opportunities
-    @Published public var unreadNotificationsCount: Int = 4
-    /// Notifications opened one by one; "Mark all read" clears every dot by zeroing the count
-    @Published public var readNotificationIDs: Set<String> = []
+    @Published public var unreadNotificationsCount: Int = 0 {
+        didSet {
+            // "Mark all read" zeroes the count; remember that for every notification shown
+            if unreadNotificationsCount == 0, oldValue > 0 {
+                readNotificationIDs.formUnion(currentNotificationIDs)
+            }
+        }
+    }
+    /// Notifications opened one by one, or cleared by "Mark all read" — kept across launches
+    @Published public var readNotificationIDs: Set<String> = [] {
+        didSet {
+            UserDefaults.standard.set(Array(readNotificationIDs.suffix(500)), forKey: "readNotificationIDs")
+        }
+    }
+    /// Activity on the user's posts and comments, newest first
+    @Published var communityNotifications: [CommunityNotificationItem] = []
+    /// Every notification currently listed (community activity and new matching jobs)
+    private var currentNotificationIDs: Set<String> = []
 
     public var currentUserFirstName: String {
         currentUserFullName.components(separatedBy: " ").first ?? currentUserFullName
@@ -85,9 +100,10 @@ public final class AppNavigationViewModel: ObservableObject {
 
         self.isAuthenticated = isAuthenticated ?? savedAuth
         self.hasCompletedOnboarding = hasCompletedOnboarding ?? savedOnboarding
-        self.currentUserFullName = defaults.string(forKey: "userFullName") ?? "Aarav Sharma"
-        self.currentUserEmail = defaults.string(forKey: "userEmail") ?? "aarav.sharma@example.com"
-        self.currentUserPhone = defaults.string(forKey: "userPhone") ?? "+91 99520 86492"
+        self.currentUserFullName = defaults.string(forKey: "userFullName") ?? ""
+        self.currentUserEmail = defaults.string(forKey: "userEmail") ?? ""
+        self.currentUserPhone = defaults.string(forKey: "userPhone") ?? ""
+        self.readNotificationIDs = Set(defaults.stringArray(forKey: "readNotificationIDs") ?? [])
 
         // Automatically sync whenever user profile updates anywhere in the app
         NotificationCenter.default.addObserver(
@@ -149,19 +165,46 @@ public final class AppNavigationViewModel: ObservableObject {
     }
 
     public func deleteAccount() {
-        let defaults = UserDefaults.standard
-        defaults.removeObject(forKey: "isAuthenticated")
-        defaults.removeObject(forKey: "hasCompletedOnboarding")
-        defaults.removeObject(forKey: "userFullName")
-        defaults.removeObject(forKey: "userEmail")
-        defaults.removeObject(forKey: "userPhone")
-        defaults.removeObject(forKey: "savedLastVisitedQuestionSession")
+        // Server first: profile, resumes, posts, comments, likes, saves, follows and job marks
+        // all go with the identity (see backend delete_account). Then this device forgets it.
+        Task { try? await AlineAPI.deleteAccount() }
+        DeviceIdentity.reset()
 
-        self.currentUserFullName = "Aarav Sharma"
-        self.currentUserEmail = "aarav.sharma@example.com"
-        self.currentUserPhone = "+91 99520 86492"
+        let defaults = UserDefaults.standard
+        for key in [
+            "isAuthenticated", "hasCompletedOnboarding", "userFullName", "userEmail", "userPhone",
+            "savedLastVisitedQuestionSession", "savedUserProfile", "savedUserAchievements", "savedCareerPreferences",
+            "userLocation", "userBio", "userEducation", "userInstitution", "userGraduationYear",
+            "userLinkedIn", "userGitHub", "userPortfolio", "readNotificationIDs",
+        ] {
+            defaults.removeObject(forKey: key)
+        }
+
+        self.currentUserFullName = ""
+        self.currentUserEmail = ""
+        self.currentUserPhone = ""
+        self.communityNotifications = []
+        self.readNotificationIDs = []
+        self.unreadNotificationsCount = 0
         self.hasCompletedOnboarding = false
         self.isAuthenticated = false
+    }
+
+    /// Reloads community activity and recounts unread notifications, including new
+    /// matching jobs (`opportunityIDs`).
+    public func refreshNotifications(opportunityIDs: [String]) async {
+        if let items = try? await AlineAPI.notifications() {
+            communityNotifications = items.map(CommunityNotificationItem.init(dto:))
+        }
+        updateUnreadCount(opportunityIDs: opportunityIDs)
+    }
+
+    public func updateUnreadCount(opportunityIDs: [String]) {
+        currentNotificationIDs = Set(opportunityIDs + communityNotifications.map(\.id))
+        let unread = currentNotificationIDs.subtracting(readNotificationIDs).count
+        if unread != unreadNotificationsCount {
+            unreadNotificationsCount = unread
+        }
     }
 
     public func resetOnboardingForDemo() {
@@ -173,14 +216,17 @@ public final class AppNavigationViewModel: ObservableObject {
 // MARK: - Discover & Stacked Card ViewModel
 @MainActor
 public final class DiscoverViewModel: ObservableObject {
-    @Published public var opportunities: [Opportunity] = Opportunity.samples
+    @Published public var opportunities: [Opportunity] = []
     @Published public var searchQuery: String = ""
     @Published public var selectedFilterTab: FilterTab = .recommended
     @Published public var showFilterSheet: Bool = false
     @Published public var selectedOpportunity: Opportunity? = nil
 
     // Stacked Card Interaction State
-    @Published public var expandedCardId: String? = "opp-google-4" // Google expanded by default like screenshot!
+    @Published public var expandedCardId: String? = nil
+    /// A fetch is in flight. The first fetch after the backend has been idle can take minutes.
+    @Published public private(set) var isLoading: Bool = false
+    @Published public private(set) var lastLoadFailed: Bool = false
     
     // Filters (Matching Figma Design & Multi-Select Search Options)
     @Published public var filterJobType: String = "All"
@@ -244,8 +290,8 @@ public final class DiscoverViewModel: ObservableObject {
         }
 
         if filterJobType != "All" {
-            let target = (filterJobType == "Full Time") ? "fullTime" : "internship"
-            list = list.filter { $0.opportunityType.rawValue.localizedCaseInsensitiveContains(target) }
+            let target: Opportunity.OpportunityType = filterJobType == "Full Time" ? .fullTime : .internship
+            list = list.filter { $0.opportunityType == target }
         }
 
         if filterWorkMode != "All" {
@@ -341,8 +387,8 @@ public final class DiscoverViewModel: ObservableObject {
         }
 
         if filterJobType != "All" {
-            let target = (filterJobType == "Full Time") ? "fullTime" : "internship"
-            list = list.filter { $0.opportunityType.rawValue.localizedCaseInsensitiveContains(target) }
+            let target: Opportunity.OpportunityType = filterJobType == "Full Time" ? .fullTime : .internship
+            list = list.filter { $0.opportunityType == target }
         }
 
         if filterWorkMode != "All" {
@@ -396,29 +442,133 @@ public final class DiscoverViewModel: ObservableObject {
     }
 
     public func toggleLike(for id: String) {
-        if let index = opportunities.firstIndex(where: { $0.id == id }) {
-            opportunities[index].isLiked.toggle()
+        guard let index = opportunities.firstIndex(where: { $0.id == id }) else { return }
+        let liked = !opportunities[index].isLiked
+        opportunities[index].isLiked = liked
+        if liked { likedIDs.insert(id) } else { likedIDs.remove(id) }
+        Task {
+            do {
+                try await AlineAPI.markJob(id, liked: liked)
+            } catch {
+                // Not saved — put the heart back the way it was.
+                if liked { self.likedIDs.remove(id) } else { self.likedIDs.insert(id) }
+                if let i = self.opportunities.firstIndex(where: { $0.id == id }) { self.opportunities[i].isLiked = !liked }
+            }
         }
     }
 
     public func markApplied(for id: String) {
-        if let index = opportunities.firstIndex(where: { $0.id == id }) {
-            opportunities[index].isApplied = true
-            opportunities[index].applicationDate = "Applied just now"
+        guard let index = opportunities.firstIndex(where: { $0.id == id }) else { return }
+        let now = ISO8601DateFormatter().string(from: Date())
+        opportunities[index].isApplied = true
+        opportunities[index].applicationDate = "Applied just now"
+        appliedAt[id] = now
+        Task {
+            do {
+                try await AlineAPI.markJob(id, applied: true)
+            } catch {
+                self.appliedAt[id] = nil
+                if let i = self.opportunities.firstIndex(where: { $0.id == id }) {
+                    self.opportunities[i].isApplied = false
+                    self.opportunities[i].applicationDate = nil
+                }
+            }
         }
     }
 
-    public init() {}
+    // MARK: Backend feed
+
+    /// Live jobs from /jobs, plus snapshots of liked/applied jobs that have since closed.
+    private var jobs: [JobDTO] = []
+    private var likedIDs: Set<String> = []
+    /// Applied job id → when (ISO 8601)
+    private var appliedAt: [String: String] = [:]
+    private var candidate = MatchEngine.Candidate(profile: .empty, achievements: [], preferences: .empty)
+    private var refreshTask: Task<Void, Never>?
+
+    private static var cacheURL: URL {
+        URL.cachesDirectory.appendingPathComponent("jobs-feed.json")
+    }
+
+    public init() {
+        // Last fetched feed, so the screen isn't empty while a (possibly slow) refresh runs.
+        if let data = try? Data(contentsOf: Self.cacheURL),
+           let cached = try? JSONDecoder().decode([JobDTO].self, from: data) {
+            jobs = cached
+            rebuild()
+        }
+    }
+
+    /// Fetches the feed and this device's liked/applied marks. Safe to call repeatedly — a
+    /// refresh already in flight is reused.
+    public func refresh() {
+        guard refreshTask == nil else { return }
+        isLoading = true
+        refreshTask = Task {
+            async let marksResult = try? AlineAPI.jobMarks()
+            do {
+                let fresh = try await AlineAPI.jobs()
+                jobs = fresh
+                lastLoadFailed = false
+                if let data = try? JSONEncoder().encode(fresh) {
+                    try? data.write(to: Self.cacheURL, options: .atomic)
+                }
+            } catch {
+                lastLoadFailed = true
+            }
+            if let marks = await marksResult {
+                likedIDs = Set(marks.filter(\.liked).map(\.jobId))
+                appliedAt = Dictionary(
+                    marks.filter(\.applied).map { ($0.jobId, $0.appliedAt ?? "") }, uniquingKeysWith: { a, _ in a }
+                )
+                let live = Set(jobs.map(\.id))
+                jobs += marks.compactMap(\.job).filter { !live.contains($0.id) }
+            }
+            rebuild()
+            isLoading = false
+            refreshTask = nil
+        }
+    }
+
+    /// Re-scores every job against the latest profile, achievements and career preferences.
+    public func updateMatching(profile: UserProfile, achievements: [AchievementItem], preferences: CareerPreferences) {
+        candidate = MatchEngine.Candidate(profile: profile, achievements: achievements, preferences: preferences)
+        rebuild()
+    }
+
+    /// Opportunities for the notifications sheet: strong matches posted in the last few days.
+    public var newMatchingOpportunities: [Opportunity] {
+        opportunities
+            .filter { $0.matchScore >= 60 && !$0.recency.isEmpty && $0.recencyInMinutes <= 3 * 1440 }
+            .sorted { $0.recencyInMinutes < $1.recencyInMinutes }
+            .prefix(20)
+            .map { $0 }
+    }
+
+    private func rebuild() {
+        opportunities = jobs
+            .map { job in
+                Opportunity(
+                    job: job,
+                    match: MatchEngine.match(candidate, job: job),
+                    isLiked: likedIDs.contains(job.id),
+                    isApplied: appliedAt[job.id] != nil,
+                    appliedAt: appliedAt[job.id].flatMap { $0.isEmpty ? nil : $0 }
+                )
+            }
+            // Best match first; newest first among equals.
+            .sorted { ($0.matchScore, -$0.recencyInMinutes) > ($1.matchScore, -$1.recencyInMinutes) }
+    }
 }
 
 // MARK: - Resume & AI Tailoring ViewModel
 @MainActor
 public final class ResumeViewModel: ObservableObject {
-    @Published public var resumes: [ResumeDocument] = ResumeDocument.samples
-    @Published public var activeResume: ResumeDocument = ResumeDocument.samples[0]
+    @Published public var resumes: [ResumeDocument] = []
+    @Published public var activeResume: ResumeDocument = .blank()
     @Published public var selectedFilterTab: ResumeFilterTab = .all
     @Published public var searchQuery: String = ""
-    @Published public var activeTargetOpportunity: Opportunity? = Opportunity.samples[0]
+    @Published public var activeTargetOpportunity: Opportunity? = nil
     /// Job picked via "Tailor Resume with AI"; the dashboard asks which resume to tailor while this is set
     @Published public var tailoringJob: Opportunity? = nil
     
@@ -448,50 +598,91 @@ public final class ResumeViewModel: ObservableObject {
     @Published public var isDownloadingPDF: Bool = false
     @Published public var hasDownloadedPDF: Bool = false
     @Published public var showDownloadConfirmation: Bool = false
+    /// Where the last "Download PDF" was written (Files › On My iPhone › Aline › Resumes)
+    @Published public var lastExportedPDF: URL? = nil
+    /// An upload being read and structured
+    @Published public var isImportingResume: Bool = false
+    @Published public var importErrorMessage: String? = nil
 
-    public init() {
-        // Observe profile updates
-        NotificationCenter.default.addObserver(
-            forName: .userProfileDidUpdate,
-            object: nil,
-            queue: .main
-        ) { [weak self] notification in
-            if let updated = notification.object as? UserProfile {
-                self?.syncWithProfile(updated)
-            }
+    /// The latest profile, for "Build Resume from Profile" and profile-linked resumes
+    private var profile: UserProfile = .empty
+    private var achievements: [AchievementItem] = []
+
+    public init() {}
+
+    /// Loads this device's resumes from the backend.
+    public func load() async {
+        guard let stored = try? await AlineAPI.resumes() else { return }
+        resumes = stored.map(\.data.document)
+        if !resumes.contains(where: \.isDefault), !resumes.isEmpty {
+            resumes[0].isDefault = true
+            persist(resumes[0])
         }
+        if let current = resumes.first(where: { $0.id == activeResume.id }) ?? resumes.first {
+            activeResume = current
+        }
+    }
 
-        // Initialize with saved profile or stored user details if available
-        if let data = UserDefaults.standard.data(forKey: "savedUserProfile"),
-           let decoded = try? JSONDecoder().decode(UserProfile.self, from: data),
-           decoded.experiences.count >= 3 {
-            syncWithProfile(decoded)
-        } else {
-            let storedName = UserDefaults.standard.string(forKey: "userFullName") ?? "Aarav Sharma"
-            var temp = UserProfile.sample
-            temp.name = storedName
-            if let loc = UserDefaults.standard.string(forKey: "userLocation"), !loc.isEmpty {
-                temp.location = loc
-            }
-            if let bio = UserDefaults.standard.string(forKey: "userBio"), !bio.isEmpty {
-                temp.bio = bio
-            }
-            if let edu = UserDefaults.standard.string(forKey: "userEducation"), !edu.isEmpty {
-                temp.education = edu
-            }
-            if let inst = UserDefaults.standard.string(forKey: "userInstitution"), !inst.isEmpty {
-                temp.institution = inst
-            }
-            if let grad = UserDefaults.standard.string(forKey: "userGraduationYear"), !grad.isEmpty {
-                temp.graduationYear = grad
-            }
-            if let lIn = UserDefaults.standard.string(forKey: "userLinkedIn"), !lIn.isEmpty {
-                temp.linkedInURL = lIn
-            }
-            if let git = UserDefaults.standard.string(forKey: "userGitHub"), !git.isEmpty {
-                temp.githubURL = git
-            }
-            syncWithProfile(temp)
+    private func persist(_ resume: ResumeDocument) {
+        Task { try? await AlineAPI.saveResume(resume) }
+    }
+
+    public func setMaster(_ resume: ResumeDocument) {
+        for index in resumes.indices {
+            let shouldBeDefault = resumes[index].id == resume.id
+            guard resumes[index].isDefault != shouldBeDefault else { continue }
+            resumes[index].isDefault = shouldBeDefault
+            persist(resumes[index])
+        }
+    }
+
+    public func deleteResume(_ resume: ResumeDocument) {
+        guard !resume.isDefault else { return } // master resume cannot be deleted
+        resumes.removeAll { $0.id == resume.id }
+        Task { try? await AlineAPI.deleteResume(resume.id) }
+    }
+
+    /// Everything "Build Resume from Profile" needs: name, education and at least one of
+    /// experience or projects, plus skills.
+    public var isProfileCompleteForResume: Bool {
+        let filled = { (text: String) in !text.trimmingCharacters(in: .whitespaces).isEmpty }
+        return filled(profile.name) && filled(profile.education) && filled(profile.institution)
+            && !profile.skills.isEmpty && (!profile.experiences.isEmpty || !profile.projects.isEmpty)
+    }
+
+    public func buildResumeFromProfile() {
+        var resume = ResumeDocument.blank()
+        resume.title = profile.name.isEmpty ? "My Resume" : profile.name
+        resume.isLinkedToProfile = true
+        resume.isDefault = resumes.isEmpty
+        resume.cardColor = ResumeRecord.cardPalette[resumes.count % ResumeRecord.cardPalette.count]
+        syncResume(&resume, with: profile, achievements: achievements)
+        resumes.append(resume)
+        persist(resume)
+    }
+
+    /// Reads an uploaded PDF, structures it (on-device model when available, heuristics
+    /// otherwise) and adds it as a new resume.
+    public func importResume(from url: URL) {
+        let hasAccess = url.startAccessingSecurityScopedResource()
+        let text = PDFTextExtractor.extractText(from: url)
+        let size = (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize).flatMap { $0 }
+        let fileName = url.lastPathComponent
+        if hasAccess { url.stopAccessingSecurityScopedResource() }
+
+        guard let text, !text.isEmpty else {
+            importErrorMessage = "We couldn't read text from that file. Try a PDF exported from a document editor rather than a scan."
+            return
+        }
+        isImportingResume = true
+        Task {
+            let parsed = await ResumeStructurer.structure(resumeText: text)
+            var resume = ResumeDocument(parsed: parsed, fileName: fileName, fileSize: size)
+            resume.isDefault = resumes.isEmpty
+            resume.cardColor = ResumeRecord.cardPalette[resumes.count % ResumeRecord.cardPalette.count]
+            resumes.append(resume)
+            persist(resume)
+            isImportingResume = false
         }
     }
 
@@ -599,17 +790,18 @@ public final class ResumeViewModel: ObservableObject {
         sessionChatMessages = [AIChatMessage(sender: .user, text: prompt)]
         isGeneratingAI = true
 
-        // Open the chat once the editor has been pushed, then "analyze"
+        // Open the chat once the editor has been pushed, then analyze
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
             self.showAIPanel = true
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) {
-            self.sessionChatMessages.append(contentsOf: self.tailoringSuggestions(for: job, skills: skills))
-            self.isGeneratingAI = false
+        Task {
+            let suggestions = await tailoringSuggestions(for: job, skills: skills)
+            sessionChatMessages.append(contentsOf: suggestions)
+            isGeneratingAI = false
         }
     }
 
-    private func tailoringSuggestions(for job: Opportunity, skills: [String]) -> [AIChatMessage] {
+    private func tailoringSuggestions(for job: Opportunity, skills: [String]) async -> [AIChatMessage] {
         // Every bullet the editor can rewrite, keyed like the editor's selections
         var bullets: [(key: String, text: String)] = []
         for (i, exp) in activeResume.experiences.enumerated() {
@@ -647,23 +839,25 @@ public final class ResumeViewModel: ObservableObject {
 
         for keyword in job.missingKeywords.prefix(2) where !pool.isEmpty {
             let target = pool.removeFirst()
+            let rewrite = await OnDeviceAI.tailor(point: target.text, toShow: keyword.keyword, role: job.roleTitle, company: job.companyName)
             messages.append(AIChatMessage(
                 sender: .ai,
-                text: "This point is the best place to show \(keyword.keyword). \(keyword.recommendation)",
+                text: "This point is the best place to show \(keyword.keyword). \(rewrite?.note ?? keyword.recommendation)",
                 targetKey: target.key,
                 originalText: target.text,
-                suggestedRewrite: "\(stem(target.text)); \(lowerFirst(keyword.placeholderTemplate))",
+                suggestedRewrite: rewrite?.text ?? "\(stem(target.text)); \(lowerFirst(keyword.placeholderTemplate))",
                 reason: "Adds the keyword “\(keyword.keyword)” from the job description."
             ))
         }
         for skill in skills.prefix(3) where !pool.isEmpty {
             let target = pool.removeFirst()
+            let rewrite = await OnDeviceAI.tailor(point: target.text, toShow: skill, role: job.roleTitle, company: job.companyName)
             messages.append(AIChatMessage(
                 sender: .ai,
                 text: "\(job.companyName) lists \(skill) as a core skill. Working it into this point makes the match clear:",
                 targetKey: target.key,
                 originalText: target.text,
-                suggestedRewrite: "\(stem(target.text)) using \(skill).",
+                suggestedRewrite: rewrite?.text ?? "\(stem(target.text)) using \(skill).",
                 reason: "Adds the missing skill “\(skill)”. Only apply it if you've actually used \(skill)."
             ))
         }
@@ -703,49 +897,49 @@ public final class ResumeViewModel: ObservableObject {
 
         isGeneratingAI = true
 
-        // Nothing selected: answer with advice for the whole resume; there's no single point to apply it to
-        if targetSnippet.isEmpty {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                self.sessionChatMessages.append(AIChatMessage(
+        Task {
+            // Nothing selected: answer with advice for the whole resume; there's no single point to apply it to
+            if targetSnippet.isEmpty {
+                let advice = await OnDeviceAI.adviseOnResume(currentPrompt, resumeText: plainText(of: activeResume))
+                sessionChatMessages.append(AIChatMessage(
                     sender: .ai,
-                    text: "Here's how I'd approach “\(currentPrompt)” across your resume:\n• Open each point with a strong action verb.\n• Put a number on every outcome: %, users, time saved.\n• Keep the projects most relevant to your target role at the top.\n\nSelect the point you want changed and I'll write a version you can apply."
+                    text: advice.map { "\($0)\n\nSelect the point you want changed and I'll write a version you can apply." }
+                        ?? OnDeviceAI.unavailableMessage
                 ))
-                self.isGeneratingAI = false
+                isGeneratingAI = false
+                return
             }
-            return
-        }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-            let promptLower = currentPrompt.lowercased()
-            var enhanced = targetSnippet.isEmpty ? "Engineered high-performance systems processing 50+ telemetry streams with 99.9% uptime." : targetSnippet
-            var reply = "I tightened the phrasing so the technical impact comes through more clearly."
-            
-            if promptLower.contains("hash") || promptLower.contains("data structure") || promptLower.contains("dsa") {
-                enhanced = "Architected a low-latency telemetry ingestion service for 50+ nodes; leveraged a concurrent Hash Map and worker queue to decrease query response latency by 32%."
-                reply = "Done. I worked the Hash Map in as the core data structure and put a number on the latency win."
-            } else if promptLower.contains("metric") || promptLower.contains("impact") {
-                enhanced = "Spearheaded distributed pipeline overhaul, elevating query processing throughput by 32% across 50+ connected nodes."
-                reply = "I added concrete metrics so the impact is measurable at a glance."
-            } else if promptLower.contains("concise") {
-                enhanced = "Built real-time telemetry service for 50+ IoT nodes, optimizing query latency by 32%."
-                reply = "Here's a tighter version that keeps the core achievement."
-            } else {
-                enhanced = "Engineered real-time telemetry pipelines for 50+ IoT nodes; optimized PostgreSQL queries and indexing to improve dashboard load times by 32%."
-                reply = "I led with a stronger action verb and quantified the scale of the system."
+            guard let rewrite = await OnDeviceAI.rewrite(targetSnippet, instruction: currentPrompt, context: activeTargetOpportunity.map { "\($0.roleTitle) at \($0.companyName)" }) else {
+                sessionChatMessages.append(AIChatMessage(
+                    sender: .ai,
+                    text: OnDeviceAI.isAvailable ? "I couldn't write a version of that point. Try rephrasing the request." : OnDeviceAI.unavailableMessage
+                ))
+                isGeneratingAI = false
+                return
             }
-            
-            let aiMessage = AIChatMessage(
+            sessionChatMessages.append(AIChatMessage(
                 sender: .ai,
-                text: reply,
+                text: rewrite.note,
                 targetKey: targetKey,
                 originalText: targetSnippet,
-                suggestedRewrite: enhanced,
+                suggestedRewrite: rewrite.text,
                 reason: nil,
                 isApplied: false
-            )
-            self.sessionChatMessages.append(aiMessage)
-            self.isGeneratingAI = false
+            ))
+            isGeneratingAI = false
         }
+    }
+
+    /// The resume as plain text, for the assistant's whole-resume answers.
+    private func plainText(of resume: ResumeDocument) -> String {
+        var lines = [resume.summary]
+        lines += resume.education.map { "\($0.degree), \($0.institution) \($0.period)" }
+        for exp in resume.experiences { lines.append("\(exp.role) at \(exp.company) (\(exp.period))"); lines += exp.bullets }
+        for proj in resume.projects { lines.append("Project: \(proj.title) [\(proj.techStack)]"); lines += proj.bullets }
+        lines.append("Skills: " + resume.skills.joined(separator: ", "))
+        lines += resume.achievements
+        return lines.filter { !$0.isEmpty }.joined(separator: "\n")
     }
 
     // Step 6: Apply specific suggestion from chat history into the resume
@@ -792,6 +986,7 @@ public final class ResumeViewModel: ObservableObject {
         if let idx = resumes.firstIndex(where: { $0.id == activeResume.id }) {
             resumes[idx] = activeResume
             resumes[idx].lastModifiedDate = "Just now"
+            persist(resumes[idx])
         }
         // Keep the session chat so the user can carry on refining after saving
         self.sessionChatMessages.append(AIChatMessage(sender: .system, text: "Changes saved to resume"))
@@ -804,11 +999,14 @@ public final class ResumeViewModel: ObservableObject {
     public func downloadResumePDF() {
         isDownloadingPDF = true
         hasDownloadedPDF = false
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+        // Let the button show "Preparing PDF..." before rendering blocks the main thread
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            let url = try? ResumePDFExporter.export(self.activeResume)
+            self.lastExportedPDF = url
             self.isDownloadingPDF = false
-            self.hasDownloadedPDF = true
+            self.hasDownloadedPDF = url != nil
             // Navigate to download confirmation screen
-            self.showDownloadConfirmation = true
+            self.showDownloadConfirmation = url != nil
         }
     }
 
@@ -826,90 +1024,56 @@ public final class ResumeViewModel: ObservableObject {
         self.isDownloadingPDF = false
     }
 
+    /// Profile edits flow into resumes built from the profile; uploaded and tailored resumes
+    /// keep their own content.
     public func syncWithProfile(_ profile: UserProfile, achievements: [AchievementItem]? = nil) {
-        for i in resumes.indices {
+        self.profile = profile
+        if let achievements { self.achievements = achievements }
+        for i in resumes.indices where resumes[i].isLinkedToProfile {
+            let before = resumes[i]
             syncResume(&resumes[i], with: profile, achievements: achievements)
+            if resumes[i] != before { persist(resumes[i]) }
         }
-        syncResume(&activeResume, with: profile, achievements: achievements)
+        if activeResume.isLinkedToProfile, let current = resumes.first(where: { $0.id == activeResume.id }) {
+            activeResume = current
+        }
     }
 
     private func syncResume(_ resume: inout ResumeDocument, with profile: UserProfile, achievements: [AchievementItem]?) {
         let safeName = profile.name.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: " ", with: "_")
-
-        // Dynamic Name Updates
         if !profile.name.isEmpty {
-            if resume.id == "res-two-page" || resume.title == "Aarav Sharma" || resume.title == "Aditya Sharma" {
-                resume.title = profile.name
-                if !safeName.isEmpty {
-                    resume.fileName = "\(safeName)_Resume.pdf"
-                }
-            } else if resume.id == "res-default" {
-                if !safeName.isEmpty {
-                    resume.fileName = "Master_\(safeName)_Resume.pdf"
-                }
-            }
+            resume.title = profile.name
+            resume.fileName = safeName.isEmpty ? "Resume.pdf" : "\(safeName)_Resume.pdf"
         }
-
-        // 1. Summary
-        if !profile.bio.isEmpty {
-            resume.summary = profile.bio
-        }
-
-        // 2. Education
+        resume.summary = profile.bio
         if !profile.institution.isEmpty || !profile.education.isEmpty {
-            let primaryEdu = ResumeEducation(
+            let period = profile.graduationYear.isEmpty ? "" :
+                (profile.graduationYear.contains("–") || profile.graduationYear.contains("-") ? profile.graduationYear : "Class of \(profile.graduationYear)")
+            resume.education = [ResumeEducation(
                 id: resume.education.first?.id ?? "edu-primary",
-                institution: profile.institution.isEmpty ? (resume.education.first?.institution ?? "SRM Institute of Science and Technology") : profile.institution,
-                degree: profile.education.isEmpty ? (resume.education.first?.degree ?? "B.Tech in Computer Science (AI & ML)") : profile.education,
-                period: profile.graduationYear.isEmpty ? (resume.education.first?.period ?? "2024 – 2028") : (profile.graduationYear.contains("–") || profile.graduationYear.contains("-") ? profile.graduationYear : "Class of \(profile.graduationYear)"),
-                location: profile.location.isEmpty ? (resume.education.first?.location ?? "Chennai, India") : profile.location,
-                details: profile.titleOrStage.isEmpty ? (resume.education.first?.details ?? "Coursework: Data Structures, OOP, DBMS, Operating Systems, Machine Learning, Artificial Intelligence · CGPA: 9.77/10") : profile.titleOrStage
+                institution: profile.institution,
+                degree: profile.education,
+                period: period,
+                location: profile.location,
+                details: profile.titleOrStage
+            )]
+        }
+        resume.skills = profile.skills
+        resume.skillLines = profile.skills.isEmpty ? nil : [ResumeSkillLine("Core Skills", profile.skills.joined(separator: ", "))]
+        // Newest entry is last on the profile; resumes list newest first
+        resume.experiences = profile.experiences.reversed().map { exp in
+            ResumeExperience(
+                id: exp.id, company: exp.company, role: exp.title, period: exp.period, location: exp.location,
+                bullets: exp.bullets.filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
             )
-            if resume.education.isEmpty {
-                resume.education = [primaryEdu]
-            } else {
-                resume.education[0] = primaryEdu
-            }
         }
-
-        // 3. Skills
-        if !profile.skills.isEmpty {
-            resume.skills = profile.skills
-            if resume.skillLines == nil || resume.id != "res-two-page" {
-                resume.skillLines = [
-                    ResumeSkillLine("Core Skills", profile.skills.joined(separator: ", "))
-                ]
-            }
+        resume.projects = profile.projects.reversed().map { proj in
+            ResumeProject(
+                id: proj.id, title: proj.title, techStack: proj.techStack,
+                bullets: proj.bullets.filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
+            )
         }
-
-        // 4. Experiences (if user has custom profile experiences, and preserve specialized two-page sample)
-        if !profile.experiences.isEmpty && resume.id != "res-two-page" {
-            resume.experiences = profile.experiences.map { exp in
-                ResumeExperience(
-                    id: exp.id,
-                    company: exp.company,
-                    role: exp.title,
-                    period: exp.period,
-                    location: exp.location,
-                    bullets: exp.bullets.filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
-                )
-            }
-        }
-
-        // 5. Projects (if user has custom profile projects, and preserve specialized two-page sample)
-        if !profile.projects.isEmpty && resume.id != "res-two-page" {
-            resume.projects = profile.projects.map { proj in
-                ResumeProject(
-                    id: proj.id,
-                    title: proj.title,
-                    techStack: proj.techStack,
-                    bullets: proj.bullets.filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
-                )
-            }
-        }
-
-        // 6. Achievements
-        if let achItems = achievements, !achItems.isEmpty {
+        if let achItems = achievements {
             resume.achievements = achItems.map { item in
                 item.issuer.isEmpty ? item.title : "\(item.title) — \(item.issuer)"
             }
@@ -925,8 +1089,8 @@ public final class CommunityViewModel: ObservableObject {
         case following = "Following"
     }
 
-    @Published public var posts: [DiscussionPost] = DiscussionPost.samples
-    @Published public var companies: [CompanyCommunity] = CompanyCommunity.samples
+    @Published public var posts: [DiscussionPost] = []
+    @Published public var companies: [CompanyCommunity] = []
     @Published public var selectedSubFeed: CommunitySubFeed = .forYou
     @Published public var selectedCategory: DiscussionType? = nil
     @Published public var activeCompanyFilter: String? = nil
@@ -934,6 +1098,8 @@ public final class CommunityViewModel: ObservableObject {
     @Published public var showAllTrendingSheet: Bool = false
     @Published public var showSavedPostsSheet: Bool = false
     @Published public var searchQuery: String = ""
+    /// The signed-in user's anonymous community handle, assigned by the backend
+    @Published public private(set) var username: String = ""
 
     public var savedPosts: [DiscussionPost] {
         posts.filter { $0.isSaved }
@@ -979,19 +1145,73 @@ public final class CommunityViewModel: ObservableObject {
         }
     }
 
+    /// Loads identity, the feed and company communities from the backend.
+    public func load() async {
+        if let identity = try? await AlineAPI.identity() {
+            username = identity.username
+            if let avatar = identity.avatar { DiscussionPost.currentUserAvatar = avatar }
+        }
+        async let feed = try? AlineAPI.discussions()
+        async let communities = try? AlineAPI.companies()
+        if let feed = await feed {
+            // Keep threads already opened, so a refresh doesn't blank an open discussion
+            let loaded = Dictionary(uniqueKeysWithValues: posts.filter(\.commentsLoaded).map { ($0.id, $0.comments) })
+            posts = feed.map { dto in
+                var post = DiscussionPost(dto: dto)
+                if let comments = loaded[dto.id] {
+                    post.comments = comments
+                    post.commentsLoaded = true
+                }
+                return post
+            }
+        }
+        if let communities = await communities {
+            companies = communities.map(CompanyCommunity.init(dto:))
+        }
+    }
+
+    /// Fetches one discussion's full comment thread.
+    public func loadComments(for postId: String) async {
+        guard let detail = try? await AlineAPI.discussion(postId) else { return }
+        let fresh = DiscussionPost(detail: detail)
+        if let index = posts.firstIndex(where: { $0.id == postId }) {
+            posts[index] = fresh
+        } else {
+            posts.insert(fresh, at: 0)
+        }
+    }
+
+    /// Threads for every post with comments — My Comments needs them all.
+    public func loadAllComments() async {
+        for post in posts where !post.commentsLoaded && post.totalCommentsCount > 0 {
+            await loadComments(for: post.id)
+        }
+    }
+
+    public func createPost(type: DiscussionType, company: String?, title: String, content: String, topics: [String]) {
+        Task {
+            guard let dto = try? await AlineAPI.createDiscussion(
+                category: type.rawValue, company: company, title: title, body: content, topics: topics
+            ) else { return }
+            var post = DiscussionPost(dto: dto)
+            post.commentsLoaded = true
+            posts.insert(post, at: 0)
+        }
+    }
+
     public func toggleFollowCompany(name: String) {
         if let index = companies.firstIndex(where: { $0.name.lowercased() == name.lowercased() }) {
             companies[index].isFollowing.toggle()
         } else {
-            let newComp = CompanyCommunity(
-                id: "comp-\(name.lowercased())",
-                name: name,
-                symbol: "building.2.fill",
-                memberCount: "10.5K members",
-                description: "Discussions, interview advice, and updates for \(name).",
-                isFollowing: true
-            )
-            companies.append(newComp)
+            companies.append(CompanyCommunity(
+                id: "comp-\(name.lowercased())", name: name, symbol: "building.2.fill", memberCount: "1 member",
+                description: "Discussions, interview advice, and updates for \(name).", isFollowing: true
+            ))
+        }
+        Task {
+            guard let following = try? await AlineAPI.toggleFollow(company: name),
+                  let index = companies.firstIndex(where: { $0.name.lowercased() == name.lowercased() }) else { return }
+            companies[index].isFollowing = following
         }
     }
 
@@ -1001,47 +1221,48 @@ public final class CommunityViewModel: ObservableObject {
     }
 
     public func toggleLike(for postId: String) {
-        if let index = posts.firstIndex(where: { $0.id == postId }) {
-            posts[index].isLiked.toggle()
-            posts[index].likesCount += posts[index].isLiked ? 1 : -1
+        guard let index = posts.firstIndex(where: { $0.id == postId }) else { return }
+        posts[index].isLiked.toggle()
+        posts[index].likesCount += posts[index].isLiked ? 1 : -1
+        Task {
+            guard let liked = try? await AlineAPI.toggleLike(discussionID: postId),
+                  let i = posts.firstIndex(where: { $0.id == postId }), posts[i].isLiked != liked else { return }
+            posts[i].isLiked = liked
+            posts[i].likesCount += liked ? 1 : -1
         }
     }
 
     public func toggleSave(for postId: String) {
-        if let index = posts.firstIndex(where: { $0.id == postId }) {
-            posts[index].isSaved.toggle()
+        guard let index = posts.firstIndex(where: { $0.id == postId }) else { return }
+        posts[index].isSaved.toggle()
+        Task {
+            guard let saved = try? await AlineAPI.toggleSave(discussionID: postId),
+                  let i = posts.firstIndex(where: { $0.id == postId }) else { return }
+            posts[i].isSaved = saved
         }
     }
 
     public func addComment(to postId: String, text: String) {
-        guard !text.isEmpty, let index = posts.firstIndex(where: { $0.id == postId }) else { return }
-        let newComment = DiscussionComment(
-            id: UUID().uuidString,
-            authorName: DiscussionPost.currentUserName,
-            authorRole: "",
-            timeAgo: "Just now",
-            text: text,
-            likesCount: 0,
-            isLiked: false,
-            avatarImageName: DiscussionPost.currentUserAvatar
-        )
-        posts[index].comments.append(newComment)
+        guard !text.isEmpty else { return }
+        Task {
+            guard let dto = try? await AlineAPI.addComment(discussionID: postId, body: text),
+                  let index = posts.firstIndex(where: { $0.id == postId }) else { return }
+            posts[index].comments.append(DiscussionComment(dto: dto))
+            posts[index].serverCommentsCount = (posts[index].serverCommentsCount ?? 0) + 1
+        }
     }
 
     public func addReply(to postId: String, commentId: String, text: String) {
-        guard !text.isEmpty, let postIndex = posts.firstIndex(where: { $0.id == postId }) else { return }
-        if let commentIndex = posts[postIndex].comments.firstIndex(where: { $0.id == commentId }) {
-            let newReply = DiscussionComment(
-                id: UUID().uuidString,
-                authorName: DiscussionPost.currentUserName,
-                authorRole: "",
-                timeAgo: "Just now",
-                text: text,
-                likesCount: 0,
-                isLiked: false,
-                avatarImageName: DiscussionPost.currentUserAvatar
-            )
-            posts[postIndex].comments[commentIndex].replies.append(newReply)
+        guard !text.isEmpty else { return }
+        Task {
+            guard let dto = try? await AlineAPI.addComment(discussionID: postId, body: text, parentID: commentId),
+                  let postIndex = posts.firstIndex(where: { $0.id == postId }) else { return }
+            // Replies are one level deep: the backend files a reply-to-a-reply under its top-level comment
+            let parentId = dto.parentId ?? commentId
+            if let commentIndex = posts[postIndex].comments.firstIndex(where: { $0.id == parentId }) {
+                posts[postIndex].comments[commentIndex].replies.append(DiscussionComment(dto: dto))
+            }
+            posts[postIndex].serverCommentsCount = (posts[postIndex].serverCommentsCount ?? 0) + 1
         }
     }
 
@@ -1050,35 +1271,42 @@ public final class CommunityViewModel: ObservableObject {
         if let commentIndex = posts[postIndex].comments.firstIndex(where: { $0.id == commentId }) {
             posts[postIndex].comments[commentIndex].isLiked.toggle()
             posts[postIndex].comments[commentIndex].likesCount += posts[postIndex].comments[commentIndex].isLiked ? 1 : -1
-            return
-        }
-        for (cIndex, comment) in posts[postIndex].comments.enumerated() {
-            if let rIndex = comment.replies.firstIndex(where: { $0.id == commentId }) {
-                posts[postIndex].comments[cIndex].replies[rIndex].isLiked.toggle()
-                posts[postIndex].comments[cIndex].replies[rIndex].likesCount += posts[postIndex].comments[cIndex].replies[rIndex].isLiked ? 1 : -1
-                return
+        } else {
+            for (cIndex, comment) in posts[postIndex].comments.enumerated() {
+                if let rIndex = comment.replies.firstIndex(where: { $0.id == commentId }) {
+                    posts[postIndex].comments[cIndex].replies[rIndex].isLiked.toggle()
+                    posts[postIndex].comments[cIndex].replies[rIndex].likesCount += posts[postIndex].comments[cIndex].replies[rIndex].isLiked ? 1 : -1
+                    break
+                }
             }
         }
+        Task { _ = try? await AlineAPI.toggleCommentLike(commentId) }
     }
 
     public func incrementShare(for postId: String) {
         if let index = posts.firstIndex(where: { $0.id == postId }) {
             posts[index].sharesCount += 1
         }
+        Task { _ = try? await AlineAPI.share(discussionID: postId) }
     }
 
     public func deleteComment(postId: String, commentId: String) {
         guard let postIndex = posts.firstIndex(where: { $0.id == postId }) else { return }
+        var removed = 0
         if let commentIndex = posts[postIndex].comments.firstIndex(where: { $0.id == commentId }) {
+            removed = 1 + posts[postIndex].comments[commentIndex].replies.count
             posts[postIndex].comments.remove(at: commentIndex)
-            return
-        }
-        for cIndex in 0..<posts[postIndex].comments.count {
-            if let rIndex = posts[postIndex].comments[cIndex].replies.firstIndex(where: { $0.id == commentId }) {
-                posts[postIndex].comments[cIndex].replies.remove(at: rIndex)
-                return
+        } else {
+            for cIndex in 0..<posts[postIndex].comments.count {
+                if let rIndex = posts[postIndex].comments[cIndex].replies.firstIndex(where: { $0.id == commentId }) {
+                    posts[postIndex].comments[cIndex].replies.remove(at: rIndex)
+                    removed = 1
+                    break
+                }
             }
         }
+        posts[postIndex].serverCommentsCount = max(0, (posts[postIndex].serverCommentsCount ?? 0) - removed)
+        Task { try? await AlineAPI.deleteComment(commentId) }
     }
 
     public init() {}
@@ -1087,7 +1315,7 @@ public final class CommunityViewModel: ObservableObject {
 // MARK: - Interview Prep ViewModel
 @MainActor
 public final class InterviewPrepViewModel: ObservableObject {
-    @Published public var questions: [InterviewQuestion] = InterviewQuestion.samples
+    @Published public var questions: [InterviewQuestion] = []
     
     // Multiple selection support (Items 3 & 4)
     @Published public var selectedCompanies: Set<String> = []
@@ -1199,15 +1427,6 @@ public final class InterviewPrepViewModel: ObservableObject {
             list = list.filter { wizardSelectedTopics.contains($0.topic) }
         } else if let topic = wizardSelectedTopic {
             list = list.filter { $0.topic == topic }
-        } else if let comp = wizardSelectedCompany {
-            // When topic was skipped: make sure all topics for this company are covered!
-            let roleToUse = wizardSelectedRole ?? "Software Engineer"
-            let topicsCovered = Set(list.map { $0.topic })
-            for t in QuestionTopic.allCases {
-                if !topicsCovered.contains(t) {
-                    list.append(contentsOf: generateMockQuestionsForCombo(company: comp, role: roleToUse, topic: t))
-                }
-            }
         }
         if !wizardSearchQuery.isEmpty {
             list = list.filter {
@@ -1217,123 +1436,7 @@ public final class InterviewPrepViewModel: ObservableObject {
                 $0.topic.rawValue.localizedCaseInsensitiveContains(wizardSearchQuery)
             }
         }
-        // If empty, synthesize realistic practice questions for this combo
-        if list.isEmpty {
-            let comp = wizardSelectedCompany ?? "Google"
-            let role = wizardSelectedRole ?? "Software Engineer"
-            let topicsToUse = !wizardSelectedTopics.isEmpty ? Array(wizardSelectedTopics) : (wizardSelectedTopic != nil ? [wizardSelectedTopic!] : QuestionTopic.allCases)
-            var synthesized: [InterviewQuestion] = []
-            for t in topicsToUse {
-                synthesized.append(contentsOf: generateMockQuestionsForCombo(company: comp, role: role, topic: t))
-            }
-            return synthesized
-        }
         return list
-    }
-
-    private func generateMockQuestionsForCombo(company: String, role: String, topic: QuestionTopic) -> [InterviewQuestion] {
-        let q1Text: String
-        let q2Text: String
-        let q3Text: String
-
-        switch topic {
-        case .dsa:
-            q1Text = "Given a stream of real-time events at \(company), design an optimal data structure to return the top K most frequent items in the last 15 minutes."
-            q2Text = "Implement an algorithm to detect cyclic dependencies in a large-scale service graph used by \(role) teams at \(company)."
-            q3Text = "Find the median of two sorted arrays of server telemetry data with an optimal O(log(min(N, M))) runtime complexity."
-        case .systemDesign:
-            q1Text = "Design a low-latency, globally distributed notification and messaging system for \(company)'s \(role) infrastructure."
-            q2Text = "Architect a scalable rate limiter that can handle 10 million RPS with sub-millisecond response times across multiple geographic regions."
-            q3Text = "Design a distributed key-value store with configurable consistency levels (tunable CAP theorem) tailored for \(company)."
-        case .coreCS:
-            q1Text = "Explain how the operating system handles virtual memory page faults and translation lookaside buffers (TLB) during heavy concurrent execution."
-            q2Text = "How do mutexes, semaphores, and reader-writer locks differ in low-level thread synchronization for \(role) roles?"
-            q3Text = "Walk through the TCP 3-way handshake and describe how TCP congestion control algorithms (like BBR or Cubic) function at \(company)."
-        case .dbms:
-            q1Text = "Compare B+ Trees and LSM Trees for write-heavy storage workloads at \(company), explaining trade-offs in compaction and read amplification."
-            q2Text = "How do distributed databases achieve ACID transactions across shards using Two-Phase Commit (2PC) and Paxos/Raft consensus?"
-            q3Text = "Explain database indexing strategies, cover indexes, and query execution plan optimization for high-throughput relational databases."
-        case .networking:
-            q1Text = "What happens from a networking perspective when a client sends a secure HTTPS request to \(company)'s API gateway?"
-            q2Text = "Explain the differences between HTTP/2 multiplexing, HTTP/3 QUIC over UDP, and head-of-line blocking."
-            q3Text = "How does BGP anycast routing direct global user traffic to the closest \(company) edge points of presence?"
-        case .behavioral:
-            q1Text = "Tell me about a time you had a strong technical disagreement with a senior engineer or product manager at work. How did you resolve it?"
-            q2Text = "Describe a situation where a production service you built failed unexpectedly. How did you diagnose, mitigate, and conduct the post-mortem?"
-            q3Text = "Why do you want to join \(company) as a \(role), and how does your past experience align with our engineering culture?"
-        case .os:
-            q1Text = "Explain context switching overhead and how CFS (Completely Fair Scheduler) prioritizes tasks under high CPU load at \(company)."
-            q2Text = "How do Linux namespaces and cgroups form the foundation of container isolation in modern \(role) workflows?"
-            q3Text = "Detail memory management differences between stack and heap allocation, and how memory leaks are profiled in production."
-        case .aiMl:
-            q1Text = "How would you design a low-latency recommendation engine pipeline serving personalized feeds for \(company) users?"
-            q2Text = "Explain techniques to mitigate hallucinations and evaluate factual accuracy in production LLM inference pipelines."
-            q3Text = "Discuss trade-offs between dense retrieval (vector embeddings) and sparse retrieval (BM25) for high-recall search systems."
-        @unknown default:
-            q1Text = "Explain your core engineering philosophy and technical approach for high-impact problems at \(company)."
-            q2Text = "Walk through an architecture you designed as a \(role) that scaled successfully under high traffic."
-            q3Text = "How do you evaluate system trade-offs between latency, throughput, and operational complexity?"
-        }
-
-        return [
-            InterviewQuestion(
-                id: "\(company)-\(role)-\(topic.rawValue)-q1",
-                questionText: q1Text,
-                topic: topic,
-                companyName: company,
-                role: role,
-                difficulty: "General",
-                upvotesCount: 38,
-                isUpvoted: false,
-                isSaved: false,
-                hint: "Think about edge conditions, time-versus-space trade-offs, and breakdown into modular constraints.",
-                approach: "Clarify inputs/outputs first, outline a brute-force approach, then optimize bottleneck operations using appropriate data structures.",
-                answer: "// Production-ready approach for \(company) \(role):\n1. Define input invariants\n2. Maintain a min-heap or sliding hash map\n3. Evict stale elements incrementally\n4. Return the consolidated result in optimal linearithmic time.",
-                aiGeneratedAnswer: nil,
-                hasAIGeneratedSolution: true,
-                timeComplexity: "O(N log K)",
-                spaceComplexity: "O(K)",
-                isCommunityReported: true
-            ),
-            InterviewQuestion(
-                id: "\(company)-\(role)-\(topic.rawValue)-q2",
-                questionText: q2Text,
-                topic: topic,
-                companyName: company,
-                role: role,
-                difficulty: "General",
-                upvotesCount: 29,
-                isUpvoted: false,
-                isSaved: false,
-                hint: "Consider how concurrency and state distribution affect the scalability of your approach.",
-                approach: "Formulate the solution using state machines or topological traversal, noting how failure domains are isolated.",
-                answer: "// Algorithmic Blueprint:\n- Represent states as directed nodes\n- Use DFS with 3-color cycle detection (White, Gray, Black)\n- Return cycle trace if back-edge is encountered.",
-                aiGeneratedAnswer: nil,
-                hasAIGeneratedSolution: true,
-                timeComplexity: "O(V + E)",
-                spaceComplexity: "O(V)",
-                isCommunityReported: true
-            ),
-            InterviewQuestion(
-                id: "\(company)-\(role)-\(topic.rawValue)-q3",
-                questionText: q3Text,
-                topic: topic,
-                companyName: company,
-                role: role,
-                difficulty: "General",
-                upvotesCount: 45,
-                isUpvoted: false,
-                isSaved: false,
-                hint: "Focus on communication protocols, fault tolerance, and clear ownership boundaries.",
-                approach: "Structure your response with clear trade-offs, mentioning monitoring, metrics, and automated rollback strategies.",
-                answer: "// Architectural Summary:\n- End-to-end telemetry monitoring\n- Circuit breaker pattern to prevent cascading failures\n- Graceful degradation under spike load.",
-                aiGeneratedAnswer: nil,
-                hasAIGeneratedSolution: true,
-                timeComplexity: "O(1) amortized",
-                spaceComplexity: "O(1)",
-                isCommunityReported: true
-            )
-        ]
     }
 
     // Compatibility accessors
@@ -1485,37 +1588,44 @@ public final class InterviewPrepViewModel: ObservableObject {
     }
 
     public func toggleUpvote(for questionId: String) {
-        if let index = questions.firstIndex(where: { $0.id == questionId }) {
-            questions[index].isUpvoted.toggle()
-            questions[index].upvotesCount += questions[index].isUpvoted ? 1 : -1
-        }
+        guard let question = questions.first(where: { $0.id == questionId }) else { return }
+        toggleUpvote(for: question)
     }
 
     public func toggleUpvote(for question: InterviewQuestion) {
-        if let index = questions.firstIndex(where: { $0.id == question.id }) {
-            questions[index].isUpvoted.toggle()
-            questions[index].upvotesCount += questions[index].isUpvoted ? 1 : -1
-        } else {
-            var updated = question
-            updated.isUpvoted.toggle()
-            updated.upvotesCount += updated.isUpvoted ? 1 : -1
-            questions.insert(updated, at: 0)
+        guard let index = questions.firstIndex(where: { $0.id == question.id }) else { return }
+        questions[index].isUpvoted.toggle()
+        questions[index].upvotesCount += questions[index].isUpvoted ? 1 : -1
+        Task {
+            guard let upvoted = try? await AlineAPI.toggleUpvote(questionID: question.id),
+                  let i = questions.firstIndex(where: { $0.id == question.id }), questions[i].isUpvoted != upvoted else { return }
+            questions[i].isUpvoted = upvoted
+            questions[i].upvotesCount += upvoted ? 1 : -1
         }
     }
 
     public func toggleSave(for questionId: String) {
-        if let index = questions.firstIndex(where: { $0.id == questionId }) {
-            questions[index].isSaved.toggle()
-        }
+        guard let question = questions.first(where: { $0.id == questionId }) else { return }
+        toggleSave(for: question)
     }
 
     public func toggleSave(for question: InterviewQuestion) {
-        if let index = questions.firstIndex(where: { $0.id == question.id }) {
-            questions[index].isSaved.toggle()
-        } else {
-            var updated = question
-            updated.isSaved.toggle()
-            questions.insert(updated, at: 0)
+        guard let index = questions.firstIndex(where: { $0.id == question.id }) else { return }
+        questions[index].isSaved.toggle()
+        Task {
+            guard let saved = try? await AlineAPI.toggleSave(questionID: question.id),
+                  let i = questions.firstIndex(where: { $0.id == question.id }) else { return }
+            questions[i].isSaved = saved
+        }
+    }
+
+    public func load() async {
+        guard let fetched = try? await AlineAPI.interviewQuestions() else { return }
+        // Keep on-device AI solutions already generated this session
+        let aiAnswers = Dictionary(uniqueKeysWithValues: questions.compactMap { q in q.aiGeneratedAnswer.map { (q.id, $0) } })
+        questions = fetched.map { dto in
+            let question = InterviewQuestion(dto: dto)
+            return aiAnswers[dto.id].map { question.withAIAnswer($0) } ?? question
         }
     }
 
@@ -1555,12 +1665,22 @@ public final class InterviewPrepViewModel: ObservableObject {
         revealedSolutions.insert(id)
     }
 
+    /// Writes a solution with the on-device model for a question nobody answered yet. The
+    /// detail screen labels it as AI-written; it stays on this device.
     public func generateAISolution(for id: String) {
+        guard let question = questions.first(where: { $0.id == id }) else { return }
         isGeneratingAISolution[id] = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) { [weak self] in
-            guard let self = self else { return }
-            self.isGeneratingAISolution[id] = false
-            self.revealedSolutions.insert(id)
+        Task {
+            let solution = await OnDeviceAI.solve(
+                question: question.questionText, topic: question.topic.rawValue,
+                company: question.companyName, role: question.role
+            )
+            let text = solution.map { "\($0.approach)\n\n\($0.answer)" } ?? OnDeviceAI.unavailableMessage
+            if let index = questions.firstIndex(where: { $0.id == id }) {
+                questions[index] = questions[index].withAIAnswer(text)
+            }
+            isGeneratingAISolution[id] = false
+            revealedSolutions.insert(id)
         }
     }
 
@@ -1574,44 +1694,43 @@ public final class InterviewPrepViewModel: ObservableObject {
         approach: String?,
         answer: String?
     ) {
-        let hasProvidedAnswer = !(answer?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
-        
-        let aiAnswer: String? = hasProvidedAnswer ? nil : """
-        Aline AI Optimal Solution & Walkthrough:
-        
-        1. Core Intuition:
-        Identify the optimal time and space trade-off for \(topic.rawValue) problems asked at \(company).
-        
-        2. Framework:
-        • Initialize state tracking (e.g. hash map / dynamic programming table).
-        • Handle boundary edge cases (null inputs, single elements, negative values).
-        • Apply two-pointer or sliding window traversal to achieve optimal complexity.
-        
-        3. Implementation Verification:
-        All test suites passed with 100% test coverage against standard competitive edge cases.
-        """
-
-        let newQuestion = InterviewQuestion(
-            id: UUID().uuidString,
+        let trimmedAnswer = answer?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let hasProvidedAnswer = !(trimmedAnswer?.isEmpty ?? true)
+        // Shown right away (the contribute flow jumps straight to it), replaced by the saved copy
+        let placeholderID = "pending-\(UUID().uuidString)"
+        let pending = InterviewQuestion(
+            id: placeholderID,
             questionText: questionText,
             topic: topic,
-            companyName: company.isEmpty ? "General" : company,
-            role: role.isEmpty ? "Software Engineer" : role,
+            companyName: company.isEmpty ? nil : company,
+            role: role.isEmpty ? nil : role,
             difficulty: difficulty,
             upvotesCount: 1,
             isUpvoted: true,
             isSaved: false,
-            hint: (hint?.isEmpty ?? true) ? "Break the problem down into smaller subproblems. Consider what data structure provides O(1) lookups." : hint,
-            approach: (approach?.isEmpty ?? true) ? "Recommended Framework: Use greedy iteration with early exit termination when the target condition is satisfied." : approach,
-            answer: hasProvidedAnswer ? answer : nil,
-            aiGeneratedAnswer: aiAnswer,
+            hint: (hint?.isEmpty ?? true) ? nil : hint,
+            approach: (approach?.isEmpty ?? true) ? nil : approach,
+            answer: hasProvidedAnswer ? trimmedAnswer : nil,
+            aiGeneratedAnswer: nil,
             hasAIGeneratedSolution: !hasProvidedAnswer,
-            timeComplexity: "O(N) Time",
-            spaceComplexity: "O(1) Auxiliary Space",
             isCommunityReported: true
         )
-        
-        questions.insert(newQuestion, at: 0)
+        questions.insert(pending, at: 0)
+
+        Task {
+            let request = CreateQuestionRequest(
+                deviceId: DeviceIdentity.deviceID, question: questionText, topic: topic.rawValue,
+                company: pending.companyName, role: pending.role, difficulty: difficulty,
+                hint: pending.hint, approach: pending.approach, answer: pending.answer
+            )
+            guard let saved = try? await AlineAPI.createQuestion(request) else {
+                questions.removeAll { $0.id == placeholderID }
+                return
+            }
+            if let index = questions.firstIndex(where: { $0.id == placeholderID }) {
+                questions[index] = InterviewQuestion(dto: saved)
+            }
+        }
     }
 
     public func recordVisitedQuestion(
@@ -1667,53 +1786,87 @@ public extension Notification.Name {
 // MARK: - Profile & Preferences ViewModel
 @MainActor
 public final class ProfileViewModel: ObservableObject {
-    @Published public var profile: UserProfile = UserProfile.sample
-    @Published public var preferences: CareerPreferences = CareerPreferences.sample
-    @Published public var achievements: [AchievementItem] = AchievementItem.samples
+    @Published public var profile: UserProfile = .empty
+    @Published public var preferences: CareerPreferences = .empty
+    @Published public var achievements: [AchievementItem] = []
     @Published public var showEditProfileSheet: Bool = false
     @Published public var showPreferencesSheet: Bool = false
     @Published public var showAddAchievementSheet: Bool = false
     @Published public var selectedAchievement: AchievementItem? = nil
+    /// True once the backend profile has been read at least once this session
+    @Published public private(set) var hasLoaded: Bool = false
 
     public var onProfileUpdated: ((UserProfile) -> Void)? = nil
 
     public init() {
+        // Cached copy, so the profile isn't blank while the backend is reached
         if let data = UserDefaults.standard.data(forKey: "savedUserProfile"),
-           let decoded = try? JSONDecoder().decode(UserProfile.self, from: data),
-           decoded.experiences.count >= 3 {
-            self.profile = decoded
+           let decoded = try? JSONDecoder().decode(UserProfile.self, from: data) {
+            profile = decoded
         } else {
-            let name = UserDefaults.standard.string(forKey: "userFullName") ?? "Aarav Sharma"
-            var sample = UserProfile.sample
-            sample.name = name
-            self.profile = sample
-            if let encoded = try? JSONEncoder().encode(sample) {
-                UserDefaults.standard.set(encoded, forKey: "savedUserProfile")
-            }
+            profile.name = UserDefaults.standard.string(forKey: "userFullName") ?? ""
         }
-
-        if let achData = UserDefaults.standard.data(forKey: "savedUserAchievements"),
-           let decodedAch = try? JSONDecoder().decode([AchievementItem].self, from: achData),
-           decodedAch.count >= 3 {
-            self.achievements = decodedAch
-        } else {
-            self.achievements = AchievementItem.samples
-            if let encoded = try? JSONEncoder().encode(AchievementItem.samples) {
-                UserDefaults.standard.set(encoded, forKey: "savedUserAchievements")
-            }
+        if let data = UserDefaults.standard.data(forKey: "savedUserAchievements"),
+           let decoded = try? JSONDecoder().decode([AchievementItem].self, from: data) {
+            achievements = decoded
+        }
+        if let data = UserDefaults.standard.data(forKey: "savedCareerPreferences"),
+           let decoded = try? JSONDecoder().decode(CareerPreferences.self, from: data) {
+            preferences = decoded
         }
     }
 
+    /// Reads the profile, achievements and preferences from the backend.
+    public func load() async {
+        guard let dto = try? await AlineAPI.profile() else { return }
+        let signedInName = UserDefaults.standard.string(forKey: "userFullName") ?? ""
+        var loaded = UserProfile(dto: dto, fallbackName: signedInName)
+        if loaded.name.isEmpty { loaded.name = signedInName }
+        profile = loaded
+        achievements = dto.achievements.map(AchievementItem.init(dto:))
+        if let prefs = dto.preferences {
+            var updated = CareerPreferences(dto: prefs)
+            updated.isPushAllowedByOS = preferences.isPushAllowedByOS
+            preferences = updated
+        }
+        cacheLocally()
+        hasLoaded = true
+        // A name typed at sign-up that the backend doesn't have yet
+        if dto.name == nil, !signedInName.isEmpty {
+            var request = ProfileUpdateRequest(deviceId: DeviceIdentity.deviceID)
+            request.name = signedInName
+            Task { try? await AlineAPI.updateProfile(request) }
+        }
+        onProfileUpdated?(profile)
+    }
+
     public func syncWithStoredUser() {
-        if let name = UserDefaults.standard.string(forKey: "userFullName"), !name.isEmpty {
+        if let name = UserDefaults.standard.string(forKey: "userFullName"), !name.isEmpty, profile.name.isEmpty {
             self.profile.name = name
         }
-        if let loc = UserDefaults.standard.string(forKey: "userLocation"), !loc.isEmpty {
-            self.profile.location = loc
+    }
+
+    private func cacheLocally() {
+        if let encoded = try? JSONEncoder().encode(profile) {
+            UserDefaults.standard.set(encoded, forKey: "savedUserProfile")
         }
-        if let bio = UserDefaults.standard.string(forKey: "userBio"), !bio.isEmpty {
-            self.profile.bio = bio
+        if let encoded = try? JSONEncoder().encode(achievements) {
+            UserDefaults.standard.set(encoded, forKey: "savedUserAchievements")
         }
+        if let encoded = try? JSONEncoder().encode(preferences) {
+            UserDefaults.standard.set(encoded, forKey: "savedCareerPreferences")
+        }
+        // Keys the resume templates and greeting read through @AppStorage
+        let defaults = UserDefaults.standard
+        defaults.set(profile.name, forKey: "userFullName")
+        defaults.set(profile.location, forKey: "userLocation")
+        defaults.set(profile.bio, forKey: "userBio")
+        defaults.set(profile.education, forKey: "userEducation")
+        defaults.set(profile.institution, forKey: "userInstitution")
+        defaults.set(profile.graduationYear, forKey: "userGraduationYear")
+        defaults.set(profile.linkedInURL, forKey: "userLinkedIn")
+        defaults.set(profile.githubURL, forKey: "userGitHub")
+        defaults.set(profile.portfolioURL, forKey: "userPortfolio")
     }
 
     public func deleteAchievement(id: String) {
@@ -1737,27 +1890,17 @@ public final class ProfileViewModel: ObservableObject {
     }
 
     private func saveAchievements() {
-        if let encoded = try? JSONEncoder().encode(achievements) {
-            UserDefaults.standard.set(encoded, forKey: "savedUserAchievements")
-        }
+        cacheLocally()
+        var request = ProfileUpdateRequest(deviceId: DeviceIdentity.deviceID)
+        request.achievements = achievements.map(\.dto)
+        Task { try? await AlineAPI.updateProfile(request) }
     }
 
     public func updateProfile(_ updated: UserProfile) {
         profile = updated
-        // Persist key fields to UserDefaults for @AppStorage bindings
-        UserDefaults.standard.set(updated.name, forKey: "userFullName")
-        UserDefaults.standard.set(updated.location, forKey: "userLocation")
-        UserDefaults.standard.set(updated.bio, forKey: "userBio")
-        UserDefaults.standard.set(updated.education, forKey: "userEducation")
-        UserDefaults.standard.set(updated.institution, forKey: "userInstitution")
-        UserDefaults.standard.set(updated.graduationYear, forKey: "userGraduationYear")
-        UserDefaults.standard.set(updated.linkedInURL, forKey: "userLinkedIn")
-        UserDefaults.standard.set(updated.githubURL, forKey: "userGitHub")
-        UserDefaults.standard.set(updated.portfolioURL, forKey: "userPortfolio")
-
-        if let encoded = try? JSONEncoder().encode(updated) {
-            UserDefaults.standard.set(encoded, forKey: "savedUserProfile")
-        }
+        cacheLocally()
+        let request = updated.updateRequest()
+        Task { try? await AlineAPI.updateProfile(request) }
 
         onProfileUpdated?(updated)
         NotificationCenter.default.post(name: .userProfileDidUpdate, object: updated)
@@ -1765,5 +1908,10 @@ public final class ProfileViewModel: ObservableObject {
 
     public func updatePreferences(_ updated: CareerPreferences) {
         preferences = updated
+        cacheLocally()
+        var request = ProfileUpdateRequest(deviceId: DeviceIdentity.deviceID)
+        request.preferences = updated.dto
+        Task { try? await AlineAPI.updateProfile(request) }
+        onProfileUpdated?(profile)
     }
 }

@@ -25,16 +25,14 @@ public struct ResumeDashboardView: View {
 
     private func setMasterResume(_ resume: ResumeDocument) {
         withAnimation(AlineTheme.fastSpring) {
-            for index in viewModel.resumes.indices {
-                viewModel.resumes[index].isDefault = (viewModel.resumes[index].id == resume.id)
-            }
+            viewModel.setMaster(resume)
         }
     }
 
     private func deleteResume(_ resume: ResumeDocument) {
         guard !resume.isDefault else { return } // master resume cannot be deleted
         withAnimation(AlineTheme.fastSpring) {
-            viewModel.resumes.removeAll { $0.id == resume.id }
+            viewModel.deleteResume(resume)
         }
     }
 
@@ -229,7 +227,11 @@ public struct ResumeDashboardView: View {
                     },
                     onBuildFromProfile: {
                         showingAddOptions = false
-                    }
+                        withAnimation(AlineTheme.fastSpring) {
+                            viewModel.buildResumeFromProfile()
+                        }
+                    },
+                    isProfileComplete: viewModel.isProfileCompleteForResume
                 )
             }
             // Template Selection Sheet (Pops up when tapping a resume - full screen extending to top edge)
@@ -238,6 +240,14 @@ public struct ResumeDashboardView: View {
             }
             .sheet(isPresented: $showingUploadModal) {
                 ResumeUploadModalView(viewModel: viewModel)
+            }
+            .alert("Couldn't Read Resume", isPresented: Binding(
+                get: { viewModel.importErrorMessage != nil },
+                set: { if !$0 { viewModel.importErrorMessage = nil } }
+            )) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(viewModel.importErrorMessage ?? "")
             }
             // Navigation to Separate Full Screen Editor (NOT a sheet)
             .navigationDestination(isPresented: $viewModel.shouldNavigateToEditor) {
@@ -590,12 +600,12 @@ public struct TemplateSelectionSheet: View {
 // MARK: - Template 1: Standard (ATS-Friendly Classic Serif / Jake Ryan Style)
 public struct StandardTemplateView: View {
     public let resume: ResumeDocument
-    @AppStorage("userFullName") private var userFullName: String = "Aarav Sharma"
-    @AppStorage("userEmail") private var userEmail: String = "aaravsharma.dev@gmail.com"
-    @AppStorage("userPhone") private var userPhone: String = "+91 9952086492"
+    @AppStorage("userFullName") private var userFullName: String = ""
+    @AppStorage("userEmail") private var userEmail: String = ""
+    @AppStorage("userPhone") private var userPhone: String = ""
     @AppStorage("userLinkedIn") private var userLinkedIn: String = ""
     @AppStorage("userGitHub") private var userGitHub: String = ""
-    @AppStorage("userLocation") private var userLocation: String = "Chennai, India"
+    @AppStorage("userLocation") private var userLocation: String = ""
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -653,37 +663,8 @@ public struct StandardTemplateView: View {
                             }
                         }
                     } else {
-                        VStack(alignment: .leading, spacing: 2) {
-                            HStack {
-                                Text("SRM Institute of Science and Technology")
-                                    .font(.system(size: 9.5, weight: .bold, design: .serif))
-                                Spacer()
-                                Text("Chennai, India")
-                                    .font(.system(size: 9, design: .serif))
-                            }
-                            HStack {
-                                Text("B.Tech in Computer Science (AI & ML), CGPA: 9.77/10")
-                                    .font(.system(size: 9, design: .serif).italic())
-                                Spacer()
-                                Text("2024 – 2028")
-                                    .font(.system(size: 9, design: .serif).italic())
-                            }
-                            Text("Coursework: Data Structures, OOP, DBMS, Operating Systems, Machine Learning, Artificial Intelligence")
-                                .font(.system(size: 8.5, design: .serif))
-                                .foregroundColor(Color.black.opacity(0.8))
-                        }
-
-                        VStack(alignment: .leading, spacing: 2) {
-                            HStack {
-                                Text("Chinmaya Vidyalaya")
-                                    .font(.system(size: 9.5, weight: .bold, design: .serif))
-                                Spacer()
-                                Text("Chennai, India")
-                                    .font(.system(size: 9, design: .serif))
-                            }
-                            Text("CBSE: XII – 94% · X – 95.6%")
-                                .font(.system(size: 9, design: .serif).italic())
-                        }
+                        // No education on this resume: the section stays empty
+                        EmptyView()
                     }
                 }
             }
@@ -816,20 +797,11 @@ public struct StandardTemplateView: View {
                             }
                         }
                     } else {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("\(Text("• Languages: ").bold())\(Text("Python, Java, JavaScript, C, Swift"))")
-                            .font(.system(size: 8.5, design: .serif))
-                        Text("\(Text("• Backend & Databases: ").bold())\(Text("FastAPI, Flask, REST APIs, SQL, SQLAlchemy, SQLite, MySQL, MongoDB, Firebase"))")
-                            .font(.system(size: 8.5, design: .serif))
-                        Text("\(Text("• Frontend: ").bold())\(Text("React, Electron, Flutter, HTML, CSS"))")
-                            .font(.system(size: 8.5, design: .serif))
-                        Text("\(Text("• Engineering Practices: ").bold())\(Text("Data Structures & Algorithms, OOP, Unit Testing, Code Review, Git/GitHub"))")
-                            .font(.system(size: 8.5, design: .serif))
-                        Text("\(Text("• AI & ML: ").bold())\(Text("Supervised Learning, NLP, Computer Vision, RAG, Local LLMs, Ollama"))")
-                            .font(.system(size: 8.5, design: .serif))
-                        Text("\(Text("• Tools: ").bold())\(Text("Selenium, Figma, AI-assisted Development (Copilot / LLM tooling)"))")
-                            .font(.system(size: 8.5, design: .serif))
-                    }
+                        // No grouped skill rows: list the resume's skills as one line
+                        if !resume.skills.isEmpty {
+                            Text(resume.skills.joined(separator: ", "))
+                                .font(.system(size: 8.5, design: .serif))
+                        }
                     }
                 }
             }
@@ -857,11 +829,11 @@ public struct StandardTemplateView: View {
 // MARK: - Template 2: Professional (Two-Column Dark Slate Sidebar / Jason Reed Style)
 public struct ProfessionalTemplateView: View {
     public let resume: ResumeDocument
-    @AppStorage("userFullName") private var userFullName: String = "Aarav Sharma"
-    @AppStorage("userEmail") private var userEmail: String = "aaravsharma.dev@gmail.com"
-    @AppStorage("userPhone") private var userPhone: String = "+91 9952086492"
+    @AppStorage("userFullName") private var userFullName: String = ""
+    @AppStorage("userEmail") private var userEmail: String = ""
+    @AppStorage("userPhone") private var userPhone: String = ""
     @AppStorage("userLinkedIn") private var userLinkedIn: String = ""
-    @AppStorage("userLocation") private var userLocation: String = "Chennai, India"
+    @AppStorage("userLocation") private var userLocation: String = ""
 
     private let sidebarBg = Color(red: 0.12, green: 0.20, blue: 0.29)
     private let textBlue = Color(red: 0.11, green: 0.46, blue: 0.86)
@@ -880,7 +852,8 @@ public struct ProfessionalTemplateView: View {
                 .resumeSection(.header)
                 .padding(.top, 14)
 
-                // Section: KEY ACHIEVEMENTS
+                // Section: KEY ACHIEVEMENTS (the resume's own achievements; hidden when it has none)
+                if !resume.achievements.isEmpty {
                 VStack(alignment: .leading, spacing: 7) {
                     VStack(alignment: .leading, spacing: 3) {
                         Text("KEY ACHIEVEMENTS")
@@ -890,173 +863,28 @@ public struct ProfessionalTemplateView: View {
                         Rectangle().fill(Color.white.opacity(0.35)).frame(height: 0.6)
                     }
 
-                    // Stat 1
-                    VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "trophy.fill")
-                                .font(.system(size: 7.5))
-                                .foregroundColor(.yellow)
-                            Text("Ideathon Winner")
-                                .font(.system(size: 8, weight: .bold))
-                                .foregroundColor(.white)
+                    ForEach(Array(resume.achievements.prefix(4).enumerated()), id: \.offset) { _, achievement in
+                        let parts = achievement.components(separatedBy: " — ")
+                        VStack(alignment: .leading, spacing: 2) {
+                            HStack(alignment: .top, spacing: 4) {
+                                Image(systemName: "trophy.fill")
+                                    .font(.system(size: 7.5))
+                                    .foregroundColor(.yellow)
+                                Text(parts[0])
+                                    .font(.system(size: 8, weight: .bold))
+                                    .foregroundColor(.white)
+                            }
+                            if parts.count > 1 {
+                                Text(parts.dropFirst().joined(separator: " — "))
+                                    .font(.system(size: 7.2))
+                                    .foregroundColor(Color.white.opacity(0.8))
+                                    .lineSpacing(1.2)
+                            }
                         }
-                        Text("1st place Horizon 2025 for EduChain (Hyperledger Fabric)")
-                            .font(.system(size: 7.2))
-                            .foregroundColor(Color.white.opacity(0.8))
-                            .lineSpacing(1.2)
-                    }
-
-                    // Stat 2
-                    VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "bolt.fill")
-                                .font(.system(size: 7.5))
-                                .foregroundColor(.yellow)
-                            Text("Code for Good")
-                                .font(.system(size: 8, weight: .bold))
-                                .foregroundColor(.white)
-                        }
-                        Text("Selected by JPMorgan Chase out of 15,000+ applicants")
-                            .font(.system(size: 7.2))
-                            .foregroundColor(Color.white.opacity(0.8))
-                            .lineSpacing(1.2)
-                    }
-
-                    // Stat 3
-                    VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "chart.line.uptrend.xyaxis")
-                                .font(.system(size: 7.5))
-                                .foregroundColor(.yellow)
-                            Text("80%+ Accuracy")
-                                .font(.system(size: 8, weight: .bold))
-                                .foregroundColor(.white)
-                        }
-                        Text("Visual search over 1,000+ SKUs at EduSkill")
-                            .font(.system(size: 7.2))
-                            .foregroundColor(Color.white.opacity(0.8))
-                            .lineSpacing(1.2)
                     }
                 }
                 .resumeSection(.header)
-
-                // Section: CERTIFICATION
-                VStack(alignment: .leading, spacing: 6) {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("CERTIFICATION")
-                            .font(.system(size: 8.5, weight: .bold))
-                            .foregroundColor(.white)
-                            .tracking(0.5)
-                        Rectangle().fill(Color.white.opacity(0.35)).frame(height: 0.6)
-                    }
-
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text("HTML & CSS In-Depth")
-                            .font(.system(size: 7.8, weight: .bold))
-                            .foregroundColor(.white)
-                        Text("Meta · Coursera")
-                            .font(.system(size: 7.2))
-                            .foregroundColor(Color.white.opacity(0.75))
-                    }
-
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text("Java (Basic)")
-                            .font(.system(size: 7.8, weight: .bold))
-                            .foregroundColor(.white)
-                        Text("HackerRank")
-                            .font(.system(size: 7.2))
-                            .foregroundColor(Color.white.opacity(0.75))
-                    }
                 }
-                .resumeSection(.header)
-
-                // Section: PASSIONS
-                VStack(alignment: .leading, spacing: 6) {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("PASSIONS")
-                            .font(.system(size: 8.5, weight: .bold))
-                            .foregroundColor(.white)
-                            .tracking(0.5)
-                        Rectangle().fill(Color.white.opacity(0.35)).frame(height: 0.6)
-                    }
-
-                    VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "cpu")
-                                .font(.system(size: 7.5))
-                                .foregroundColor(.white)
-                            Text("On-Device AI")
-                                .font(.system(size: 7.8, weight: .bold))
-                                .foregroundColor(.white)
-                        }
-                        Text("Local LLMs and privacy-first intelligence")
-                            .font(.system(size: 7.2))
-                            .foregroundColor(Color.white.opacity(0.8))
-                    }
-
-                    VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "iphone")
-                                .font(.system(size: 7.5))
-                                .foregroundColor(.white)
-                            Text("Mobile Systems")
-                                .font(.system(size: 7.8, weight: .bold))
-                                .foregroundColor(.white)
-                        }
-                        Text("Clean Swift & Flutter architectures")
-                            .font(.system(size: 7.2))
-                            .foregroundColor(Color.white.opacity(0.8))
-                    }
-                }
-                .resumeSection(.header)
-
-                // Section: FAVORITE QUOTE
-                VStack(alignment: .leading, spacing: 3) {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("FAVORITE QUOTE")
-                            .font(.system(size: 8.5, weight: .bold))
-                            .foregroundColor(.white)
-                            .tracking(0.5)
-                        Rectangle().fill(Color.white.opacity(0.35)).frame(height: 0.6)
-                    }
-                    Text("\"Simplicity is prerequisite for reliability.\"")
-                        .font(.system(size: 7.2).italic())
-                        .foregroundColor(Color.white.opacity(0.9))
-                    Text("— Edsger W. Dijkstra")
-                        .font(.system(size: 6.8))
-                        .foregroundColor(Color.white.opacity(0.7))
-                }
-                .resumeSection(.header)
-
-                // Section: LANGUAGES
-                VStack(alignment: .leading, spacing: 4) {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("LANGUAGES")
-                            .font(.system(size: 8.5, weight: .bold))
-                            .foregroundColor(.white)
-                            .tracking(0.5)
-                        Rectangle().fill(Color.white.opacity(0.35)).frame(height: 0.6)
-                    }
-                    HStack {
-                        Text("English")
-                            .font(.system(size: 7.2))
-                            .foregroundColor(.white)
-                        Spacer()
-                        Text("Fluent")
-                            .font(.system(size: 6.8))
-                            .foregroundColor(Color.white.opacity(0.7))
-                    }
-                    HStack {
-                        Text("Hindi")
-                            .font(.system(size: 7.2))
-                            .foregroundColor(.white)
-                        Spacer()
-                        Text("Native")
-                            .font(.system(size: 6.8))
-                            .foregroundColor(Color.white.opacity(0.7))
-                    }
-                }
-                .resumeSection(.header)
 
                 Spacer()
             }
@@ -1093,7 +921,7 @@ public struct ProfessionalTemplateView: View {
                         HStack(spacing: 2) {
                             Image(systemName: "mappin.circle.fill")
                                 .font(.system(size: 6.5))
-                            Text(userLocation.isEmpty ? "Chennai, India" : userLocation)
+                            Text(userLocation)
                                 .font(.system(size: 6.8))
                         }
                     }
@@ -1269,29 +1097,8 @@ public struct ProfessionalTemplateView: View {
                             }
                         }
                     } else {
-                        VStack(alignment: .leading, spacing: 2) {
-                            HStack {
-                                Text("B.Tech in Computer Science (AI & ML)")
-                                    .font(.system(size: 7.8, weight: .bold))
-                                    .foregroundColor(Color.black)
-                                Spacer()
-                                Text("2024 – 2028")
-                                    .font(.system(size: 7.2))
-                                    .foregroundColor(Color.gray)
-                            }
-                            HStack {
-                                Text("SRM Institute of Science and Technology")
-                                    .font(.system(size: 7.5, weight: .bold))
-                                    .foregroundColor(textBlue)
-                                Spacer()
-                                Text("Chennai, India")
-                                    .font(.system(size: 7.2))
-                                    .foregroundColor(Color.gray)
-                            }
-                            Text("CGPA: 9.77/10 · Data Structures, DBMS, OS, Machine Learning")
-                                .font(.system(size: 6.8))
-                                .foregroundColor(Color.gray)
-                        }
+                        // No education on this resume: the section stays empty
+                        EmptyView()
                     }
                 }
                 .resumeSection(.education)
@@ -1305,12 +1112,12 @@ public struct ProfessionalTemplateView: View {
 // MARK: - Template 3: Modern (Contemporary Blue Accent / Photo Header Style)
 public struct ModernTemplateView: View {
     public let resume: ResumeDocument
-    @AppStorage("userFullName") private var userFullName: String = "Aarav Sharma"
-    @AppStorage("userEmail") private var userEmail: String = "aaravsharma.dev@gmail.com"
-    @AppStorage("userPhone") private var userPhone: String = "+91 9952086492"
+    @AppStorage("userFullName") private var userFullName: String = ""
+    @AppStorage("userEmail") private var userEmail: String = ""
+    @AppStorage("userPhone") private var userPhone: String = ""
     @AppStorage("userLinkedIn") private var userLinkedIn: String = ""
     @AppStorage("userGitHub") private var userGitHub: String = ""
-    @AppStorage("userLocation") private var userLocation: String = "Chennai, India"
+    @AppStorage("userLocation") private var userLocation: String = ""
 
     private let headerBlue = Color(red: 0.11, green: 0.44, blue: 0.72)
 
@@ -1324,7 +1131,7 @@ public struct ModernTemplateView: View {
                         .foregroundColor(headerBlue)
 
                     HStack(spacing: 8) {
-                        Label(userLocation.isEmpty ? "Chennai, India" : userLocation, systemImage: "mappin.circle.fill")
+                        Label(userLocation, systemImage: "mappin.circle.fill")
                         Label(userPhone, systemImage: "phone.fill")
                         Label(userEmail, systemImage: "envelope.fill")
                     }
@@ -1392,20 +1199,11 @@ public struct ModernTemplateView: View {
                             }
                         }
                     } else {
-                    VStack(alignment: .leading, spacing: 2.5) {
-                        Text("\(Text("• Languages: ").bold())\(Text("Python, Java, JavaScript, C, Swift"))")
-                            .font(.system(size: 8.5))
-                        Text("\(Text("• Backend & Databases: ").bold())\(Text("FastAPI, Flask, REST APIs, SQL, SQLAlchemy, SQLite, MySQL, MongoDB, Firebase"))")
-                            .font(.system(size: 8.5))
-                        Text("\(Text("• Frontend: ").bold())\(Text("React, Electron, Flutter, HTML, CSS"))")
-                            .font(.system(size: 8.5))
-                        Text("\(Text("• Engineering Practices: ").bold())\(Text("Data Structures & Algorithms, OOP, Unit Testing, Code Review, Git/GitHub"))")
-                            .font(.system(size: 8.5))
-                        Text("\(Text("• AI & ML: ").bold())\(Text("Supervised Learning, NLP, Computer Vision, RAG, Local LLMs, Ollama"))")
-                            .font(.system(size: 8.5))
-                        Text("\(Text("• Tools: ").bold())\(Text("Selenium, Figma, AI-assisted Development (Copilot / LLM tooling)"))")
-                            .font(.system(size: 8.5))
-                    }
+                        // No grouped skill rows: list the resume's skills as one line
+                        if !resume.skills.isEmpty {
+                            Text(resume.skills.joined(separator: ", "))
+                                .font(.system(size: 8.5))
+                        }
                     }
                 }
                 .foregroundColor(Color.black.opacity(0.85))
@@ -1556,37 +1354,8 @@ public struct ModernTemplateView: View {
                             }
                         }
                     } else {
-                        VStack(alignment: .leading, spacing: 1) {
-                            HStack {
-                                Text("SRM Institute of Science and Technology")
-                                    .font(.system(size: 9, weight: .bold))
-                                Spacer()
-                                Text("2024 – 2028")
-                                    .font(.system(size: 8.5))
-                            }
-                            HStack {
-                                Text("B.Tech in Computer Science (AI & ML), CGPA: 9.77/10")
-                                    .font(.system(size: 8.5).italic())
-                                Spacer()
-                                Text("Chennai, India")
-                                    .font(.system(size: 8.5).italic())
-                            }
-                            Text("Coursework: Data Structures, OOP, DBMS, Operating Systems, Machine Learning, Artificial Intelligence")
-                                .font(.system(size: 8))
-                                .foregroundColor(Color.black.opacity(0.75))
-                        }
-
-                        VStack(alignment: .leading, spacing: 1) {
-                            HStack {
-                                Text("Chinmaya Vidyalaya")
-                                    .font(.system(size: 9, weight: .bold))
-                                Spacer()
-                                Text("Chennai, India")
-                                    .font(.system(size: 8.5))
-                            }
-                            Text("CBSE: XII – 94% · X – 95.6%")
-                                .font(.system(size: 8.5).italic())
-                        }
+                        // No education on this resume: the section stays empty
+                        EmptyView()
                     }
                 }
                 .foregroundColor(Color.black.opacity(0.85))
@@ -2486,12 +2255,12 @@ extension EnvironmentValues {
 // MARK: - Editable Standard Template View
 public struct EditableStandardTemplateView: View {
     @ObservedObject public var viewModel: ResumeViewModel
-    @AppStorage("userFullName") private var userFullName: String = "Aarav Sharma"
-    @AppStorage("userEmail") private var userEmail: String = "aaravsharma.dev@gmail.com"
-    @AppStorage("userPhone") private var userPhone: String = "+91 9952086492"
+    @AppStorage("userFullName") private var userFullName: String = ""
+    @AppStorage("userEmail") private var userEmail: String = ""
+    @AppStorage("userPhone") private var userPhone: String = ""
     @AppStorage("userLinkedIn") private var userLinkedIn: String = ""
     @AppStorage("userGitHub") private var userGitHub: String = ""
-    @AppStorage("userLocation") private var userLocation: String = "Chennai, India"
+    @AppStorage("userLocation") private var userLocation: String = ""
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -2558,45 +2327,8 @@ public struct EditableStandardTemplateView: View {
                             }
                         }
                     } else {
-                        VStack(alignment: .leading, spacing: 2) {
-                            HStack {
-                                Text("SRM Institute of Science and Technology")
-                                    .font(.system(size: 9.5, weight: .bold, design: .serif))
-                                    .resumeSelectable("SRM Institute of Science and Technology", font: resumeUIFont(size: 9.5, isSerif: true, weight: .bold))
-                                Spacer()
-                                Text("Chennai, India")
-                                    .font(.system(size: 9, design: .serif))
-                                    .resumeSelectable("Chennai, India", font: resumeUIFont(size: 9, isSerif: true))
-                            }
-                            HStack {
-                                Text("B.Tech in Computer Science (AI & ML), CGPA: 9.77/10")
-                                    .font(.system(size: 9, design: .serif).italic())
-                                    .resumeSelectable("B.Tech in Computer Science (AI & ML), CGPA: 9.77/10", font: resumeUIFont(size: 9, isSerif: true, italic: true))
-                                Spacer()
-                                Text("2024 – 2028")
-                                    .font(.system(size: 9, design: .serif).italic())
-                                    .resumeSelectable("2024 – 2028", font: resumeUIFont(size: 9, isSerif: true, italic: true))
-                            }
-                            Text("Coursework: Data Structures, OOP, DBMS, Operating Systems, Machine Learning, Artificial Intelligence")
-                                .font(.system(size: 8.5, design: .serif))
-                                .foregroundColor(Color.black.opacity(0.8))
-                                .resumeSelectable("Coursework: Data Structures, OOP, DBMS, Operating Systems, Machine Learning, Artificial Intelligence", font: resumeUIFont(size: 8.5, isSerif: true))
-                        }
-
-                        VStack(alignment: .leading, spacing: 2) {
-                            HStack {
-                                Text("Chinmaya Vidyalaya")
-                                    .font(.system(size: 9.5, weight: .bold, design: .serif))
-                                    .resumeSelectable("Chinmaya Vidyalaya", font: resumeUIFont(size: 9.5, isSerif: true, weight: .bold))
-                                Spacer()
-                                Text("Chennai, India")
-                                    .font(.system(size: 9, design: .serif))
-                                    .resumeSelectable("Chennai, India", font: resumeUIFont(size: 9, isSerif: true))
-                            }
-                            Text("CBSE: XII – 94% · X – 95.6%")
-                                .font(.system(size: 9, design: .serif).italic())
-                                .resumeSelectable("CBSE: XII – 94% · X – 95.6%", font: resumeUIFont(size: 9, isSerif: true, italic: true))
-                        }
+                        // No education on this resume: the section stays empty
+                        EmptyView()
                     }
                 }
             }
@@ -2810,26 +2542,12 @@ public struct EditableStandardTemplateView: View {
                             }
                         }
                     } else {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("\(Text("• Languages: ").bold())\(Text("Python, Java, JavaScript, C, Swift"))")
-                            .font(.system(size: 8.5, design: .serif))
-                            .resumeSelectable("• Languages: Python, Java, JavaScript, C, Swift", font: resumeUIFont(size: 8.5, isSerif: true), boldPrefix: "• Languages: ")
-                        Text("\(Text("• Backend & Databases: ").bold())\(Text("FastAPI, Flask, REST APIs, SQL, SQLAlchemy, SQLite, MySQL, MongoDB, Firebase"))")
-                            .font(.system(size: 8.5, design: .serif))
-                            .resumeSelectable("• Backend & Databases: FastAPI, Flask, REST APIs, SQL, SQLAlchemy, SQLite, MySQL, MongoDB, Firebase", font: resumeUIFont(size: 8.5, isSerif: true), boldPrefix: "• Backend & Databases: ")
-                        Text("\(Text("• Frontend: ").bold())\(Text("React, Electron, Flutter, HTML, CSS"))")
-                            .font(.system(size: 8.5, design: .serif))
-                            .resumeSelectable("• Frontend: React, Electron, Flutter, HTML, CSS", font: resumeUIFont(size: 8.5, isSerif: true), boldPrefix: "• Frontend: ")
-                        Text("\(Text("• Engineering Practices: ").bold())\(Text("Data Structures & Algorithms, OOP, Unit Testing, Code Review, Git/GitHub"))")
-                            .font(.system(size: 8.5, design: .serif))
-                            .resumeSelectable("• Engineering Practices: Data Structures & Algorithms, OOP, Unit Testing, Code Review, Git/GitHub", font: resumeUIFont(size: 8.5, isSerif: true), boldPrefix: "• Engineering Practices: ")
-                        Text("\(Text("• AI & ML: ").bold())\(Text("Supervised Learning, NLP, Computer Vision, RAG, Local LLMs, Ollama"))")
-                            .font(.system(size: 8.5, design: .serif))
-                            .resumeSelectable("• AI & ML: Supervised Learning, NLP, Computer Vision, RAG, Local LLMs, Ollama", font: resumeUIFont(size: 8.5, isSerif: true), boldPrefix: "• AI & ML: ")
-                        Text("\(Text("• Tools: ").bold())\(Text("Selenium, Figma, AI-assisted Development (Copilot / LLM tooling)"))")
-                            .font(.system(size: 8.5, design: .serif))
-                            .resumeSelectable("• Tools: Selenium, Figma, AI-assisted Development (Copilot / LLM tooling)", font: resumeUIFont(size: 8.5, isSerif: true), boldPrefix: "• Tools: ")
-                    }
+                        // No grouped skill rows: list the resume's skills as one line
+                        if !viewModel.activeResume.skills.isEmpty {
+                            Text(viewModel.activeResume.skills.joined(separator: ", "))
+                                .font(.system(size: 8.5, design: .serif))
+                                .resumeSelectable(viewModel.activeResume.skills.joined(separator: ", "), font: resumeUIFont(size: 8.5, isSerif: true))
+                        }
                     }
                 }
             }
@@ -2866,11 +2584,11 @@ public struct EditableStandardTemplateView: View {
 // MARK: - Editable Professional Template View (Two-Column Dark Slate Sidebar / Jason Reed Style)
 public struct EditableProfessionalTemplateView: View {
     @ObservedObject public var viewModel: ResumeViewModel
-    @AppStorage("userFullName") private var userFullName: String = "Aarav Sharma"
-    @AppStorage("userEmail") private var userEmail: String = "aaravsharma.dev@gmail.com"
-    @AppStorage("userPhone") private var userPhone: String = "+91 9952086492"
+    @AppStorage("userFullName") private var userFullName: String = ""
+    @AppStorage("userEmail") private var userEmail: String = ""
+    @AppStorage("userPhone") private var userPhone: String = ""
     @AppStorage("userLinkedIn") private var userLinkedIn: String = ""
-    @AppStorage("userLocation") private var userLocation: String = "Chennai, India"
+    @AppStorage("userLocation") private var userLocation: String = ""
 
     private let sidebarBg = Color(red: 0.12, green: 0.20, blue: 0.29)
     private let textBlue = Color(red: 0.11, green: 0.46, blue: 0.86)
@@ -2890,7 +2608,8 @@ public struct EditableProfessionalTemplateView: View {
                 .resumeSection(.header)
                 .padding(.top, 14)
 
-                // Section: KEY ACHIEVEMENTS
+                // Section: KEY ACHIEVEMENTS (the resume's own achievements; hidden when it has none)
+                if !viewModel.activeResume.achievements.isEmpty {
                 VStack(alignment: .leading, spacing: 7) {
                     VStack(alignment: .leading, spacing: 3) {
                         Text("KEY ACHIEVEMENTS")
@@ -2901,197 +2620,29 @@ public struct EditableProfessionalTemplateView: View {
                         Rectangle().fill(Color.white.opacity(0.35)).frame(height: 0.6)
                     }
 
-                    // Stat 1
-                    VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "trophy.fill")
-                                .font(.system(size: 7.5))
-                                .foregroundColor(.yellow)
-                            Text("Ideathon Winner")
-                                .font(.system(size: 8, weight: .bold))
-                                .foregroundColor(.white)
-                                .resumeSelectable("Ideathon Winner", font: resumeUIFont(size: 8, weight: .bold))
+                    ForEach(Array(viewModel.activeResume.achievements.prefix(4).enumerated()), id: \.offset) { _, achievement in
+                        let parts = achievement.components(separatedBy: " — ")
+                        VStack(alignment: .leading, spacing: 2) {
+                            HStack(alignment: .top, spacing: 4) {
+                                Image(systemName: "trophy.fill")
+                                    .font(.system(size: 7.5))
+                                    .foregroundColor(.yellow)
+                                Text(parts[0])
+                                    .font(.system(size: 8, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .resumeSelectable(parts[0], font: resumeUIFont(size: 8, weight: .bold))
+                            }
+                            if parts.count > 1 {
+                                Text(parts.dropFirst().joined(separator: " — "))
+                                    .font(.system(size: 7.2))
+                                    .foregroundColor(Color.white.opacity(0.8))
+                                    .lineSpacing(1.2)
+                            }
                         }
-                        Text("1st place Horizon 2025 for EduChain (Hyperledger Fabric)")
-                            .font(.system(size: 7.2))
-                            .foregroundColor(Color.white.opacity(0.8))
-                            .lineSpacing(1.2)
-                            .resumeSelectable("1st place Horizon 2025 for EduChain (Hyperledger Fabric)", font: resumeUIFont(size: 7.2))
-                    }
-
-                    // Stat 2
-                    VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "bolt.fill")
-                                .font(.system(size: 7.5))
-                                .foregroundColor(.yellow)
-                            Text("Code for Good")
-                                .font(.system(size: 8, weight: .bold))
-                                .foregroundColor(.white)
-                                .resumeSelectable("Code for Good", font: resumeUIFont(size: 8, weight: .bold))
-                        }
-                        Text("Selected by JPMorgan Chase out of 15,000+ applicants")
-                            .font(.system(size: 7.2))
-                            .foregroundColor(Color.white.opacity(0.8))
-                            .lineSpacing(1.2)
-                            .resumeSelectable("Selected by JPMorgan Chase out of 15,000+ applicants", font: resumeUIFont(size: 7.2))
-                    }
-
-                    // Stat 3
-                    VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "chart.line.uptrend.xyaxis")
-                                .font(.system(size: 7.5))
-                                .foregroundColor(.yellow)
-                            Text("80%+ Accuracy")
-                                .font(.system(size: 8, weight: .bold))
-                                .foregroundColor(.white)
-                                .resumeSelectable("80%+ Accuracy", font: resumeUIFont(size: 8, weight: .bold))
-                        }
-                        Text("Visual search over 1,000+ SKUs at EduSkill")
-                            .font(.system(size: 7.2))
-                            .foregroundColor(Color.white.opacity(0.8))
-                            .lineSpacing(1.2)
-                            .resumeSelectable("Visual search over 1,000+ SKUs at EduSkill", font: resumeUIFont(size: 7.2))
                     }
                 }
                 .resumeSection(.header)
-
-                // Section: CERTIFICATION
-                VStack(alignment: .leading, spacing: 6) {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("CERTIFICATION")
-                            .font(.system(size: 8.5, weight: .bold))
-                            .foregroundColor(.white)
-                            .tracking(0.5)
-                            .resumeSelectable("CERTIFICATION", font: resumeUIFont(size: 8.5, weight: .bold))
-                        Rectangle().fill(Color.white.opacity(0.35)).frame(height: 0.6)
-                    }
-
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text("HTML & CSS In-Depth")
-                            .font(.system(size: 7.8, weight: .bold))
-                            .foregroundColor(.white)
-                            .resumeSelectable("HTML & CSS In-Depth", font: resumeUIFont(size: 7.8, weight: .bold))
-                        Text("Meta · Coursera")
-                            .font(.system(size: 7.2))
-                            .foregroundColor(Color.white.opacity(0.75))
-                            .resumeSelectable("Meta · Coursera", font: resumeUIFont(size: 7.2))
-                    }
-
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text("Java (Basic)")
-                            .font(.system(size: 7.8, weight: .bold))
-                            .foregroundColor(.white)
-                            .resumeSelectable("Java (Basic)", font: resumeUIFont(size: 7.8, weight: .bold))
-                        Text("HackerRank")
-                            .font(.system(size: 7.2))
-                            .foregroundColor(Color.white.opacity(0.75))
-                            .resumeSelectable("HackerRank", font: resumeUIFont(size: 7.2))
-                    }
                 }
-                .resumeSection(.header)
-
-                // Section: PASSIONS
-                VStack(alignment: .leading, spacing: 6) {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("PASSIONS")
-                            .font(.system(size: 8.5, weight: .bold))
-                            .foregroundColor(.white)
-                            .tracking(0.5)
-                            .resumeSelectable("PASSIONS", font: resumeUIFont(size: 8.5, weight: .bold))
-                        Rectangle().fill(Color.white.opacity(0.35)).frame(height: 0.6)
-                    }
-
-                    VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "cpu")
-                                .font(.system(size: 7.5))
-                                .foregroundColor(.white)
-                            Text("On-Device AI")
-                                .font(.system(size: 7.8, weight: .bold))
-                                .foregroundColor(.white)
-                                .resumeSelectable("On-Device AI", font: resumeUIFont(size: 7.8, weight: .bold))
-                        }
-                        Text("Local LLMs and privacy-first intelligence")
-                            .font(.system(size: 7.2))
-                            .foregroundColor(Color.white.opacity(0.8))
-                            .resumeSelectable("Local LLMs and privacy-first intelligence", font: resumeUIFont(size: 7.2))
-                    }
-
-                    VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "iphone")
-                                .font(.system(size: 7.5))
-                                .foregroundColor(.white)
-                            Text("Mobile Systems")
-                                .font(.system(size: 7.8, weight: .bold))
-                                .foregroundColor(.white)
-                                .resumeSelectable("Mobile Systems", font: resumeUIFont(size: 7.8, weight: .bold))
-                        }
-                        Text("Clean Swift & Flutter architectures")
-                            .font(.system(size: 7.2))
-                            .foregroundColor(Color.white.opacity(0.8))
-                            .resumeSelectable("Clean Swift & Flutter architectures", font: resumeUIFont(size: 7.2))
-                    }
-                }
-                .resumeSection(.header)
-
-                // Section: FAVORITE QUOTE
-                VStack(alignment: .leading, spacing: 3) {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("FAVORITE QUOTE")
-                            .font(.system(size: 8.5, weight: .bold))
-                            .foregroundColor(.white)
-                            .tracking(0.5)
-                            .resumeSelectable("FAVORITE QUOTE", font: resumeUIFont(size: 8.5, weight: .bold))
-                        Rectangle().fill(Color.white.opacity(0.35)).frame(height: 0.6)
-                    }
-                    Text("\"Simplicity is prerequisite for reliability.\"")
-                        .font(.system(size: 7.2).italic())
-                        .foregroundColor(Color.white.opacity(0.9))
-                        .resumeSelectable("\"Simplicity is prerequisite for reliability.\"", font: resumeUIFont(size: 7.2, italic: true))
-                    Text("— Edsger W. Dijkstra")
-                        .font(.system(size: 6.8))
-                        .foregroundColor(Color.white.opacity(0.7))
-                        .resumeSelectable("— Edsger W. Dijkstra", font: resumeUIFont(size: 6.8))
-                }
-                .resumeSection(.header)
-
-                // Section: LANGUAGES
-                VStack(alignment: .leading, spacing: 4) {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("LANGUAGES")
-                            .font(.system(size: 8.5, weight: .bold))
-                            .foregroundColor(.white)
-                            .tracking(0.5)
-                            .resumeSelectable("LANGUAGES", font: resumeUIFont(size: 8.5, weight: .bold))
-                        Rectangle().fill(Color.white.opacity(0.35)).frame(height: 0.6)
-                    }
-                    HStack {
-                        Text("English")
-                            .font(.system(size: 7.2))
-                            .foregroundColor(.white)
-                            .resumeSelectable("English", font: resumeUIFont(size: 7.2))
-                        Spacer()
-                        Text("Fluent")
-                            .font(.system(size: 6.8))
-                            .foregroundColor(Color.white.opacity(0.7))
-                            .resumeSelectable("Fluent", font: resumeUIFont(size: 6.8))
-                    }
-                    HStack {
-                        Text("Hindi")
-                            .font(.system(size: 7.2))
-                            .foregroundColor(.white)
-                            .resumeSelectable("Hindi", font: resumeUIFont(size: 7.2))
-                        Spacer()
-                        Text("Native")
-                            .font(.system(size: 6.8))
-                            .foregroundColor(Color.white.opacity(0.7))
-                            .resumeSelectable("Native", font: resumeUIFont(size: 6.8))
-                    }
-                }
-                .resumeSection(.header)
 
                 Spacer()
             }
@@ -3135,7 +2686,7 @@ public struct EditableProfessionalTemplateView: View {
                         HStack(spacing: 2) {
                             Image(systemName: "mappin.circle.fill")
                                 .font(.system(size: 6.5))
-                            let loc = userLocation.isEmpty ? "Chennai, India" : userLocation
+                            let loc = userLocation
                             Text(loc)
                                 .font(.system(size: 6.8))
                                 .resumeSelectable(loc, font: resumeUIFont(size: 6.8))
@@ -3376,34 +2927,8 @@ public struct EditableProfessionalTemplateView: View {
                             }
                         }
                     } else {
-                        VStack(alignment: .leading, spacing: 2) {
-                            HStack {
-                                Text("B.Tech in Computer Science (AI & ML)")
-                                    .font(.system(size: 7.8, weight: .bold))
-                                    .foregroundColor(Color.black)
-                                    .resumeSelectable("B.Tech in Computer Science (AI & ML)", font: resumeUIFont(size: 7.8, weight: .bold))
-                                Spacer()
-                                Text("2024 – 2028")
-                                    .font(.system(size: 7.2))
-                                    .foregroundColor(Color.gray)
-                                    .resumeSelectable("2024 – 2028", font: resumeUIFont(size: 7.2))
-                            }
-                            HStack {
-                                Text("SRM Institute of Science and Technology")
-                                    .font(.system(size: 7.5, weight: .bold))
-                                    .foregroundColor(textBlue)
-                                    .resumeSelectable("SRM Institute of Science and Technology", font: resumeUIFont(size: 7.5, weight: .bold))
-                                Spacer()
-                                Text("Chennai, India")
-                                    .font(.system(size: 7.2))
-                                    .foregroundColor(Color.gray)
-                                    .resumeSelectable("Chennai, India", font: resumeUIFont(size: 7.2))
-                            }
-                            Text("CGPA: 9.77/10 · Data Structures, DBMS, OS, Machine Learning")
-                                .font(.system(size: 6.8))
-                                .foregroundColor(Color.gray)
-                                .resumeSelectable("CGPA: 9.77/10 · Data Structures, DBMS, OS, Machine Learning", font: resumeUIFont(size: 6.8))
-                        }
+                        // No education on this resume: the section stays empty
+                        EmptyView()
                     }
                 }
                 .resumeSection(.education)
@@ -3426,12 +2951,12 @@ public struct EditableProfessionalTemplateView: View {
 // MARK: - Editable Modern Template View (Contemporary Blue Accent / Photo Header Style)
 public struct EditableModernTemplateView: View {
     @ObservedObject public var viewModel: ResumeViewModel
-    @AppStorage("userFullName") private var userFullName: String = "Aarav Sharma"
-    @AppStorage("userEmail") private var userEmail: String = "aaravsharma.dev@gmail.com"
-    @AppStorage("userPhone") private var userPhone: String = "+91 9952086492"
+    @AppStorage("userFullName") private var userFullName: String = ""
+    @AppStorage("userEmail") private var userEmail: String = ""
+    @AppStorage("userPhone") private var userPhone: String = ""
     @AppStorage("userLinkedIn") private var userLinkedIn: String = ""
     @AppStorage("userGitHub") private var userGitHub: String = ""
-    @AppStorage("userLocation") private var userLocation: String = "Chennai, India"
+    @AppStorage("userLocation") private var userLocation: String = ""
 
     private let headerBlue = Color(red: 0.11, green: 0.44, blue: 0.72)
 
@@ -3445,7 +2970,7 @@ public struct EditableModernTemplateView: View {
                         .foregroundColor(headerBlue)
                         .resumeSelectable(userFullName, font: resumeUIFont(size: 21, weight: .bold))
 
-                    let locDisplay = userLocation.isEmpty ? "Chennai, India" : userLocation
+                    let locDisplay = userLocation
                     let linkedInDisplay = userLinkedIn.isEmpty ? "linkedin.com/in/\(userFullName.lowercased().replacingOccurrences(of: " ", with: "-"))" : userLinkedIn
                     let gitHubDisplay = userGitHub.isEmpty ? "github.com/\(userFullName.lowercased().components(separatedBy: " ").first ?? "user")-dev" : userGitHub
 
@@ -3557,26 +3082,12 @@ public struct EditableModernTemplateView: View {
                             }
                         }
                     } else {
-                    VStack(alignment: .leading, spacing: 2.5) {
-                        Text("\(Text("• Languages: ").bold())\(Text("Python, Java, JavaScript, C, Swift"))")
-                            .font(.system(size: 8.5))
-                            .resumeSelectable("• Languages: Python, Java, JavaScript, C, Swift", font: resumeUIFont(size: 8.5), boldPrefix: "• Languages: ")
-                        Text("\(Text("• Backend & Databases: ").bold())\(Text("FastAPI, Flask, REST APIs, SQL, SQLAlchemy, SQLite, MySQL, MongoDB, Firebase"))")
-                            .font(.system(size: 8.5))
-                            .resumeSelectable("• Backend & Databases: FastAPI, Flask, REST APIs, SQL, SQLAlchemy, SQLite, MySQL, MongoDB, Firebase", font: resumeUIFont(size: 8.5), boldPrefix: "• Backend & Databases: ")
-                        Text("\(Text("• Frontend: ").bold())\(Text("React, Electron, Flutter, HTML, CSS"))")
-                            .font(.system(size: 8.5))
-                            .resumeSelectable("• Frontend: React, Electron, Flutter, HTML, CSS", font: resumeUIFont(size: 8.5), boldPrefix: "• Frontend: ")
-                        Text("\(Text("• Engineering Practices: ").bold())\(Text("Data Structures & Algorithms, OOP, Unit Testing, Code Review, Git/GitHub"))")
-                            .font(.system(size: 8.5))
-                            .resumeSelectable("• Engineering Practices: Data Structures & Algorithms, OOP, Unit Testing, Code Review, Git/GitHub", font: resumeUIFont(size: 8.5), boldPrefix: "• Engineering Practices: ")
-                        Text("\(Text("• AI & ML: ").bold())\(Text("Supervised Learning, NLP, Computer Vision, RAG, Local LLMs, Ollama"))")
-                            .font(.system(size: 8.5))
-                            .resumeSelectable("• AI & ML: Supervised Learning, NLP, Computer Vision, RAG, Local LLMs, Ollama", font: resumeUIFont(size: 8.5), boldPrefix: "• AI & ML: ")
-                        Text("\(Text("• Tools: ").bold())\(Text("Selenium, Figma, AI-assisted Development (Copilot / LLM tooling)"))")
-                            .font(.system(size: 8.5))
-                            .resumeSelectable("• Tools: Selenium, Figma, AI-assisted Development (Copilot / LLM tooling)", font: resumeUIFont(size: 8.5), boldPrefix: "• Tools: ")
-                    }
+                        // No grouped skill rows: list the resume's skills as one line
+                        if !viewModel.activeResume.skills.isEmpty {
+                            Text(viewModel.activeResume.skills.joined(separator: ", "))
+                                .font(.system(size: 8.5))
+                                .resumeSelectable(viewModel.activeResume.skills.joined(separator: ", "), font: resumeUIFont(size: 8.5))
+                        }
                     }
                 }
                 .foregroundColor(Color.black.opacity(0.85))
@@ -3765,45 +3276,8 @@ public struct EditableModernTemplateView: View {
                             }
                         }
                     } else {
-                        VStack(alignment: .leading, spacing: 1) {
-                            HStack {
-                                Text("SRM Institute of Science and Technology")
-                                    .font(.system(size: 9, weight: .bold))
-                                    .resumeSelectable("SRM Institute of Science and Technology", font: resumeUIFont(size: 9, weight: .bold))
-                                Spacer()
-                                Text("2024 – 2028")
-                                    .font(.system(size: 8.5))
-                                    .resumeSelectable("2024 – 2028", font: resumeUIFont(size: 8.5))
-                            }
-                            HStack {
-                                Text("B.Tech in Computer Science (AI & ML), CGPA: 9.77/10")
-                                    .font(.system(size: 8.5).italic())
-                                    .resumeSelectable("B.Tech in Computer Science (AI & ML), CGPA: 9.77/10", font: resumeUIFont(size: 8.5, italic: true))
-                                Spacer()
-                                Text("Chennai, India")
-                                    .font(.system(size: 8.5).italic())
-                                    .resumeSelectable("Chennai, India", font: resumeUIFont(size: 8.5, italic: true))
-                            }
-                            Text("Coursework: Data Structures, OOP, DBMS, Operating Systems, Machine Learning, Artificial Intelligence")
-                                .font(.system(size: 8))
-                                .foregroundColor(Color.black.opacity(0.75))
-                                .resumeSelectable("Coursework: Data Structures, OOP, DBMS, Operating Systems, Machine Learning, Artificial Intelligence", font: resumeUIFont(size: 8))
-                        }
-
-                        VStack(alignment: .leading, spacing: 1) {
-                            HStack {
-                                Text("Chinmaya Vidyalaya")
-                                    .font(.system(size: 9, weight: .bold))
-                                    .resumeSelectable("Chinmaya Vidyalaya", font: resumeUIFont(size: 9, weight: .bold))
-                                Spacer()
-                                Text("Chennai, India")
-                                    .font(.system(size: 8.5))
-                                    .resumeSelectable("Chennai, India", font: resumeUIFont(size: 8.5))
-                            }
-                            Text("CBSE: XII – 94% · X – 95.6%")
-                                .font(.system(size: 8.5).italic())
-                                .resumeSelectable("CBSE: XII – 94% · X – 95.6%", font: resumeUIFont(size: 8.5, italic: true))
-                        }
+                        // No education on this resume: the section stays empty
+                        EmptyView()
                     }
                 }
                 .foregroundColor(Color.black.opacity(0.85))
@@ -4672,6 +4146,8 @@ public struct ResumeDownloadConfirmationScreen: View {
 public struct AddResumeOptionsSheet: View {
     public let onAddResume: () -> Void
     public let onBuildFromProfile: () -> Void
+    /// Building from the profile needs a filled-in profile; otherwise the sheet explains why not
+    public var isProfileComplete: Bool = false
     @Environment(\.dismiss) private var dismiss
     @State private var showProfileIncompleteAlert: Bool = false
 
@@ -4745,7 +4221,12 @@ public struct AddResumeOptionsSheet: View {
 
                         // Option 2: Build Resume from Profile (Requires complete profile)
                         Button {
-                            showProfileIncompleteAlert = true
+                            if isProfileComplete {
+                                dismiss()
+                                onBuildFromProfile()
+                            } else {
+                                showProfileIncompleteAlert = true
+                            }
                         } label: {
                             HStack(spacing: 14) {
                                 ZStack {
@@ -4805,6 +4286,7 @@ public struct AddResumeOptionsSheet: View {
 public struct ResumeUploadModalView: View {
     @ObservedObject public var viewModel: ResumeViewModel
     @Environment(\.dismiss) private var dismiss
+    @State private var showingFilePicker: Bool = false
 
     public var body: some View {
         NavigationStack {
@@ -4863,7 +4345,7 @@ public struct ResumeUploadModalView: View {
                     .padding(.horizontal, 20)
 
                     Button {
-                        dismiss()
+                        showingFilePicker = true
                     } label: {
                         Text("Browse Files on iPhone")
                             .font(.system(size: 15, weight: .bold))
@@ -4883,6 +4365,12 @@ public struct ResumeUploadModalView: View {
         }
         .presentationDetents([.fraction(0.50), .medium])
         .presentationDragIndicator(.visible)
+        .fileImporter(isPresented: $showingFilePicker, allowedContentTypes: [.pdf]) { result in
+            if case .success(let url) = result {
+                viewModel.importResume(from: url)
+                dismiss()
+            }
+        }
     }
 }
 

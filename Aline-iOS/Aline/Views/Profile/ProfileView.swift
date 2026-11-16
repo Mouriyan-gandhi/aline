@@ -804,6 +804,8 @@ struct MyCommentsView: View {
         .navigationDestination(item: $selectedPost) { post in
             DiscussionDetailView(post: post, viewModel: communityViewModel)
         }
+        // Comments live inside each thread, which the feed doesn't carry
+        .task { await communityViewModel.loadAllComments() }
     }
 }
 
@@ -1809,40 +1811,22 @@ extension EditProfileSheet {
             : "Added \(addedSkills) skills, \(addedExperiences) experiences, \(addedProjects) projects. Tap Save to keep them."
     }
 
-    /// Best-effort read of an uploaded PDF. Full parsing (experience, projects) needs the backend.
+    /// Reads an uploaded PDF into the draft — skills, experience and projects — without
+    /// overwriting what the user already entered (on-device model when available, heuristics otherwise).
     func importUploadedResume(_ url: URL) {
         let hasAccess = url.startAccessingSecurityScopedResource()
-        defer { if hasAccess { url.stopAccessingSecurityScopedResource() } }
+        let text = PDFTextExtractor.extractText(from: url)
+        if hasAccess { url.stopAccessingSecurityScopedResource() }
 
-        guard let text = PDFDocument(url: url)?.string, !text.isEmpty else {
+        guard let text, !text.isEmpty else {
             importMessage = "We couldn't read that file. Try another PDF or add details manually."
             return
         }
-
-        let lines = text.components(separatedBy: .newlines).map { $0.trimmingCharacters(in: .whitespaces) }
-        guard let headerIndex = lines.firstIndex(where: { $0.lowercased().hasPrefix("skills") }) else {
-            importMessage = "We couldn't find a skills section. Add details manually or use an Aline resume."
-            return
+        importMessage = "Reading your resume…"
+        Task {
+            let parsed = await ResumeStructurer.structure(resumeText: text)
+            importAlineResume(ResumeDocument(parsed: parsed, fileName: url.lastPathComponent, fileSize: nil))
         }
-
-        var raw = lines[headerIndex].drop { $0 != ":" }.dropFirst().description
-        for line in lines.dropFirst(headerIndex + 1) {
-            if line.isEmpty { break }
-            raw += "," + line
-        }
-        let found = raw
-            .components(separatedBy: CharacterSet(charactersIn: ",•|·\n"))
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty && $0.count < 30 }
-
-        var added = 0
-        for skill in found where !draft.skills.contains(where: { $0.caseInsensitiveCompare(skill) == .orderedSame }) {
-            draft.skills.append(skill)
-            added += 1
-        }
-        importMessage = added == 0
-            ? "No new skills found in that resume."
-            : "Added \(added) skills. Experience and projects aren't read from uploads yet."
     }
 }
 
@@ -2559,7 +2543,8 @@ public struct HelpAndFeedbackSheet: View {
             canSave: !feedback.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
             requiredHint: "Write your feedback to send it."
         ) {
-            // Feedback is collected locally until a backend exists.
+            let message = feedback.trimmingCharacters(in: .whitespacesAndNewlines)
+            Task { try? await AlineAPI.sendFeedback(category: "General", message: message) }
         } content: {
             ProfileCard {
                 ProfileField(title: "Send us feedback", text: $feedback, placeholder: "Tell us what's working and what isn't", multiline: true)

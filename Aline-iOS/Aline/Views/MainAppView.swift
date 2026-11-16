@@ -10,6 +10,7 @@ public struct MainAppView: View {
     @StateObject private var profileViewModel = ProfileViewModel()
 
     @State private var isSplashActive: Bool
+    @Environment(\.scenePhase) private var scenePhase
     /// Which auth form is open from the welcome screen (nil = welcome screen itself)
     @State private var authEntry: AuthenticationView.AuthMode? = nil
 
@@ -102,11 +103,40 @@ public struct MainAppView: View {
         }
         .onAppear {
             profileViewModel.syncWithStoredUser()
-            profileViewModel.onProfileUpdated = { [weak resumeViewModel, weak navViewModel] updatedProfile in
-                navViewModel?.currentUserFullName = updatedProfile.name
+            profileViewModel.onProfileUpdated = { [weak resumeViewModel, weak navViewModel, weak discoverViewModel, weak profileViewModel] updatedProfile in
+                guard let profileViewModel else { return }
+                if !updatedProfile.name.isEmpty {
+                    navViewModel?.currentUserFullName = updatedProfile.name
+                }
                 resumeViewModel?.syncWithProfile(updatedProfile, achievements: profileViewModel.achievements)
+                discoverViewModel?.updateMatching(
+                    profile: updatedProfile, achievements: profileViewModel.achievements, preferences: profileViewModel.preferences
+                )
             }
             resumeViewModel.syncWithProfile(profileViewModel.profile, achievements: profileViewModel.achievements)
+            discoverViewModel.updateMatching(
+                profile: profileViewModel.profile, achievements: profileViewModel.achievements, preferences: profileViewModel.preferences
+            )
+        }
+        // Signed in and onboarded: load everything from the backend
+        .task(id: navViewModel.isAuthenticated && navViewModel.hasCompletedOnboarding) {
+            guard navViewModel.isAuthenticated && navViewModel.hasCompletedOnboarding else { return }
+            await loadFromBackend()
+        }
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .active, navViewModel.isAuthenticated, navViewModel.hasCompletedOnboarding else { return }
+            Task { await loadFromBackend() }
+        }
+        .onReceive(discoverViewModel.$opportunities) { _ in
+            navViewModel.updateUnreadCount(opportunityIDs: discoverViewModel.newMatchingOpportunities.map(\.id))
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .onboardingDidComplete)) { notif in
+            if let answers = notif.object as? OnboardingAnswers {
+                profileViewModel.applyOnboarding(answers)
+                if let resumeURL = answers.resumeURL {
+                    resumeViewModel.importResume(from: resumeURL)
+                }
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .userProfileDidUpdate)) { notif in
             if let updated = notif.object as? UserProfile {
@@ -116,6 +146,17 @@ public struct MainAppView: View {
                 }
             }
         }
+    }
+
+    private func loadFromBackend() async {
+        discoverViewModel.refresh()
+        async let profile: Void = profileViewModel.load()
+        async let community: Void = communityViewModel.load()
+        async let resumes: Void = resumeViewModel.load()
+        async let questions: Void = prepViewModel.load()
+        _ = await (profile, community, resumes, questions)
+        resumeViewModel.syncWithProfile(profileViewModel.profile, achievements: profileViewModel.achievements)
+        await navViewModel.refreshNotifications(opportunityIDs: discoverViewModel.newMatchingOpportunities.map(\.id))
     }
 
     @ViewBuilder
@@ -309,15 +350,15 @@ public struct NotificationsSheetView: View {
                     VStack(spacing: 14) {
                         if selectedFilter == .opportunities {
                             // OPPORTUNITY NOTIFICATIONS (same card as Discover's Explore More, plus a View button)
-                            opportunityNotificationCard(oppId: "opp-google-4", companyName: "Google", time: "10m ago", isUnread: true)
-                            opportunityNotificationCard(oppId: "opp-ola-1", companyName: "Ola", time: "35m ago", isUnread: true)
-                            opportunityNotificationCard(oppId: "opp-flipkart-2", companyName: "Flipkart", time: "2h ago", isUnread: false)
-                            opportunityNotificationCard(oppId: "opp-apple-3", companyName: "Apple", time: "1d ago", isUnread: false)
+                            // New jobs from the last few days that match the profile well
+                            ForEach(discoverViewModel.newMatchingOpportunities) { opp in
+                                opportunityNotificationCard(oppId: opp.id, companyName: opp.companyName, time: opp.recency, isUnread: true)
+                            }
                         } else {
                             // COMMUNITY NOTIFICATIONS (compact cards styled like the Community feed posts)
                             communityFilterRow
 
-                            let items = CommunityNotificationItem.samples.filter {
+                            let items = navViewModel.communityNotifications.filter {
                                 communityFilter == .all || $0.kind.filter == communityFilter
                             }
                             ForEach(items) { item in
@@ -379,10 +420,13 @@ public struct NotificationsSheetView: View {
         time: String,
         isUnread: Bool
     ) -> some View {
-        let targetOpp = discoverViewModel.opportunities.first(where: { $0.id == oppId })
-            ?? Opportunity.dataset.first(where: { $0.id == oppId })
-            ?? Opportunity.samples.first(where: { $0.companyName == companyName })
-            ?? Opportunity.samples[0]
+        if let targetOpp = discoverViewModel.opportunities.first(where: { $0.id == oppId }) {
+            opportunityNotificationCard(targetOpp, oppId: oppId, time: time, isUnread: isUnread)
+        }
+    }
+
+    @ViewBuilder
+    private func opportunityNotificationCard(_ targetOpp: Opportunity, oppId: String, time: String, isUnread: Bool) -> some View {
         let showsUnreadDot = navViewModel.isNotificationUnread(oppId, initiallyUnread: isUnread)
         let shortLocation = targetOpp.location.components(separatedBy: ",").first ?? targetOpp.location
 
@@ -470,11 +514,14 @@ public struct NotificationsSheetView: View {
     // MARK: - Community Notification Card (compact, styled like a Community feed post)
     @ViewBuilder
     private func communityNotificationCard(_ item: CommunityNotificationItem) -> some View {
-        let targetPost = communityViewModel.posts.first(where: { $0.id == item.postId })
-            ?? DiscussionPost.samples.first(where: { $0.id == item.postId })
-            ?? DiscussionPost.samples[0]
-        let actorAvatar = communityViewModel.posts.first(where: { $0.authorName == item.actor })?.resolvedAvatar
-            ?? targetPost.resolvedAvatar
+        if let targetPost = communityViewModel.posts.first(where: { $0.id == item.postId }) {
+            communityNotificationCard(item, targetPost: targetPost)
+        }
+    }
+
+    @ViewBuilder
+    private func communityNotificationCard(_ item: CommunityNotificationItem, targetPost: DiscussionPost) -> some View {
+        let actorAvatar = item.actorAvatar ?? targetPost.resolvedAvatar
         let showsUnreadDot = navViewModel.isNotificationUnread(item.id, initiallyUnread: item.isUnread)
         let snippet = item.snippet.isEmpty ? targetPost.excerpt : item.snippet
 
@@ -655,71 +702,25 @@ struct CommunityNotificationItem: Identifiable {
     let time: String
     let isUnread: Bool
 
-    static let samples: [CommunityNotificationItem] = [
-        CommunityNotificationItem(
-            id: "notif-com-12-1",
-            kind: .commentedOnPost,
-            actor: "pixel_Corgi",
-            postId: "post-12",
-            snippet: "Block 45 minutes right after your last class and only do one pattern per week. Consistency beats volume.",
-            time: "20m ago",
-            isUnread: true
-        ),
-        CommunityNotificationItem(
-            id: "notif-like-com-2",
-            kind: .likedComment,
-            actor: "algo_Panda",
-            postId: "post-1",
-            snippet: "Did you need to write full syntactically compilable code or was pseudo-code acceptable initially?",
-            time: "1h ago",
-            isUnread: true
-        ),
-        CommunityNotificationItem(
-            id: "notif-reply-com-2",
-            kind: .repliedToComment,
-            actor: "rc_Falcon",
-            postId: "post-1",
-            snippet: "Pseudo-code was fine for the first pass, but they asked me to turn the core loop into real code before time ran out.",
-            time: "2h ago",
-            isUnread: false
-        ),
-        CommunityNotificationItem(
-            id: "notif-com-12-2",
-            kind: .commentedOnPost,
-            actor: "stripe_Hacker",
-            postId: "post-12",
-            snippet: "Skip contests during exam weeks and revise old problems instead. It keeps the streak without the stress.",
-            time: "3h ago",
-            isUnread: false
-        ),
-        CommunityNotificationItem(
-            id: "notif-like-post-12",
-            kind: .likedPost,
-            actor: "swift_Otter",
-            postId: "post-12",
-            snippet: "",
-            time: "5h ago",
-            isUnread: false
-        ),
-        CommunityNotificationItem(
-            id: "notif-post-4",
-            kind: .newPost,
-            actor: "algo_Panda",
-            postId: "post-4",
-            snippet: "",
-            time: "1d ago",
-            isUnread: false
-        ),
-        CommunityNotificationItem(
-            id: "notif-post-6",
-            kind: .newPost,
-            actor: "cyber_Penguin",
-            postId: "post-6",
-            snippet: "",
-            time: "2d ago",
-            isUnread: false
+    /// Avatar of whoever acted, from the backend
+    var actorAvatar: String? = nil
+}
+
+extension CommunityNotificationItem {
+    init(dto: NotificationDTO) {
+        let kind: Kind
+        switch dto.kind {
+        case "replied_to_comment": kind = .repliedToComment
+        case "liked_comment": kind = .likedComment
+        case "liked_post": kind = .likedPost
+        case "new_post": kind = .newPost
+        default: kind = .commentedOnPost
+        }
+        self.init(
+            id: dto.id, kind: kind, actor: dto.actor, postId: dto.postId, snippet: dto.snippet,
+            time: RelativeTime.shortLabel(isoString: dto.createdAt), isUnread: true, actorAvatar: dto.actorAvatar
         )
-    ]
+    }
 }
 
 // MARK: - Community Notification Filter (All, or just likes / comments & replies / new posts)

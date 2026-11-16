@@ -20,7 +20,6 @@
 		561FA692CD3C472B9A56DF7E /* Aline/Models/InterviewQuestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ADF508ECF5D4767934F80A8 /* Aline/Models/InterviewQuestion.swift */; };
 		819931301FB24F30A3B29D01 /* Aline/Views/Discover/JobDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24586C5AFED24E709DC6B53A /* Aline/Views/Discover/JobDetailView.swift */; };
 		852F2E02C0C64C57AE71FA72 /* Aline/ViewModels/AlineViewModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E828F52CE84C4D22BAC7D125 /* Aline/ViewModels/AlineViewModels.swift */; };
-		9F4DC33B69F7469CAA78AB58 /* Aline/Models/Opportunity+Dataset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8952D154697F4E5E84272C2A /* Aline/Models/Opportunity+Dataset.swift */; };
 		A0FAF261D8E54A719501BC4D /* Aline/Views/Onboarding/OnboardingFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E96005F78244F4991577EE9 /* Aline/Views/Onboarding/OnboardingFlowView.swift */; };
 		A18791E2345448B8BE411622 /* Aline/Views/MainAppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2443720300224449B27CB46E /* Aline/Views/MainAppView.swift */; };
 		B6651D466815433CB7A1DA9F /* Aline/AlineApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97051675D3A6449F993DF523 /* Aline/AlineApp.swift */; };
@@ -28,6 +27,20 @@
 		D35E79245B7742C2A7B97F52 /* Aline/Views/Resume/ResumeDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07868B1165B74217869F856E /* Aline/Views/Resume/ResumeDashboardView.swift */; };
 		DCF951042F6A4FF9B41A5CDE /* Aline/Views/Community/CommunityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C304DDCD63DF4DFA81DCFECD /* Aline/Views/Community/CommunityView.swift */; };
 		E4C4D3DB3DA0414AB8A8E76E /* Aline/Views/Components/AlineComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89BBBCC110504BD990BCBE73 /* Aline/Views/Components/AlineComponents.swift */; };
+		386B38F23F34618DCC17718A /* Aline/Services/Matching/MatchEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65DCA2E5B466DA104C02D384 /* Aline/Services/Matching/MatchEngine.swift */; };
+		B6995522BFF71E37ACBFA0EE /* Aline/Services/Networking/APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E4C751F9361771B96AAC37 /* Aline/Services/Networking/APIClient.swift */; };
+		F2EFEFBC6922CF10923D3718 /* Aline/Services/Networking/APIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFA6F7939D68752D5C368C92 /* Aline/Services/Networking/APIModels.swift */; };
+		19592236D7CEB79A05F8C7AA /* Aline/Services/Networking/ModelMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0C510D83F0BB198D95F217C /* Aline/Services/Networking/ModelMapping.swift */; };
+		7CCBB104DC49C4D8BA7F92C2 /* Aline/Services/Resume/ResumePDFExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5C4E6D916D5FD0B56CC2C57 /* Aline/Services/Resume/ResumePDFExporter.swift */; };
+		EE2A36760722F715B717C4DF /* Aline/Services/Resume/ResumeRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE6D350AC1F4669182193FCA /* Aline/Services/Resume/ResumeRecord.swift */; };
+		ACB1F7C98F7E9E5F21980FC9 /* Aline/Services/AI/OnDeviceAI.swift in Sources */ = {isa = PBXBuildFile; fileRef = D66AF08BA701C737DC40BDE7 /* Aline/Services/AI/OnDeviceAI.swift */; };
+		731498E128E1435AF6436E60 /* Aline/Services/AI/PDFTextExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7257AD19AE225598B557689A /* Aline/Services/AI/PDFTextExtractor.swift */; };
+		1424EC19848A56333FF3C03D /* Aline/Services/AI/ResumeProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF6611F93E3F8B88FDD64E26 /* Aline/Services/AI/ResumeProfile.swift */; };
+		BDB664A0AE63EEC6B0942773 /* Aline/Services/AI/ResumeStructurer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E4746B9D6B5646A442BD025 /* Aline/Services/AI/ResumeStructurer.swift */; };
+		584ED128B6EC908D8D838199 /* Aline/Services/AI/SkillVocabulary.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADC8DCA1D4484D6E81C2B74B /* Aline/Services/AI/SkillVocabulary.swift */; };
+		F87B2507CC5B0321489303B2 /* Aline/Services/OnboardingAnswers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63F451A8D37618D086983FCB /* Aline/Services/OnboardingAnswers.swift */; };
+		D9E6922F20BA7C8F32E10946 /* Aline/Services/Networking/AlineAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01628F377938C4BF34F4DD5F /* Aline/Services/Networking/AlineAPI.swift */; };
+		273425AADC1C1DDB8A9090FC /* Aline/Services/PreviewFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2EC1AF6833E57A0778985F5 /* Aline/Services/PreviewFixtures.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,7 +53,6 @@
 		2443720300224449B27CB46E /* Aline/Views/MainAppView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Views/MainAppView.swift; sourceTree = "<group>"; };
 		24586C5AFED24E709DC6B53A /* Aline/Views/Discover/JobDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Views/Discover/JobDetailView.swift; sourceTree = "<group>"; };
 		4752CC24650747F09AD66CF4 /* Aline/Models/Resume.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Models/Resume.swift; sourceTree = "<group>"; };
-		8952D154697F4E5E84272C2A /* Aline/Models/Opportunity+Dataset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Aline/Models/Opportunity+Dataset.swift"; sourceTree = "<group>"; };
 		89BBBCC110504BD990BCBE73 /* Aline/Views/Components/AlineComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Views/Components/AlineComponents.swift; sourceTree = "<group>"; };
 		8E96005F78244F4991577EE9 /* Aline/Views/Onboarding/OnboardingFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Views/Onboarding/OnboardingFlowView.swift; sourceTree = "<group>"; };
 		97051675D3A6449F993DF523 /* Aline/AlineApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/AlineApp.swift; sourceTree = "<group>"; };
@@ -53,6 +65,20 @@
 		E828F52CE84C4D22BAC7D125 /* Aline/ViewModels/AlineViewModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/ViewModels/AlineViewModels.swift; sourceTree = "<group>"; };
 		F2C398D776AE4ECBA1EB5D4B /* Aline/Views/Profile/ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Views/Profile/ProfileView.swift; sourceTree = "<group>"; };
 		F938A69DA22041A3B12F37B8 /* Aline.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Aline.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		65DCA2E5B466DA104C02D384 /* Aline/Services/Matching/MatchEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/Matching/MatchEngine.swift; sourceTree = "<group>"; };
+		38E4C751F9361771B96AAC37 /* Aline/Services/Networking/APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/Networking/APIClient.swift; sourceTree = "<group>"; };
+		AFA6F7939D68752D5C368C92 /* Aline/Services/Networking/APIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/Networking/APIModels.swift; sourceTree = "<group>"; };
+		C0C510D83F0BB198D95F217C /* Aline/Services/Networking/ModelMapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/Networking/ModelMapping.swift; sourceTree = "<group>"; };
+		D5C4E6D916D5FD0B56CC2C57 /* Aline/Services/Resume/ResumePDFExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/Resume/ResumePDFExporter.swift; sourceTree = "<group>"; };
+		DE6D350AC1F4669182193FCA /* Aline/Services/Resume/ResumeRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/Resume/ResumeRecord.swift; sourceTree = "<group>"; };
+		D66AF08BA701C737DC40BDE7 /* Aline/Services/AI/OnDeviceAI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/AI/OnDeviceAI.swift; sourceTree = "<group>"; };
+		7257AD19AE225598B557689A /* Aline/Services/AI/PDFTextExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/AI/PDFTextExtractor.swift; sourceTree = "<group>"; };
+		FF6611F93E3F8B88FDD64E26 /* Aline/Services/AI/ResumeProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/AI/ResumeProfile.swift; sourceTree = "<group>"; };
+		4E4746B9D6B5646A442BD025 /* Aline/Services/AI/ResumeStructurer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/AI/ResumeStructurer.swift; sourceTree = "<group>"; };
+		ADC8DCA1D4484D6E81C2B74B /* Aline/Services/AI/SkillVocabulary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/AI/SkillVocabulary.swift; sourceTree = "<group>"; };
+		63F451A8D37618D086983FCB /* Aline/Services/OnboardingAnswers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/OnboardingAnswers.swift; sourceTree = "<group>"; };
+		01628F377938C4BF34F4DD5F /* Aline/Services/Networking/AlineAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/Networking/AlineAPI.swift; sourceTree = "<group>"; };
+		C2EC1AF6833E57A0778985F5 /* Aline/Services/PreviewFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/PreviewFixtures.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -69,6 +95,20 @@
 		21DF6D99A1414587916B3DBF = {
 			isa = PBXGroup;
 			children = (
+				C2EC1AF6833E57A0778985F5 /* Aline/Services/PreviewFixtures.swift */,
+				01628F377938C4BF34F4DD5F /* Aline/Services/Networking/AlineAPI.swift */,
+				63F451A8D37618D086983FCB /* Aline/Services/OnboardingAnswers.swift */,
+				ADC8DCA1D4484D6E81C2B74B /* Aline/Services/AI/SkillVocabulary.swift */,
+				4E4746B9D6B5646A442BD025 /* Aline/Services/AI/ResumeStructurer.swift */,
+				FF6611F93E3F8B88FDD64E26 /* Aline/Services/AI/ResumeProfile.swift */,
+				7257AD19AE225598B557689A /* Aline/Services/AI/PDFTextExtractor.swift */,
+				D66AF08BA701C737DC40BDE7 /* Aline/Services/AI/OnDeviceAI.swift */,
+				DE6D350AC1F4669182193FCA /* Aline/Services/Resume/ResumeRecord.swift */,
+				D5C4E6D916D5FD0B56CC2C57 /* Aline/Services/Resume/ResumePDFExporter.swift */,
+				C0C510D83F0BB198D95F217C /* Aline/Services/Networking/ModelMapping.swift */,
+				AFA6F7939D68752D5C368C92 /* Aline/Services/Networking/APIModels.swift */,
+				38E4C751F9361771B96AAC37 /* Aline/Services/Networking/APIClient.swift */,
+				65DCA2E5B466DA104C02D384 /* Aline/Services/Matching/MatchEngine.swift */,
 				C10000000000000000000001 /* Aline/Views/Splash/SplashScreenView.swift */,
 				C10000000000000000000002 /* Aline/Views/Auth/AuthenticationView.swift */,
 				C10000000000000000000003 /* Aline/Resources/splash_animation.mp4 */,
@@ -76,7 +116,6 @@
 				E828F52CE84C4D22BAC7D125 /* Aline/ViewModels/AlineViewModels.swift */,
 				4752CC24650747F09AD66CF4 /* Aline/Models/Resume.swift */,
 				A104B9BC10464959940AE8CD /* Aline/Models/UserProfile.swift */,
-				8952D154697F4E5E84272C2A /* Aline/Models/Opportunity+Dataset.swift */,
 				BD30B896F43442A0B5D2A6A4 /* Aline/Models/Opportunity.swift */,
 				0ADF508ECF5D4767934F80A8 /* Aline/Models/InterviewQuestion.swift */,
 				03B991633F764CD494EFC7B6 /* Aline/Models/Community.swift */,
@@ -172,13 +211,26 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				273425AADC1C1DDB8A9090FC /* Aline/Services/PreviewFixtures.swift in Sources */,
+				D9E6922F20BA7C8F32E10946 /* Aline/Services/Networking/AlineAPI.swift in Sources */,
+				F87B2507CC5B0321489303B2 /* Aline/Services/OnboardingAnswers.swift in Sources */,
+				584ED128B6EC908D8D838199 /* Aline/Services/AI/SkillVocabulary.swift in Sources */,
+				BDB664A0AE63EEC6B0942773 /* Aline/Services/AI/ResumeStructurer.swift in Sources */,
+				1424EC19848A56333FF3C03D /* Aline/Services/AI/ResumeProfile.swift in Sources */,
+				731498E128E1435AF6436E60 /* Aline/Services/AI/PDFTextExtractor.swift in Sources */,
+				ACB1F7C98F7E9E5F21980FC9 /* Aline/Services/AI/OnDeviceAI.swift in Sources */,
+				EE2A36760722F715B717C4DF /* Aline/Services/Resume/ResumeRecord.swift in Sources */,
+				7CCBB104DC49C4D8BA7F92C2 /* Aline/Services/Resume/ResumePDFExporter.swift in Sources */,
+				19592236D7CEB79A05F8C7AA /* Aline/Services/Networking/ModelMapping.swift in Sources */,
+				F2EFEFBC6922CF10923D3718 /* Aline/Services/Networking/APIModels.swift in Sources */,
+				B6995522BFF71E37ACBFA0EE /* Aline/Services/Networking/APIClient.swift in Sources */,
+				386B38F23F34618DCC17718A /* Aline/Services/Matching/MatchEngine.swift in Sources */,
 				B10000000000000000000001 /* Aline/Views/Splash/SplashScreenView.swift in Sources */,
 				B10000000000000000000002 /* Aline/Views/Auth/AuthenticationView.swift in Sources */,
 				B6651D466815433CB7A1DA9F /* Aline/AlineApp.swift in Sources */,
 				852F2E02C0C64C57AE71FA72 /* Aline/ViewModels/AlineViewModels.swift in Sources */,
 				C5CB9B53F5234F7F87ACB580 /* Aline/Models/Resume.swift in Sources */,
 				1F2E23C12F14481C88DF2D74 /* Aline/Models/UserProfile.swift in Sources */,
-				9F4DC33B69F7469CAA78AB58 /* Aline/Models/Opportunity+Dataset.swift in Sources */,
 				2449FBE904904FA69BFD3EBD /* Aline/Models/Opportunity.swift in Sources */,
 				561FA692CD3C472B9A56DF7E /* Aline/Models/InterviewQuestion.swift in Sources */,
 				0609F9CBE9004603BDD65E00 /* Aline/Models/Community.swift in Sources */,
@@ -262,6 +314,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Aline;
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
+				INFOPLIST_KEY_UIFileSharingEnabled = YES;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
@@ -333,6 +387,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Aline;
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
+				INFOPLIST_KEY_UIFileSharingEnabled = YES;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;

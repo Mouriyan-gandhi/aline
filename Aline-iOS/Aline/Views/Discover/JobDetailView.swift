@@ -610,7 +610,7 @@ private struct SkillChipFlow: Layout {
 // MARK: - Previews
 #Preview("Job Detail - Ola Intern") {
     JobDetailView(
-        opportunity: Opportunity.samples.first(where: { $0.companyName == "Ola" }) ?? Opportunity.samples[0],
+        opportunity: .previewSample,
         viewModel: DiscoverViewModel(),
         navViewModel: AppNavigationViewModel(),
         resumeViewModel: ResumeViewModel()
@@ -619,7 +619,7 @@ private struct SkillChipFlow: Layout {
 
 #Preview("Job Detail - Google") {
     JobDetailView(
-        opportunity: Opportunity.samples.first(where: { $0.companyName == "Google" }) ?? Opportunity.samples[0],
+        opportunity: .previewSample,
         viewModel: DiscoverViewModel(),
         navViewModel: AppNavigationViewModel(),
         resumeViewModel: ResumeViewModel()

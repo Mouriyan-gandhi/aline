@@ -31,6 +31,8 @@ public struct OnboardingFlowView: View {
     // Step 5: Resume Upload
     @State private var uploadedResumeName: String? = nil
     @State private var uploadedResumeSize: String? = nil
+    /// App-owned copy of the picked file, read after onboarding finishes
+    @State private var uploadedResumeURL: URL? = nil
     @State private var showFileImporter: Bool = false
 
     // Master Catalog of Roles
@@ -244,6 +246,10 @@ public struct OnboardingFlowView: View {
                     defer { if hasAccess { url.stopAccessingSecurityScopedResource() } }
 
                     uploadedResumeName = url.lastPathComponent
+                    // The picked URL's access ends with this closure; keep a copy to read later
+                    let copy = FileManager.default.temporaryDirectory.appendingPathComponent(url.lastPathComponent)
+                    try? FileManager.default.removeItem(at: copy)
+                    uploadedResumeURL = (try? FileManager.default.copyItem(at: url, to: copy)) != nil ? copy : nil
                     if let resources = try? url.resourceValues(forKeys: [.fileSizeKey]),
                        let size = resources.fileSize {
                         let mb = Double(size) / (1024.0 * 1024.0)
@@ -273,6 +279,15 @@ public struct OnboardingFlowView: View {
     }
 
     private func completeOnboarding() {
+        NotificationCenter.default.post(name: .onboardingDidComplete, object: OnboardingAnswers(
+            opportunityGoal: opportunityGoal,
+            careerStage: careerStage,
+            graduationYear: graduationYear,
+            roles: Array(selectedRoles),
+            locations: Array(selectedLocations),
+            openToAnyLocation: openToAnyLocation || selectedLocations.isEmpty,
+            resumeURL: uploadedResumeURL
+        ))
         withAnimation(AlineTheme.fastSpring) {
             navViewModel.completeOnboarding()
         }

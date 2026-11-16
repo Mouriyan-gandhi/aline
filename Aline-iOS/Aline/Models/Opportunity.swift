@@ -53,10 +53,6 @@ public struct MissingKeyword: Identifiable, Hashable {
 }
 
 public extension Opportunity {
-    static var samples: [Opportunity] {
-        return dataset
-    }
-
     // Dynamic Match Score Badging Colors
     // > 85: Green | 60-85: Yellow | < 60: Red
     var matchBadgeForegroundColor: Color {

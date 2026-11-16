@@ -311,62 +311,72 @@ public struct GoogleGView: View {
 }
 
 // MARK: - Company Brand Logo Asset Resolver
+/// Logo asset by company name. Matched on the name's leading word(s) — "JPMorgan Chase & Co."
+/// → jpmorgan, "Jane Street" → janestreet — not by substring, which mislabels real employers
+/// ("Morgan Stanley" isn't JPMorgan, "Motorola" isn't Ola, "Intellect Design" isn't Intel).
+private let companyLogoAssets: [String: String] = [
+    "apple": "company_apple",
+    "google": "company_google",
+    "flipkart": "company_flipkart",
+    "ola": "company_ola",
+    "microsoft": "company_microsoft",
+    "meta": "company_meta",
+    "facebook": "company_facebook",
+    "amazon": "company_amazon",
+    "netflix": "company_netflix",
+    "spotify": "company_spotify",
+    "uber": "company_uber",
+    "airbnb": "company_airbnb",
+    "swiggy": "company_swiggy",
+    "zomato": "company_zomato",
+    "cred": "company_cred",
+    "razorpay": "company_razorpay",
+    "phonepe": "company_phonepe",
+    "stripe": "company_stripe",
+    "figma": "company_figma",
+    "notion": "company_notion",
+    "github": "company_github",
+    "openai": "company_openai",
+    "anthropic": "company_anthropic",
+    "databricks": "company_databricks",
+    "snowflake": "company_snowflake",
+    "nvidia": "company_nvidia",
+    "linear": "company_linear",
+    "adobe": "company_adobe",
+    "canva": "company_canva",
+    "atlassian": "company_atlassian",
+    "goldman": "company_goldmansachs",
+    "jpmorgan": "company_jpmorgan",
+    "citadel": "company_citadel",
+    "zepto": "company_zepto",
+    "janestreet": "company_janestreet",
+    "meesho": "company_meesho",
+    "groww": "company_groww",
+    "zerodha": "company_zerodha",
+    "discord": "company_discord",
+    "duolingo": "company_duolingo",
+    "linkedin": "company_linkedin",
+    "salesforce": "company_salesforce",
+    "cloudflare": "company_cloudflare",
+    "supabase": "company_supabase",
+    "vercel": "company_vercel",
+    "browserstack": "company_browserstack",
+    "retool": "company_retool",
+    "hasura": "company_hasura",
+    "postman": "company_postman",
+    "palantir": "company_palantir",
+    "cisco": "company_cisco",
+    "intel": "company_intel",
+    "amd": "company_amd",
+]
+
 public func companyLogoAsset(for companyName: String) -> String? {
-    let name = companyName.lowercased().replacingOccurrences(of: " ", with: "")
-    if name.contains("apple") { return "company_apple" }
-    if name.contains("google") { return "company_google" }
-    if name.contains("flipkart") { return "company_flipkart" }
-    if name.contains("ola") { return "company_ola" }
-    if name.contains("microsoft") { return "company_microsoft" }
-    if name.contains("meta") { return "company_meta" }
-    if name.contains("facebook") { return "company_facebook" }
-    if name.contains("amazon") { return "company_amazon" }
-    if name.contains("netflix") { return "company_netflix" }
-    if name.contains("spotify") { return "company_spotify" }
-    if name.contains("uber") { return "company_uber" }
-    if name.contains("airbnb") { return "company_airbnb" }
-    if name.contains("swiggy") { return "company_swiggy" }
-    if name.contains("zomato") { return "company_zomato" }
-    if name.contains("cred") { return "company_cred" }
-    if name.contains("razorpay") { return "company_razorpay" }
-    if name.contains("phonepe") { return "company_phonepe" }
-    if name.contains("stripe") { return "company_stripe" }
-    if name.contains("figma") { return "company_figma" }
-    if name.contains("notion") { return "company_notion" }
-    if name.contains("github") { return "company_github" }
-    if name.contains("openai") { return "company_openai" }
-    if name.contains("anthropic") { return "company_anthropic" }
-    if name.contains("databricks") { return "company_databricks" }
-    if name.contains("snowflake") { return "company_snowflake" }
-    if name.contains("nvidia") { return "company_nvidia" }
-    if name.contains("linear") { return "company_linear" }
-    if name.contains("adobe") { return "company_adobe" }
-    if name.contains("canva") { return "company_canva" }
-    if name.contains("atlassian") { return "company_atlassian" }
-    if name.contains("goldman") { return "company_goldmansachs" }
-    if name.contains("jpmorgan") || name.contains("morgan") { return "company_jpmorgan" }
-    if name.contains("citadel") { return "company_citadel" }
-    if name.contains("zepto") { return "company_zepto" }
-    if name.contains("janestreet") || name.contains("jane") { return "company_janestreet" }
-    if name.contains("meesho") { return "company_meesho" }
-    if name.contains("groww") { return "company_groww" }
-    if name.contains("zerodha") { return "company_zerodha" }
-    if name.contains("discord") { return "company_discord" }
-    if name.contains("duolingo") { return "company_duolingo" }
-    if name.contains("linkedin") { return "company_linkedin" }
-    if name.contains("salesforce") { return "company_salesforce" }
-    if name.contains("cloudflare") { return "company_cloudflare" }
-    if name.contains("supabase") { return "company_supabase" }
-    if name.contains("vercel") { return "company_vercel" }
-    if name.contains("browserstack") { return "company_browserstack" }
-    if name.contains("retool") { return "company_retool" }
-    if name.contains("hasura") { return "company_hasura" }
-    if name.contains("postman") { return "company_postman" }
-    if name.contains("palantir") { return "company_palantir" }
-    if name.contains("cisco") { return "company_cisco" }
-    if name.contains("intel") { return "company_intel" }
-    if name.contains("amd") { return "company_amd" }
-    return nil
+    let words = companyName.lowercased()
+        .components(separatedBy: CharacterSet.alphanumerics.inverted)
+        .filter { !$0.isEmpty }
+    guard let first = words.first else { return nil }
+    let candidates = [first, words.prefix(2).joined(), words.prefix(3).joined()]
+    return candidates.lazy.compactMap { companyLogoAssets[$0] }.first
 }
 
 // MARK: - Company Brand Logo Component (Authentic Image Assets from Reference Sheets)
@@ -715,7 +725,7 @@ public struct CompactExploreOpportunityCard: View {
     ZStack {
         DiscoverBackgroundArtwork()
         VStack(spacing: AlineSpacing.card) {
-            ForEach(Array(Opportunity.samples.prefix(4))) { opp in
+            ForEach([Opportunity.previewSample]) { opp in
                 CompactExploreOpportunityCard(opportunity: opp, onOpenDetail: {})
             }
         }
@@ -1154,7 +1164,7 @@ public struct StackedResumeCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
 
             // Sample Opportunity Card
-            if let sampleOpp = Opportunity.samples.first {
+            if let sampleOpp = [Opportunity.previewSample].first {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Opportunity Stacked Card")
                         .font(.system(size: 14, weight: .bold))
