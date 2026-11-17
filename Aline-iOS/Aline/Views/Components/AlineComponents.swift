@@ -566,7 +566,9 @@ public struct StackedOpportunityCard: View {
                     // Location, Internship & Recency chips (Direct HStack, NO ScrollView to prevent cut-off)
                     HStack(spacing: 6) {
                         let shortLocation = opportunity.location.components(separatedBy: ",").first?.trimmingCharacters(in: .whitespaces) ?? opportunity.location
-                        WhitePillChip(icon: "mappin", text: shortLocation)
+                        // A long location ("San Francisco / Remote") truncates instead of widening the card
+                        WhitePillChip(icon: "mappin", text: shortLocation, compressible: true)
+                            .layoutPriority(-1)
                         WhitePillChip(icon: "briefcase", text: opportunity.opportunityType.rawValue)
                         WhitePillChip(icon: "clock", text: opportunity.recency.isEmpty ? "Recently" : opportunity.recency)
                         Spacer(minLength: 0)
@@ -806,10 +808,13 @@ public struct ViewMoreCard: View {
 public struct WhitePillChip: View {
     public let icon: String?
     public let text: String
+    /// When true the chip may shrink and truncate its text (…) instead of pushing its row wider
+    public var compressible: Bool = false
 
-    public init(icon: String? = nil, text: String) {
+    public init(icon: String? = nil, text: String, compressible: Bool = false) {
         self.icon = icon
         self.text = text
+        self.compressible = compressible
     }
 
     public var body: some View {
@@ -827,7 +832,7 @@ public struct WhitePillChip: View {
         .padding(.horizontal, 9)
         .padding(.vertical, 5)
         .background(Capsule().fill(Color.black.opacity(0.06)))
-        .fixedSize(horizontal: true, vertical: false)
+        .fixedSize(horizontal: !compressible, vertical: false)
     }
 }
 

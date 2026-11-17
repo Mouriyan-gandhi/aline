@@ -147,9 +147,11 @@ public struct AuthenticationView: View {
                 .shadow(color: Color.black.opacity(0.04), radius: 12, x: 0, y: 4)
                 .padding(.horizontal, AlineSpacing.screenInset)
 
-                // Social Sign In Options
-                socialLoginSection
-                    .padding(.horizontal, AlineSpacing.screenInset)
+                // Social sign-in stays on Sign In only; Create Account is just the form
+                if authMode == .signIn {
+                    socialLoginSection
+                        .padding(.horizontal, AlineSpacing.screenInset)
+                }
 
                 // Switch Mode Prompt
                 bottomModeSwitchButton
@@ -546,6 +548,11 @@ public struct AuthenticationView: View {
     // MARK: - Bottom Mode Switch Button
     private var bottomModeSwitchButton: some View {
         Button {
+            // "Sign Up" from the sign-in form goes back to the welcome screen (carousel + all sign-up options)
+            if authMode == .signIn, let onBack {
+                onBack()
+                return
+            }
             withAnimation(AlineTheme.fastSpring) {
                 authMode = (authMode == .signUp) ? .signIn : .signUp
                 errorMessage = nil

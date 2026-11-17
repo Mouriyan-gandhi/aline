@@ -414,8 +414,13 @@ public struct DiscoverFeedView: View {
         .environment(\.colorScheme, .light)
     }
 
+    /// The big heading follows the selected tab
     private var headlineTitle: String {
-        "EXPLORE\nOPPORTUNITIES"
+        switch viewModel.selectedFilterTab {
+        case .recommended: return "EXPLORE\nOPPORTUNITIES"
+        case .liked: return "LIKED\nOPPORTUNITIES"
+        case .applied: return "APPLIED\nOPPORTUNITIES"
+        }
     }
 
     private var headlineSubtitle: String {
@@ -423,9 +428,11 @@ public struct DiscoverFeedView: View {
         case .recommended:
             return "\(viewModel.filteredOpportunities.count) Top Opportunities"
         case .liked:
-            return "\(viewModel.filteredOpportunities.count) Liked Opportunities"
+            let count = viewModel.filteredOpportunities.count
+            return count == 1 ? "1 opportunity you liked" : "\(count) opportunities you liked"
         case .applied:
-            return "\(viewModel.filteredOpportunities.count) Applied Opportunities"
+            let count = viewModel.filteredOpportunities.count
+            return count == 1 ? "1 opportunity you applied to" : "\(count) opportunities you applied to"
         }
     }
 }
