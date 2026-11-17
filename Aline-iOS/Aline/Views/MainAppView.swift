@@ -103,8 +103,11 @@ public struct MainAppView: View {
         }
         .onAppear {
             profileViewModel.syncWithStoredUser()
-            profileViewModel.onProfileUpdated = { [weak resumeViewModel, weak navViewModel, weak discoverViewModel, weak profileViewModel] updatedProfile in
-                guard let profileViewModel else { return }
+            // Local references, so the stored closure can hold them weakly
+            let (resumeVM, navVM, discoverVM, profileVM) = (resumeViewModel, navViewModel, discoverViewModel, profileViewModel)
+            profileViewModel.onProfileUpdated = { [weak resumeVM, weak navVM, weak discoverVM, weak profileVM] updatedProfile in
+                guard let profileViewModel = profileVM else { return }
+                let (resumeViewModel, navViewModel, discoverViewModel) = (resumeVM, navVM, discoverVM)
                 if !updatedProfile.name.isEmpty {
                     navViewModel?.currentUserFullName = updatedProfile.name
                 }

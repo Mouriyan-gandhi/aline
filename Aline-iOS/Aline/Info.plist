@@ -2,8 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Merged with the build-setting-generated Info.plist (GENERATE_INFOPLIST_FILE). Only keys
-	     that can't be expressed as INFOPLIST_KEY_ build settings live here. -->
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>com.alineapp3.career.jobrefresh</string>

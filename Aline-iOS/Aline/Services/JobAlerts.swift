@@ -78,7 +78,7 @@ enum JobAlerts {
         guard isEnabled else { return }
         let request = BGAppRefreshTaskRequest(identifier: refreshTaskID)
         request.earliestBeginDate = Date(timeIntervalSinceNow: 3 * 3600)
-        try? BGTaskScheduler.shared.submit(request)
+        Task { try? await BGTaskScheduler.shared.submitTaskRequest(request) }
     }
 
     /// Fetches the feed and scores it against the profile cached on this device.

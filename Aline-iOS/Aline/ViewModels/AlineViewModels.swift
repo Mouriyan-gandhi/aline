@@ -111,11 +111,12 @@ public final class AppNavigationViewModel: ObservableObject {
             object: nil,
             queue: .main
         ) { [weak self] notification in
-            if let updated = notification.object as? UserProfile {
-                let clean = updated.name.trimmingCharacters(in: .whitespacesAndNewlines)
-                if !clean.isEmpty {
-                    self?.currentUserFullName = clean
-                }
+            guard let updated = notification.object as? UserProfile else { return }
+            let clean = updated.name.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !clean.isEmpty else { return }
+            // Delivered on the main queue (queue: .main above)
+            MainActor.assumeIsolated {
+                self?.currentUserFullName = clean
             }
         }
     }
@@ -361,7 +362,7 @@ public final class DiscoverViewModel: ObservableObject {
     }
 
     /// Match score at or above which a job is Recommended (and can trigger a job alert)
-    public static let recommendedThreshold = 80
+    nonisolated public static let recommendedThreshold = 80
 
     // Every opportunity at 80% match or above
     public var recommendedOpportunities: [Opportunity] {
