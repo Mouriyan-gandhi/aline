@@ -7,6 +7,7 @@ struct AttachmentThumbnail: View {
     let item: AchievementItem
     var height: CGFloat = 220
 
+    @Environment(\.displayScale) private var displayScale
     @State private var image: UIImage?
     @State private var finished = false
 
@@ -37,7 +38,7 @@ struct AttachmentThumbnail: View {
         guard let name = item.attachmentName,
               let url = await AttachmentStore.localURL(forAchievement: item.id, filename: name) else { return }
         let request = QLThumbnailGenerator.Request(
-            fileAt: url, size: CGSize(width: 600, height: height * 2), scale: UIScreen.main.scale, representationTypes: .thumbnail
+            fileAt: url, size: CGSize(width: 600, height: height * 2), scale: displayScale, representationTypes: .thumbnail
         )
         image = try? await QLThumbnailGenerator.shared.generateBestRepresentation(for: request).uiImage
     }

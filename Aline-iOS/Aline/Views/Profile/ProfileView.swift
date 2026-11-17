@@ -2600,10 +2600,10 @@ struct AchievementEditorSheet: View {
         draft.attachmentName = url.lastPathComponent
         isReadingCertificate = true
         readMessage = nil
-        Task {
+        Task { @MainActor in
             let fields = await CertificateReader.read(local)
             var filled = 0
-            func fill(_ keyPath: WritableKeyPath<AchievementItem, String>, _ value: String) {
+            @MainActor func fill(_ keyPath: WritableKeyPath<AchievementItem, String>, _ value: String) {
                 guard draft[keyPath: keyPath].trimmingCharacters(in: .whitespaces).isEmpty, !value.isEmpty else { return }
                 draft[keyPath: keyPath] = value
                 filled += 1
