@@ -1135,10 +1135,12 @@ struct ProfileEntryCard: View {
                     Text(title)
                         .font(.system(size: 15, weight: .bold))
                         .foregroundColor(AlineTheme.inkPrimary)
+                        .lineLimit(2)
                     if !subtitle.isEmpty {
                         Text(subtitle)
                             .font(.system(size: 12, weight: .medium))
                             .foregroundColor(AlineTheme.inkSecondary)
+                            .lineLimit(1)
                     }
                 }
                 Spacer(minLength: 0)
@@ -1153,14 +1155,20 @@ struct ProfileEntryCard: View {
                     .background(Capsule().fill(Color.black.opacity(0.05)))
             }
 
+            // A preview: two points, two lines each — the full entry opens on tap
             VStack(alignment: .leading, spacing: 6) {
-                ForEach(Array(bullets.enumerated()), id: \.offset) { _, bullet in
+                ForEach(Array(bullets.prefix(2).enumerated()), id: \.offset) { _, bullet in
                     HStack(alignment: .top, spacing: 8) {
                         Text("•")
-                        Text(bullet).lineSpacing(2)
+                        Text(bullet).lineSpacing(2).lineLimit(2)
                     }
                     .font(.system(size: 13))
                     .foregroundColor(AlineTheme.inkPrimary.opacity(0.85))
+                }
+                if bullets.count > 2 {
+                    Text("+\(bullets.count - 2) more")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(AlineTheme.inkSecondary)
                 }
             }
         }
@@ -2335,7 +2343,8 @@ public struct AchievementDetailView: View {
 
                         // File preview
                         VStack(spacing: 14) {
-                            AchievementFileIcon(item: item, size: 84)
+                            // The certificate itself; tap to open it full screen
+                            AttachmentThumbnail(item: item)
                                 .contentShape(Rectangle())
                                 .onTapGesture {
                                     // Opens the attached file (downloaded from the backend if needed)
@@ -2450,6 +2459,9 @@ struct AchievementEditorSheet: View {
     @State private var draft: AchievementItem
     @State private var date: Date
     @State private var showingFileImporter: Bool = false
+    /// Reading the attached certificate to fill the form
+    @State private var isReadingCertificate: Bool = false
+    @State private var readMessage: String?
     let onSave: (AchievementItem) -> Void
 
     init(item: AchievementItem? = nil, category: AchievementCategory = .certificates, onSave: @escaping (AchievementItem) -> Void) {
@@ -2484,6 +2496,8 @@ struct AchievementEditorSheet: View {
             saved.dateEarned = achievementDateFormatter.string(from: date)
             onSave(saved)
         } content: {
+            certificateCard
+
             ProfileCard {
                 Text("Folder")
                     .font(.system(size: 12, weight: .bold))
@@ -2512,8 +2526,17 @@ struct AchievementEditorSheet: View {
 
             ProfileCard {
                 ProfileField(title: "Credential URL", text: urlBinding, placeholder: "https://…", isURL: true)
+            }
+        }
+        .fileImporter(isPresented: $showingFileImporter, allowedContentTypes: [.pdf, .image]) { result in
+            if case .success(let url) = result { attach(url) }
+        }
+    }
 
-                Text("Attachment")
+    /// Attach first: the certificate fills in the rest of the form
+    private var certificateCard: some View {
+        ProfileCard {
+                Text("Certificate")
                     .font(.system(size: 12, weight: .bold))
                     .foregroundColor(AlineTheme.inkSecondary)
 
@@ -2534,9 +2557,14 @@ struct AchievementEditorSheet: View {
                     .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.black.opacity(0.04)))
                 } else {
                     Button { showingFileImporter = true } label: {
-                        Text("Attach a file")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundColor(AlineTheme.inkPrimary)
+                        VStack(spacing: 4) {
+                            Text("Attach certificate")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(AlineTheme.inkPrimary)
+                            Text("PDF or photo — we'll fill in the details")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(AlineTheme.inkSecondary)
+                        }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
                         .background(
@@ -2546,15 +2574,56 @@ struct AchievementEditorSheet: View {
                     }
                     .buttonStyle(.plain)
                 }
-            }
+
+                if isReadingCertificate {
+                    HStack(spacing: 8) {
+                        ProgressView().controlSize(.small)
+                        Text("Reading your certificate…")
+                    }
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(AlineTheme.inkSecondary)
+                } else if let readMessage {
+                    Text(readMessage)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(AlineTheme.inkSecondary)
+                }
         }
-        .fileImporter(isPresented: $showingFileImporter, allowedContentTypes: [.pdf, .image]) { result in
-            if case .success(let url) = result {
-                let hasAccess = url.startAccessingSecurityScopedResource()
-                AttachmentStore.store(url, forAchievement: draft.id)
-                if hasAccess { url.stopAccessingSecurityScopedResource() }
-                draft.attachmentName = url.lastPathComponent
+    }
+
+    /// Stores the file, then fills every empty field from what the certificate says.
+    private func attach(_ url: URL) {
+        let hasAccess = url.startAccessingSecurityScopedResource()
+        AttachmentStore.store(url, forAchievement: draft.id)
+        // Read from the app's own copy (the picked file's access ends here)
+        let local = URL.documentsDirectory.appendingPathComponent("Attachments/\(draft.id)/\(url.lastPathComponent)")
+        if hasAccess { url.stopAccessingSecurityScopedResource() }
+        draft.attachmentName = url.lastPathComponent
+        isReadingCertificate = true
+        readMessage = nil
+        Task {
+            let fields = await CertificateReader.read(local)
+            var filled = 0
+            func fill(_ keyPath: WritableKeyPath<AchievementItem, String>, _ value: String) {
+                guard draft[keyPath: keyPath].trimmingCharacters(in: .whitespaces).isEmpty, !value.isEmpty else { return }
+                draft[keyPath: keyPath] = value
+                filled += 1
             }
+            fill(\.title, fields.title)
+            fill(\.issuer, fields.issuer)
+            fill(\.descriptionText, fields.description)
+            if (draft.credentialURL ?? "").isEmpty, !fields.credentialURL.isEmpty {
+                draft.credentialURL = fields.credentialURL
+                filled += 1
+            }
+            if let parsed = fields.date {
+                date = min(parsed, Date())
+                filled += 1
+            }
+            if let category = fields.category { draft.category = category }
+            isReadingCertificate = false
+            readMessage = filled > 0
+                ? "Filled in from your certificate — check the details before saving."
+                : "Couldn't read details from this file. Fill them in below."
         }
     }
 }

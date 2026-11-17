@@ -4972,6 +4972,8 @@ public struct ContributeQuestionModalView: View {
 
                     Spacer()
 
+                    // Always the solid dark button (the unselected glass style was nearly invisible
+                    // on this background); with no question yet it's dimmed and does nothing
                     Button {
                         handleQuestionSubmission()
                     } label: {
@@ -4980,7 +4982,8 @@ public struct ContributeQuestionModalView: View {
                             .foregroundColor(.white)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 7)
-                            .alineGlassCapsule(selected: !questionText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                            .alineGlassCapsule(selected: true)
+                            .opacity(questionText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.45 : 1)
                     }
                     .buttonStyle(.plain)
                     .disabled(questionText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)

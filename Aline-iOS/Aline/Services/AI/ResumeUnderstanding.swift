@@ -231,11 +231,13 @@ enum ResumeUnderstanding {
     }
 
     @Generable struct ProjectModel {
+        @Guide(description: "Project name only, e.g. 'Alert-X' or 'Alert-X – AI-Powered Surveillance System'. Never the description.")
         var name: String
-        @Guide(description: "Technologies used, comma separated, e.g. 'React, FastAPI, SQLite'")
+        @Guide(description: "Technologies used, comma separated, e.g. 'React, FastAPI, SQLite' — from a 'Tech Stack:' line if there is one")
         var techStack: String
+        @Guide(description: "Dates or year only if stated as dates; empty otherwise")
         var dateRange: String
-        @Guide(description: "Each bullet point, verbatim, rejoined if it was broken across lines")
+        @Guide(description: "Each point about the project. If written as a paragraph ('Objective: … Engineered …'), one point per sentence, without the 'Objective:' label and without the tech stack line")
         var bullets: [String]
     }
 
@@ -539,17 +541,71 @@ enum Heuristics {
         }
     }
 
+    /// Labelled lines inside a project ("Tech Stack: …", "Objective: …") are fields, not titles.
+    private static let stackLabels = ["tech stack", "technologies", "tech used", "tools used", "built with", "stack", "tools"]
+    private static let descriptionLabels = ["objective", "description", "overview", "summary", "about", "outcome", "impact", "role"]
+
+    private static func label(of line: String, in labels: [String]) -> String? {
+        guard let colon = line.firstIndex(of: ":") else { return nil }
+        let key = line[..<colon].lowercased().trimmingCharacters(in: .whitespaces)
+        guard labels.contains(key) else { return nil }
+        return String(line[line.index(after: colon)...]).trimmingCharacters(in: .whitespaces)
+    }
+
+    /// Projects written either as bullets or as a paragraph. A short line with no sentence in
+    /// it opens a project; "Tech Stack:" lines fill the stack; paragraph sentences become points.
     static func projects(_ lines: [String]) -> [ProjectEntry] {
-        entries(lines).map { entry in
-            let header = entry.header.joined(separator: " | ")
-            let date = dateRange(in: header) ?? ""
-            let parts = cells(header.replacingOccurrences(of: date, with: ""))
-            let name = parts.first?.components(separatedBy: CharacterSet(charactersIn: "–—(")).first?.trimmingCharacters(in: .whitespaces) ?? ""
-            let stack = parts.dropFirst().first ?? header.range(of: #"\(([^)]+)\)"#, options: .regularExpression).map {
-                String(header[$0]).trimmingCharacters(in: CharacterSet(charactersIn: "()"))
-            } ?? ""
-            return ProjectEntry(name: name, techStack: stack, dateRange: date, bullets: entry.bullets)
+        var projects: [ProjectEntry] = []
+        var current: ProjectEntry?
+        var body: [String] = []
+
+        func finish() {
+            guard var project = current else { return }
+            var bullets: [String] = []
+            for piece in body {
+                if let stack = label(of: piece, in: stackLabels) {
+                    if project.techStack.isEmpty { project.techStack = stack }
+                    continue
+                }
+                let content = label(of: piece, in: descriptionLabels) ?? piece
+                // Sentences of a paragraph read better as separate points
+                bullets += content.components(separatedBy: ". ")
+                    .map { $0.trimmingCharacters(in: CharacterSet(charactersIn: ". ").union(.whitespaces)) }
+                    .filter { $0.count > 3 }
+                    .map { $0 + "." }
+            }
+            project.bullets = bullets
+            projects.append(project)
+            current = nil
+            body = []
         }
+
+        for raw in lines {
+            let line = stripBullet(raw)
+            let labelled = label(of: line, in: stackLabels + descriptionLabels) != nil
+            let opensProject = !isBullet(raw) && !labelled && line.count <= 110 && !line.contains(". ")
+                && (line.first?.isUppercase ?? false) && (current == nil || !body.isEmpty)
+            if opensProject {
+                finish()
+                let date = dateRange(in: line) ?? ""
+                let parts = cells(line.replacingOccurrences(of: date, with: ""))
+                let first = parts.first ?? line
+                // "Alert-X | AI-Powered … System": a tech list after the bar is the stack,
+                // a descriptive subtitle stays part of the name
+                let second = parts.dropFirst().first ?? ""
+                let looksLikeStack = second.contains(",") && second.split(separator: ",").allSatisfy { $0.count <= 25 }
+                let name = looksLikeStack || second.isEmpty ? first : "\(first) – \(second)"
+                current = ProjectEntry(name: name, techStack: looksLikeStack ? second : "", dateRange: date, bullets: [])
+            } else if current == nil {
+                current = ProjectEntry(name: line, techStack: "", dateRange: "", bullets: [])
+            } else if !isBullet(raw), !labelled, let last = body.last, !last.hasSuffix("."), label(of: last, in: stackLabels) == nil {
+                body[body.count - 1] += " " + line // a wrapped line continues the previous one
+            } else {
+                body.append(line)
+            }
+        }
+        finish()
+        return projects
     }
 
     static func skills(_ lines: [String]) -> [SkillCategory] {
