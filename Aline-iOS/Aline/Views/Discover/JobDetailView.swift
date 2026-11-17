@@ -10,6 +10,7 @@ public struct JobDetailView: View {
     @Environment(\.openURL) private var openURL
 
     @State private var selectedTab: DetailTab = .overview
+    @State private var showingNotRelevantConfirm: Bool = false
     @State private var showingApplyConfirmation: Bool = false
     /// Set when the user leaves for the company site; asked "Did you apply?" when they come back
     @State private var awaitingApplyCheck: Bool = false
@@ -57,6 +58,20 @@ public struct JobDetailView: View {
                         .alineGlassCircleButton()
 
                         Spacer()
+
+                        // "Not relevant": hides the job and steers recommendations away from similar ones
+                        Button {
+                            showingNotRelevantConfirm = true
+                        } label: {
+                            Image(systemName: "hand.thumbsdown")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(AlineTheme.inkPrimary)
+                                .frame(width: 40, height: 40)
+                            .contentShape(Circle())
+                        }
+                        .buttonStyle(.plain)
+                        .alineGlassCircleButton()
+                        .accessibilityLabel("Not relevant")
 
                         Button {
                             withAnimation(AlineTheme.fastSpring) {
@@ -231,6 +246,14 @@ public struct JobDetailView: View {
         }
         // On-device AI: sections for postings that couldn't be split, and keyword gaps vs. the profile
         .task(id: opportunity.id) { await viewModel.enrichDetail(for: opportunity.id) }
+        .confirmationDialog("Not relevant for you?", isPresented: $showingNotRelevantConfirm, titleVisibility: .visible) {
+            Button("Hide this job", role: .destructive) {
+                viewModel.dismissJob(liveOpportunity.id)
+                dismiss()
+            }
+        } message: {
+            Text("We'll hide it and show you fewer roles like it.")
+        }
         .alert(applyPromptTitle, isPresented: $showingDidApplyPrompt) {
             Button("Yes, I applied") {
                 withAnimation(AlineTheme.fastSpring) {

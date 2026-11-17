@@ -1,0 +1,270 @@
+[
+ {
+  "id": "cs-3rd-year",
+  "description": "3rd-year CS student, wants SWE/backend internships or new-grad roles in Bengaluru",
+  "career_stage": "3rd year student",
+  "graduation_year": 2028,
+  "skills": [
+   "Python",
+   "Java",
+   "SQL",
+   "React",
+   "Git",
+   "Data Structures",
+   "Algorithms",
+   "HTML",
+   "CSS",
+   "Linux"
+  ],
+  "experience": [
+   {
+    "title": "Backend Intern",
+    "organization": "Startup",
+    "date_range": "Jun 2026 - Aug 2026",
+    "bullets": [
+     "Built REST APIs in Python with FastAPI and PostgreSQL."
+    ]
+   }
+  ],
+  "projects": [
+   {
+    "name": "Chat app",
+    "tech_stack": "React, Node.js, Redis",
+    "bullets": [
+     "Real-time chat with websockets."
+    ]
+   }
+  ],
+  "preferences": {
+   "preferred_roles": [
+    "Software Engineering",
+    "Backend Development"
+   ],
+   "preferred_locations": [
+    "Bengaluru"
+   ],
+   "is_open_to_any_location": false,
+   "opportunity_types": [
+    "Internship",
+    "Full-Time"
+   ]
+  }
+ },
+ {
+  "id": "aiml-final-year",
+  "description": "Final-year student, AI/ML focus, open to any location",
+  "career_stage": "4th year student",
+  "graduation_year": 2027,
+  "skills": [
+   "Python",
+   "Machine Learning",
+   "Deep Learning",
+   "PyTorch",
+   "NLP",
+   "Pandas",
+   "NumPy",
+   "SQL",
+   "Git"
+  ],
+  "experience": [],
+  "projects": [
+   {
+    "name": "RAG chatbot",
+    "tech_stack": "Python, LLM, FastAPI",
+    "bullets": [
+     "Retrieval-augmented QA over course notes."
+    ]
+   }
+  ],
+  "preferences": {
+   "preferred_roles": [
+    "AI / ML",
+    "Data Science"
+   ],
+   "is_open_to_any_location": true,
+   "opportunity_types": [
+    "Internship",
+    "Full-Time"
+   ]
+  }
+ },
+ {
+  "id": "ece-embedded",
+  "description": "Final-year ECE student, embedded systems",
+  "career_stage": "4th year student",
+  "graduation_year": 2027,
+  "skills": [
+   "C",
+   "C++",
+   "Embedded C",
+   "Verilog",
+   "RTOS",
+   "Microcontrollers",
+   "PCB Design",
+   "MATLAB",
+   "Python",
+   "Linux"
+  ],
+  "experience": [],
+  "projects": [],
+  "preferences": {
+   "preferred_roles": [
+    "Embedded Systems"
+   ],
+   "is_open_to_any_location": true,
+   "opportunity_types": [
+    "Full-Time"
+   ]
+  }
+ },
+ {
+  "id": "recent-grad-analyst",
+  "description": "Recent graduate, data analyst roles in Hyderabad",
+  "career_stage": "Recent graduate",
+  "graduation_year": 2026,
+  "skills": [
+   "SQL",
+   "Python",
+   "Pandas",
+   "Tableau",
+   "Power BI",
+   "Excel",
+   "Statistics"
+  ],
+  "experience": [
+   {
+    "title": "Data Intern",
+    "organization": "Bank",
+    "date_range": "Jan 2026 - Jun 2026",
+    "bullets": [
+     "Built SQL dashboards."
+    ]
+   }
+  ],
+  "projects": [],
+  "preferences": {
+   "preferred_roles": [
+    "Data Analyst"
+   ],
+   "preferred_locations": [
+    "Hyderabad"
+   ],
+   "is_open_to_any_location": false,
+   "opportunity_types": [
+    "Full-Time"
+   ]
+  }
+ },
+ {
+  "id": "backend-2yrs",
+  "description": "Working professional, ~2 years backend",
+  "career_stage": "Working professional",
+  "graduation_year": 2024,
+  "skills": [
+   "Java",
+   "Spring Boot",
+   "SQL",
+   "PostgreSQL",
+   "Kafka",
+   "Docker",
+   "AWS",
+   "Microservices",
+   "Git"
+  ],
+  "experience": [
+   {
+    "title": "Software Engineer",
+    "organization": "Fintech",
+    "date_range": "Jul 2024 - Present",
+    "bullets": [
+     "Built payment microservices in Java and Kafka."
+    ]
+   }
+  ],
+  "projects": [],
+  "preferences": {
+   "preferred_roles": [
+    "Backend Development"
+   ],
+   "is_open_to_any_location": true,
+   "opportunity_types": [
+    "Full-Time"
+   ]
+  }
+ },
+ {
+  "id": "swe-6yrs",
+  "description": "Working professional, ~6 years software engineering",
+  "career_stage": "Working professional",
+  "graduation_year": 2020,
+  "skills": [
+   "Go",
+   "Python",
+   "Kubernetes",
+   "AWS",
+   "System Design",
+   "PostgreSQL",
+   "Redis",
+   "Microservices"
+  ],
+  "experience": [
+   {
+    "title": "Senior Software Engineer",
+    "organization": "SaaS",
+    "date_range": "Jul 2020 - Present",
+    "bullets": [
+     "Led platform team building Go services on Kubernetes."
+    ]
+   }
+  ],
+  "projects": [],
+  "preferences": {
+   "preferred_roles": [
+    "Software Engineering"
+   ],
+   "is_open_to_any_location": true,
+   "opportunity_types": [
+    "Full-Time"
+   ]
+  }
+ },
+ {
+  "id": "new-student-empty",
+  "description": "Student who skipped everything: no skills, no preferences",
+  "career_stage": "3rd year student",
+  "graduation_year": 2028,
+  "skills": [],
+  "experience": [],
+  "projects": [],
+  "preferences": {}
+ },
+ {
+  "id": "frontend-mobile-student",
+  "description": "4th-year student, frontend/mobile",
+  "career_stage": "4th year student",
+  "graduation_year": 2027,
+  "skills": [
+   "JavaScript",
+   "TypeScript",
+   "React",
+   "HTML",
+   "CSS",
+   "Swift",
+   "SwiftUI",
+   "Git"
+  ],
+  "experience": [],
+  "projects": [],
+  "preferences": {
+   "preferred_roles": [
+    "Frontend Development",
+    "Mobile Development"
+   ],
+   "is_open_to_any_location": true,
+   "opportunity_types": [
+    "Internship",
+    "Full-Time"
+   ]
+  }
+ }
+]

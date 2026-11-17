@@ -11,7 +11,10 @@ from pydantic import BaseModel, Field
 
 from app.adapters import amazon, ashby, greenhouse, lever, smartrecruiters, workable, workday, workday_sitemap
 from app.community import router as community_router
-from app.community_db import get_or_create_user, list_job_marks, set_job_mark
+from app.community_db import (
+    get_or_create_user, list_job_dismissals, list_job_marks, list_job_marks_raw, set_job_dismissed, set_job_mark,
+)
+from app.recommend import UserFeatures, recommend
 from app.community_db import init_db as init_community_db
 from app.demo_questions import seed_demo_questions
 from app.companies import COMPANIES, NEEDS_REVIEW
@@ -301,6 +304,61 @@ async def put_job_mark(job_id: str, request: JobMarkRequest) -> JobMark:
         user["id"], job_id, live.model_dump_json() if live else None, liked=request.liked, applied=request.applied,
     )
     return JobMark(**result, job=live)
+
+
+class Recommendation(BaseModel):
+    job_id: str
+    score: int
+    eligible: bool
+    level: Optional[str] = None
+    role_family: str
+    matched_skills: list[str] = []
+    missing_skills: list[str] = []
+    reasons: list[str] = []
+
+
+class RecommendationsResponse(BaseModel):
+    results: list[Recommendation]
+    dismissed_job_ids: list[str]
+
+
+def _user_features(device_id: str) -> UserFeatures:
+    user = get_or_create_user(device_id)
+    dismissed = []
+    for row in list_job_dismissals(user["id"]):
+        snapshot = Job(**json.loads(row["job_json"])) if row["job_json"] else None
+        dismissed.append({"job_id": row["job_id"], "job": snapshot})
+    return UserFeatures(user, list_job_marks_raw(user["id"]), dismissed, cache.jobs_by_id)
+
+
+@app.get("/recommendations", response_model=RecommendationsResponse)
+async def get_recommendations(device_id: str) -> RecommendationsResponse:
+    """Every job in the feed scored for this user (see app/recommend.py), best first, with
+    "Not relevant" jobs left out. Waits for the first scrape on a cold start, like /jobs."""
+    if not cache.jobs:
+        if not cache.refreshing:
+            asyncio.create_task(refresh_cache())
+        await cache.ready_event.wait()
+    user = _user_features(device_id)
+    return RecommendationsResponse(
+        results=[Recommendation(**r) for r in recommend(cache.jobs, user)],
+        dismissed_job_ids=sorted(user.dismissed_ids),
+    )
+
+
+class DismissRequest(BaseModel):
+    device_id: str = Field(min_length=1)
+    dismissed: bool = True
+
+
+@app.put("/jobs/{job_id}/dismiss")
+async def put_job_dismissal(job_id: str, request: DismissRequest) -> dict:
+    """"Not relevant" — hides the job for this user and steers their recommendations.
+    dismissed=false undoes it."""
+    user = get_or_create_user(request.device_id)
+    live = cache.jobs_by_id.get(job_id)
+    set_job_dismissed(user["id"], job_id, request.dismissed, live.model_dump_json() if live else None)
+    return {"job_id": job_id, "dismissed": request.dismissed}
 
 
 def _count_by_platform(companies: list[dict]) -> dict:

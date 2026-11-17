@@ -207,6 +207,11 @@ SKILL_VOCABULARY = [
     "Linux", "Android", "iOS", "HTML", "CSS", "SwiftUI", "UIKit", "Spark", "Hadoop", "Kafka",
     "Terraform", "Jenkins", "GitHub Actions", "Microservices", "System Design", "DSA",
     "Pandas", "NumPy", "Scikit-learn", "LLM", "Generative AI", "GraphDB", "Elasticsearch",
+    # Hardware / embedded and analytics vocabularies — without these, ECE and data-analyst
+    # profiles could never match their own jobs on skills (found by eval/run_eval.py).
+    "Verilog", "SystemVerilog", "VHDL", "UVM", "RTL", "FPGA", "Embedded C", "RTOS",
+    "Microcontrollers", "PCB Design", "Cadence", "MATLAB",
+    "Tableau", "Power BI", "Excel", "Statistics", "Looker", "Snowflake", "dbt", "Airflow",
 ]
 
 

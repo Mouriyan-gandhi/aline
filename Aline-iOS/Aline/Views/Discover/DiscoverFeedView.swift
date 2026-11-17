@@ -167,6 +167,12 @@ public struct DiscoverFeedView: View {
                                             }
                                         }
                                     )
+                                    .contextMenu {
+                                        // "Not relevant": hides the job and steers recommendations away from similar ones
+                                        Button("Not relevant", systemImage: "hand.thumbsdown") {
+                                            withAnimation(AlineTheme.fastSpring) { viewModel.dismissJob(opp.id) }
+                                        }
+                                    }
                                 }
                             }
                             .padding(.horizontal, 24)
@@ -215,6 +221,12 @@ public struct DiscoverFeedView: View {
                                             }
                                         }
                                     )
+                                    .contextMenu {
+                                        // "Not relevant": hides the job and steers recommendations away from similar ones
+                                        Button("Not relevant", systemImage: "hand.thumbsdown") {
+                                            withAnimation(AlineTheme.fastSpring) { viewModel.dismissJob(opp.id) }
+                                        }
+                                    }
                                 }
                             }
                             .padding(.horizontal, 24)
@@ -315,6 +327,12 @@ public struct DiscoverFeedView: View {
                                                 }
                                             }
                                         )
+                                        .contextMenu {
+                                            // "Not relevant": hides the job and steers recommendations away from similar ones
+                                            Button("Not relevant", systemImage: "hand.thumbsdown") {
+                                                withAnimation(AlineTheme.fastSpring) { viewModel.dismissJob(opp.id) }
+                                            }
+                                        }
                                         .frame(width: 330, height: 226)
                                     }
                                 }
@@ -335,6 +353,12 @@ public struct DiscoverFeedView: View {
                                                     showingDetailFor = opp
                                                 }
                                             )
+                                            .contextMenu {
+                                                // "Not relevant": hides the job and steers recommendations away from similar ones
+                                                Button("Not relevant", systemImage: "hand.thumbsdown") {
+                                                    withAnimation(AlineTheme.fastSpring) { viewModel.dismissJob(opp.id) }
+                                                }
+                                            }
                                         }
                                     }
                                     .padding(.horizontal, 24)
@@ -650,6 +674,12 @@ public struct AllOpportunitiesView: View {
                                             showingDetailFor = opp
                                         }
                                     )
+                                    .contextMenu {
+                                        // "Not relevant": hides the job and steers recommendations away from similar ones
+                                        Button("Not relevant", systemImage: "hand.thumbsdown") {
+                                            withAnimation(AlineTheme.fastSpring) { viewModel.dismissJob(opp.id) }
+                                        }
+                                    }
                                 }
                             }
                             .padding(.horizontal, 24)
@@ -678,6 +708,12 @@ public struct AllOpportunitiesView: View {
                                             }
                                         }
                                     )
+                                    .contextMenu {
+                                        // "Not relevant": hides the job and steers recommendations away from similar ones
+                                        Button("Not relevant", systemImage: "hand.thumbsdown") {
+                                            withAnimation(AlineTheme.fastSpring) { viewModel.dismissJob(opp.id) }
+                                        }
+                                    }
                                 }
                             }
                             .padding(.horizontal, 20)

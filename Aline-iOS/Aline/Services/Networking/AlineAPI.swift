@@ -22,6 +22,18 @@ enum AlineAPI {
         let _: EmptyResponse = try await APIClient.send("jobs/\(jobID)/mark", method: "PUT", body: body)
     }
 
+    /// Every job scored for this user, best first, "Not relevant" jobs excluded. Waits for the
+    /// backend's first scrape on a cold start, like `jobs()`.
+    static func recommendations() async throws -> RecommendationsDTO {
+        try await APIClient.get("recommendations", query: APIClient.deviceQuery(), timeout: 480)
+    }
+
+    static func setJobDismissed(_ jobID: String, dismissed: Bool) async throws {
+        let _: EmptyResponse = try await APIClient.send(
+            "jobs/\(jobID)/dismiss", method: "PUT", body: DismissRequest(deviceId: deviceID, dismissed: dismissed)
+        )
+    }
+
     // MARK: Community
 
     static func identity() async throws -> IdentityDTO {

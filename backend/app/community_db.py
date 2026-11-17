@@ -243,6 +243,16 @@ def init_db() -> None:
                 PRIMARY KEY (user_id, id)
             );
 
+            -- "Not relevant" on a job: hidden from this user's feed, and a signal that pushes
+            -- similar roles and the same company down in their recommendations.
+            CREATE TABLE IF NOT EXISTS job_dismissals (
+                user_id TEXT NOT NULL REFERENCES users(id),
+                job_id TEXT NOT NULL,
+                job_json TEXT,
+                created_at TEXT NOT NULL,
+                PRIMARY KEY (user_id, job_id)
+            );
+
             CREATE INDEX IF NOT EXISTS idx_discussions_category ON discussions(category);
             CREATE INDEX IF NOT EXISTS idx_comments_discussion ON comments(discussion_id);
             CREATE INDEX IF NOT EXISTS idx_questions_company ON interview_questions(company);
@@ -541,6 +551,7 @@ def delete_account(device_id: str) -> None:
         conn.execute("DELETE FROM resumes WHERE user_id = ?", (user_id,))
         conn.execute("DELETE FROM job_marks WHERE user_id = ?", (user_id,))
         conn.execute("DELETE FROM files WHERE user_id = ?", (user_id,))
+        conn.execute("DELETE FROM job_dismissals WHERE user_id = ?", (user_id,))
         conn.execute("DELETE FROM likes WHERE user_id = ?", (user_id,))
         conn.execute("DELETE FROM saved_posts WHERE user_id = ?", (user_id,))
         conn.execute("DELETE FROM followed_companies WHERE user_id = ?", (user_id,))
@@ -920,3 +931,30 @@ def get_file(user_id: str, file_id: str) -> Optional[sqlite3.Row]:
 def delete_file(user_id: str, file_id: str) -> None:
     with _connection() as conn:
         conn.execute("DELETE FROM files WHERE user_id = ? AND id = ?", (user_id, file_id))
+
+
+# MARK: - Job dismissals ("Not relevant")
+
+def set_job_dismissed(user_id: str, job_id: str, dismissed: bool, job_json: Optional[str]) -> None:
+    with _connection() as conn:
+        if dismissed:
+            conn.execute(
+                "INSERT OR REPLACE INTO job_dismissals (user_id, job_id, job_json, created_at) VALUES (?, ?, ?, ?)",
+                (user_id, job_id, job_json, _now()),
+            )
+        else:
+            conn.execute("DELETE FROM job_dismissals WHERE user_id = ? AND job_id = ?", (user_id, job_id))
+
+
+def list_job_dismissals(user_id: str) -> list[dict]:
+    with _connection() as conn:
+        rows = conn.execute(
+            "SELECT job_id, job_json FROM job_dismissals WHERE user_id = ? ORDER BY created_at DESC", (user_id,)
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def list_job_marks_raw(user_id: str) -> list[dict]:
+    with _connection() as conn:
+        rows = conn.execute("SELECT job_id, liked, applied, job_json FROM job_marks WHERE user_id = ?", (user_id,)).fetchall()
+    return [dict(r) for r in rows]

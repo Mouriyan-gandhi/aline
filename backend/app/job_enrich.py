@@ -13,6 +13,7 @@ import html
 import re
 from typing import Optional
 
+from app.recommend import job_level, role_family
 from app.schemas import Job
 
 # Heading text (lowercased, trailing ":" stripped) -> which section the lines under it feed.
@@ -242,7 +243,7 @@ def eligible_grad_years(title: str, description: str) -> str:
 
 def enrich(job: Job) -> Job:
     sections = split_sections(job.description)
-    return job.model_copy(update={
+    enriched = job.model_copy(update={
         "job_type": job_type(job.title, job.description, job.employment_type),
         "work_mode": _stated_work_mode(job.workplace_type) or work_mode(job.location, job.description),
         "about": _about(sections, job.description),
@@ -251,3 +252,5 @@ def enrich(job: Job) -> Job:
         "responsibilities": sections["responsibilities"][:_MAX_ITEMS],
         "eligible_grad_years": eligible_grad_years(job.title, job.description),
     })
+    # Level reads job_type, so it's computed on the enriched copy
+    return enriched.model_copy(update={"level": job_level(enriched), "role_family": role_family(enriched)})

@@ -30,3 +30,7 @@ class Job(BaseModel):
     preferred_qualifications: list[str] = []
     responsibilities: list[str] = []
     eligible_grad_years: str = ""
+    # Recommendation features (app/recommend.py): 0 intern, 1 entry, 2 mid, 3 senior, 4 staff+;
+    # None when the posting doesn't say. role_family: software, backend, data, ml, qa, …
+    level: Optional[int] = None
+    role_family: str = ""

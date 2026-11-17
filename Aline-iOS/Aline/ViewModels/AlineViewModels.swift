@@ -436,17 +436,68 @@ public final class DiscoverViewModel: ObservableObject {
     private var appliedAt: [String: String] = [:]
     private var candidate = MatchEngine.Candidate(profile: .empty, achievements: [], preferences: .empty)
     private var refreshTask: Task<Void, Never>?
+    /// The backend recommender's score for each job (backend/app/recommend.py). The on-device
+    /// MatchEngine is only the fallback for jobs without one (offline, before the first fetch).
+    private var serverScores: [String: RecommendationDTO] = [:]
+    /// Jobs marked "Not relevant" — hidden everywhere in the feed
+    private var dismissedIDs: Set<String> = []
+    private var recommendationsTask: Task<Void, Never>?
 
     private static var cacheURL: URL {
         URL.cachesDirectory.appendingPathComponent("jobs-feed.json")
     }
+    private static var recommendationsCacheURL: URL {
+        URL.cachesDirectory.appendingPathComponent("recommendations.json")
+    }
 
     public init() {
-        // Last fetched feed, so the screen isn't empty while a (possibly slow) refresh runs.
+        // Last fetched feed and scores, so the screen isn't empty while a (possibly slow) refresh runs.
         if let data = try? Data(contentsOf: Self.cacheURL),
            let cached = try? JSONDecoder().decode([JobDTO].self, from: data) {
             jobs = cached
+        }
+        if let data = try? Data(contentsOf: Self.recommendationsCacheURL),
+           let cached = try? JSONDecoder().decode(RecommendationsDTO.self, from: data) {
+            applyRecommendations(cached)
+        }
+        rebuild()
+        // Profile, preferences or achievements saved on the backend: re-rank
+        NotificationCenter.default.addObserver(forName: .profileDidSave, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.refreshRecommendations() }
+        }
+    }
+
+    private func applyRecommendations(_ recommendations: RecommendationsDTO) {
+        serverScores = Dictionary(recommendations.results.map { ($0.jobId, $0) }, uniquingKeysWith: { a, _ in a })
+        dismissedIDs = Set(recommendations.dismissedJobIds)
+    }
+
+    /// Re-fetches scores only (the feed itself is unchanged). Coalesces bursts of profile saves.
+    public func refreshRecommendations() {
+        recommendationsTask?.cancel()
+        recommendationsTask = Task {
+            try? await Task.sleep(for: .milliseconds(800))
+            guard !Task.isCancelled, let fresh = try? await AlineAPI.recommendations() else { return }
+            applyRecommendations(fresh)
+            if let data = try? JSONEncoder().encode(fresh) {
+                try? data.write(to: Self.recommendationsCacheURL, options: .atomic)
+            }
             rebuild()
+        }
+    }
+
+    /// "Not relevant": hides the job and tells the recommender to show fewer like it.
+    public func dismissJob(_ id: String) {
+        dismissedIDs.insert(id)
+        opportunities.removeAll { $0.id == id }
+        Task {
+            do {
+                try await AlineAPI.setJobDismissed(id, dismissed: true)
+                refreshRecommendations()
+            } catch {
+                dismissedIDs.remove(id)
+                rebuild()
+            }
         }
     }
 
@@ -457,6 +508,7 @@ public final class DiscoverViewModel: ObservableObject {
         isLoading = true
         refreshTask = Task {
             async let marksResult = try? AlineAPI.jobMarks()
+            async let recommendationsResult = try? AlineAPI.recommendations()
             do {
                 let fresh = try await AlineAPI.jobs()
                 jobs = fresh
@@ -474,6 +526,12 @@ public final class DiscoverViewModel: ObservableObject {
                 )
                 let live = Set(jobs.map(\.id))
                 jobs += marks.compactMap(\.job).filter { !live.contains($0.id) }
+            }
+            if let recommendations = await recommendationsResult {
+                applyRecommendations(recommendations)
+                if let data = try? JSONEncoder().encode(recommendations) {
+                    try? data.write(to: Self.recommendationsCacheURL, options: .atomic)
+                }
             }
             rebuild()
             isLoading = false
@@ -611,10 +669,13 @@ public final class DiscoverViewModel: ObservableObject {
 
     private func rebuild() {
         opportunities = jobs
+            .filter { !dismissedIDs.contains($0.id) }
             .map { job in
                 Opportunity(
                     job: job,
-                    match: MatchEngine.match(candidate, job: job),
+                    match: serverScores[job.id].map {
+                        MatchResult(score: $0.score, matchedSkills: $0.matchedSkills, missingSkills: $0.missingSkills)
+                    } ?? MatchEngine.match(candidate, job: job),
                     isLiked: likedIDs.contains(job.id),
                     isApplied: appliedAt[job.id] != nil,
                     appliedAt: appliedAt[job.id].flatMap { $0.isEmpty ? nil : $0 }
@@ -1889,6 +1950,8 @@ public final class InterviewPrepViewModel: ObservableObject {
 // MARK: - Profile Update Notification
 public extension Notification.Name {
     static let userProfileDidUpdate = Notification.Name("AlineUserProfileDidUpdateNotification")
+    /// A profile/preferences/achievements change reached the backend (recommendations depend on it)
+    static let profileDidSave = Notification.Name("AlineProfileDidSave")
 }
 
 // MARK: - Profile & Preferences ViewModel
@@ -2007,14 +2070,22 @@ public final class ProfileViewModel: ObservableObject {
         cacheLocally()
         var request = ProfileUpdateRequest(deviceId: DeviceIdentity.deviceID)
         request.achievements = achievements.map(\.dto)
-        Task { try? await AlineAPI.updateProfile(request) }
+        save(request)
+    }
+
+    /// Saves to the backend, then announces it so recommendations re-rank on the saved profile.
+    private func save(_ request: ProfileUpdateRequest) {
+        Task {
+            if (try? await AlineAPI.updateProfile(request)) != nil {
+                NotificationCenter.default.post(name: .profileDidSave, object: nil)
+            }
+        }
     }
 
     public func updateProfile(_ updated: UserProfile) {
         profile = updated
         cacheLocally()
-        let request = updated.updateRequest()
-        Task { try? await AlineAPI.updateProfile(request) }
+        save(updated.updateRequest())
 
         onProfileUpdated?(updated)
         NotificationCenter.default.post(name: .userProfileDidUpdate, object: updated)
@@ -2038,7 +2109,7 @@ public final class ProfileViewModel: ObservableObject {
         cacheLocally()
         var request = ProfileUpdateRequest(deviceId: DeviceIdentity.deviceID)
         request.preferences = updated.dto
-        Task { try? await AlineAPI.updateProfile(request) }
+        save(request)
         onProfileUpdated?(profile)
     }
 }

@@ -33,6 +33,17 @@ extension ProfileViewModel {
         }
         updatePreferences(prefs)
 
+        // Career stage drives which job levels are recommended (students: intern + entry)
+        if !answers.careerStage.isEmpty {
+            var stage = ProfileUpdateRequest(deviceId: DeviceIdentity.deviceID)
+            stage.careerStage = answers.careerStage
+            Task {
+                if (try? await AlineAPI.updateProfile(stage)) != nil {
+                    NotificationCenter.default.post(name: .profileDidSave, object: nil)
+                }
+            }
+        }
+
         var updated = profile
         if updated.titleOrStage.isEmpty { updated.titleOrStage = answers.careerStage }
         if !answers.graduationYear.isEmpty { updated.graduationYear = answers.graduationYear }

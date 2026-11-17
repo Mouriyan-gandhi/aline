@@ -36,6 +36,28 @@ struct JobMarkDTO: Decodable {
     let job: JobDTO?
 }
 
+/// One job scored for this user by the backend recommender (backend/app/recommend.py)
+struct RecommendationDTO: Codable {
+    let jobId: String
+    let score: Int
+    let eligible: Bool
+    let level: String?
+    let roleFamily: String
+    let matchedSkills: [String]
+    let missingSkills: [String]
+    let reasons: [String]
+}
+
+struct RecommendationsDTO: Codable {
+    let results: [RecommendationDTO]
+    let dismissedJobIds: [String]
+}
+
+struct DismissRequest: Encodable {
+    let deviceId: String
+    let dismissed: Bool
+}
+
 struct JobMarkRequest: Encodable {
     let deviceId: String
     let liked: Bool?

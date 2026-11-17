@@ -9,9 +9,10 @@ for interview experiences and interview questions.
 ┌──────────────────────────── iPhone (iOS 27) ────────────────────────────┐
 │  SwiftUI views ─▶ view models ─▶ Services                               │
 │                                   ├─ AlineAPI / APIClient ──── HTTPS ───┼──▶ FastAPI backend (Render)
-│                                   ├─ MatchEngine        (on device)     │      ├─ job scrapers → in-memory cache
+│                                   ├─ MatchEngine (offline fallback)     │      ├─ job scrapers → in-memory cache
 │                                   ├─ OnDeviceAI         (Foundation     │      │   (460 companies, 6 ATS platforms)
-│                                   │                      Models)        │      └─ SQLite: users, community,
+│                                   │                      Models)        │      ├─ recommender (per-user ranking)
+│                                   │                                     │      └─ SQLite: users, community,
 │                                   ├─ ResumeStructurer / PDF export      │          interview Qs, resumes, marks, files
 │                                   └─ JobAlerts (local notifications)    │
 └─────────────────────────────────────────────────────────────────────────┘
@@ -70,7 +71,8 @@ community handle and avatar, the profile, resumes, liked/applied jobs and attach
 | Area | Endpoints |
 |---|---|
 | Health / status | `GET /health`, `GET /companies` (registry and cache status) |
-| Jobs | `GET /jobs`, `GET /jobs/marks?device_id=`, `PUT /jobs/{id}/mark` (liked / applied) |
+| Jobs | `GET /jobs`, `GET /jobs/marks?device_id=`, `PUT /jobs/{id}/mark` (liked / applied), `PUT /jobs/{id}/dismiss` (Not relevant) |
+| Recommendations | `GET /recommendations?device_id=` (every job scored for the user, best first) |
 | Profile | `GET /profile`, `PUT /profile` (partial update), `DELETE /profile` (delete account) |
 | Resumes | `GET /resumes`, `PUT /resumes/{id}`, `DELETE /resumes/{id}` (JSON documents) |
 | Files | `PUT /files/{id}` (base64, max 8 MB, PDF/images), `GET /files/{id}`, `DELETE /files/{id}` |
@@ -109,14 +111,33 @@ Aline/
 `ModelMapping.swift` converts them. Once you're signed in and onboarded, `MainAppView` loads
 everything, and refreshes when the app returns to the foreground.
 
-**Match score** (`MatchEngine.swift`) is computed on device, so no profile data is sent
-anywhere for ranking. It weighs four things:
-- 50% skills overlap, using profile skills plus tools named in experience and project text
-- 20% experience time against the posting's stated minimum years
-- 10% job skills mentioned in achievements
-- 20% career preferences: roles, locations, job type, work mode and companies
+**Recommendations** are computed by the backend (`backend/app/recommend.py`, served at
+`GET /recommendations`), per user, from their profile on the server:
 
-Jobs at **80% or above** are Recommended.
+1. **Eligibility gate.** Each job is tagged with a level (intern, entry, mid, senior, staff+)
+   and a role family (software, backend, data, ML, QA, hardware, non-tech, …). Students and
+   recent graduates only get intern and entry roles in Recommended. Professionals get roles
+   matching their years of experience. Everyone gets only the role families they picked, or
+   close neighbours of them. Ineligible jobs still appear in Explore More, capped at 60%.
+2. **Score** for eligible jobs, out of 100:
+   - skills 45%: overlap with the posting's skills, discounted when the posting names only a few
+   - level fit 20%
+   - experience 15%: required years vs. the user's actual experience
+   - preferences 20%: location, job type, work mode, companies
+   Unknown counts as neutral, never as a perfect fit.
+3. **Behaviour.** "Not relevant" (thumbs-down on job detail, or long-press a card) hides the
+   job and pushes similar roles and the same company down. Liked and applied jobs pull
+   similar roles up.
+
+Jobs at **80% or above** are Recommended. The app falls back to its on-device `MatchEngine`
+only when it has no server score (offline, before the first fetch).
+
+**Evaluating changes:** `backend/eval/run_eval.py` scores 8 realistic personas
+(`eval/personas.json`) against the live feed (or a saved one with `--jobs`). It fails if a
+student is recommended an above-entry role, if anyone gets non-tech roles they didn't pick, or
+if an experienced professional gets internships. It also prints each persona's top 10.
+Human ratings in `eval/labels.csv` (persona, job_id, great/ok/bad) add precision@10. Run it
+before changing `recommend.py`.
 
 **On-device AI** (`OnDeviceAI.swift`, Apple Foundation Models) needs Apple Intelligence. Without it, every
 feature shows a plain "not available" message rather than placeholder text.
