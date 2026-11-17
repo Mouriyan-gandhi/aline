@@ -82,16 +82,21 @@ enum JobAlerts {
     }
 
     /// Fetches the feed and scores it against the profile cached on this device.
+    /// Uses the backend's scores for this user (~30 KB gzipped) with the job details already
+    /// cached on the device — not the full ~1.8 MB feed — so a background check stays cheap.
     @MainActor
     private static func checkInBackground() async {
-        guard isEnabled, let jobs = try? await AlineAPI.jobs() else { return }
-        let candidate = MatchEngine.Candidate(
-            profile: cached(UserProfile.self, key: "savedUserProfile") ?? .empty,
-            achievements: cached([AchievementItem].self, key: "savedUserAchievements") ?? [],
-            preferences: cachedPreferences ?? .empty
-        )
-        let opportunities = jobs.map {
-            Opportunity(job: $0, match: MatchEngine.match(candidate, job: $0), isLiked: false, isApplied: false, appliedAt: nil)
+        guard isEnabled, let recommendations = try? await AlineAPI.recommendations() else { return }
+        let feedURL = URL.cachesDirectory.appendingPathComponent("jobs-feed.json")
+        guard let data = try? Data(contentsOf: feedURL),
+              let jobs = try? JSONDecoder().decode([JobDTO].self, from: data) else { return }
+        let byID = Dictionary(jobs.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        let opportunities = recommendations.results.compactMap { rec -> Opportunity? in
+            guard let job = byID[rec.jobId] else { return nil }
+            return Opportunity(
+                job: job, match: MatchResult(score: rec.score, matchedSkills: rec.matchedSkills, missingSkills: rec.missingSkills),
+                isLiked: false, isApplied: false, appliedAt: nil
+            )
         }
         await notifyNewMatches(opportunities)
     }

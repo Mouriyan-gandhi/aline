@@ -13,6 +13,20 @@ enum AlineAPI {
         try await APIClient.get("jobs", timeout: 480)
     }
 
+    /// The feed only if it changed since `etag` (nil = unchanged, keep what you have). The feed
+    /// is ~1.8 MB gzipped; the backend answers 304 with no body when the version matches.
+    static func jobs(ifChangedSince etag: String?) async throws -> (jobs: [JobDTO], etag: String?)? {
+        var request = URLRequest(url: try APIClient.url("jobs"))
+        request.timeoutInterval = 480
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        if let etag { request.setValue(etag, forHTTPHeaderField: "If-None-Match") }
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse else { throw APIError.badStatus(-1) }
+        if http.statusCode == 304 { return nil }
+        guard (200...299).contains(http.statusCode) else { throw APIError.badStatus(http.statusCode) }
+        return (try APIClient.decoder.decode([JobDTO].self, from: data), http.value(forHTTPHeaderField: "ETag"))
+    }
+
     static func jobMarks() async throws -> [JobMarkDTO] {
         try await APIClient.get("jobs/marks", query: APIClient.deviceQuery())
     }

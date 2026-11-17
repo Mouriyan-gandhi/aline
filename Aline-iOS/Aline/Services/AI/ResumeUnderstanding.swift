@@ -1,0 +1,603 @@
+import Foundation
+import FoundationModels
+
+/// Everything Aline needs from a resume, understood section by section.
+struct UnderstoodResume {
+    var resume: ResumeProfile
+    /// City/region from the contact header, if the resume states one
+    var location: String = ""
+    /// e.g. "B.Tech CSE (AI-ML) · CGPA 9.94"
+    var headline: String = ""
+    /// Expected or actual graduation year of the most recent degree
+    var graduationYear: String = ""
+    /// Certifications, awards, hackathons, courses — ready for the Achievement Gallery
+    var achievements: [AchievementItem] = []
+    /// Whether the on-device model read it (false = deterministic fallback)
+    var usedModel: Bool = false
+}
+
+/// Resume text → `UnderstoodResume`.
+///
+/// 1. Split into sections by their headings (deterministic; a broad list of real headings).
+/// 2. Read each section with its own small on-device model call. One call for the whole
+///    resume overflowed the model's ~4K-token context on real resumes and silently fell back
+///    to pattern matching — per-section calls each fit, and each gets instructions specific
+///    to that section (e.g. how to read a flattened table).
+/// 3. Clean up and validate what came back (table headers never become values,
+///    "2024Present" → "2024 – Present", graduation year inferred from degree length).
+/// Without Apple Intelligence, the same sections go through table-aware heuristics.
+enum ResumeUnderstanding {
+    static func understand(_ text: String) async -> UnderstoodResume {
+        let sections = Sections(text: text)
+        let contact = ResumeStructurer.extractContactInfo(from: text)
+        var resume = ResumeProfile(
+            fullName: sections.name, phone: contact.phone, email: contact.email,
+            linkedInURL: contact.linkedIn, githubURL: contact.github, portfolioURL: contact.portfolio
+        )
+        var result = UnderstoodResume(resume: resume)
+        result.location = sections.location
+
+        if OnDeviceAI.isAvailable, let read = await readWithModel(sections) {
+            resume.summary = read.summary
+            resume.education = read.education
+            resume.experience = read.experience
+            resume.projects = read.projects
+            resume.skillCategories = read.skills
+            result.achievements = read.achievements
+            if resume.fullName.isEmpty { resume.fullName = read.name }
+            if result.location.isEmpty { result.location = read.location }
+            result.usedModel = true
+        }
+        // Fill whatever the model didn't return (or everything, without the model)
+        if resume.education.isEmpty { resume.education = Heuristics.education(sections["education"]) }
+        if resume.experience.isEmpty { resume.experience = Heuristics.experience(sections["experience"]) }
+        if resume.projects.isEmpty { resume.projects = Heuristics.projects(sections["projects"]) }
+        if resume.skillCategories.isEmpty { resume.skillCategories = Heuristics.skills(sections["skills"]) }
+        if resume.summary.isEmpty { resume.summary = sections["summary"].joined(separator: " ") }
+        if result.achievements.isEmpty {
+            result.achievements = Heuristics.achievements(sections["achievements"] + sections["certifications"])
+        }
+
+        resume.education = resume.education.map(Cleanup.education).filter { !$0.institution.isEmpty || !$0.degree.isEmpty }
+        resume.experience = resume.experience.map(Cleanup.experience).filter { !$0.title.isEmpty || !$0.organization.isEmpty }
+        resume.projects = resume.projects.map(Cleanup.project).filter { !$0.name.isEmpty }
+        result.achievements = result.achievements.map(Cleanup.achievement)
+        resume.achievements = result.achievements.map { $0.issuer.isEmpty ? $0.title : "\($0.title) — \($0.issuer)" }
+        resume.certifications = result.achievements.filter { $0.category == .certificates }.map {
+            CertificationEntry(name: $0.title, issuer: $0.issuer, dateEarned: $0.dateEarned)
+        }
+
+        if let latest = resume.education.first {
+            result.graduationYear = Cleanup.graduationYear(of: latest)
+            let score = Cleanup.score(in: latest.detail)
+            result.headline = [latest.degree, score.map { "CGPA \($0)" }].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
+        }
+        result.resume = resume
+        return result
+    }
+
+    // MARK: - Model reading, one section at a time
+
+    private struct ModelRead {
+        var name = "", location = "", summary = ""
+        var education: [EducationEntry] = []
+        var experience: [ExperienceEntry] = []
+        var projects: [ProjectEntry] = []
+        var skills: [SkillCategory] = []
+        var achievements: [AchievementItem] = []
+    }
+
+    private static let rules = """
+    You read one section of a student's or early-career engineer's resume and return its \
+    content as structured fields. Copy facts as written; never invent anything. The text was \
+    extracted from a PDF: " | " separates table cells or a right-aligned date, and lines may \
+    be broken mid-sentence. If a table header row names the columns (e.g. "Degree | Institute \
+    | CGPA | Year"), use it to map the cells of the following rows — never return header words \
+    as values. Leave a field empty when the section doesn't state it.
+    """
+
+    private static func respond<T: Generable>(_ prompt: String, as type: T.Type) async -> T? {
+        let session = LanguageModelSession(instructions: rules)
+        return try? await session.respond(to: prompt, generating: type).content
+    }
+
+    /// Long sections are read in chunks that fit the model's context, then merged.
+    private static func chunks(_ lines: [String], limit: Int = 2600) -> [String] {
+        var result: [String] = [], current = ""
+        for line in lines {
+            if current.count + line.count > limit, !current.isEmpty {
+                result.append(current)
+                current = ""
+            }
+            current += line + "\n"
+        }
+        if !current.isEmpty { result.append(current) }
+        return result
+    }
+
+    private static func readWithModel(_ sections: Sections) async -> ModelRead? {
+        var read = ModelRead()
+        var anySucceeded = false
+
+        if !sections["header"].isEmpty, let header = await respond(
+            "Resume header:\n\(sections["header"].prefix(8).joined(separator: "\n"))", as: HeaderModel.self
+        ) {
+            read.name = header.name
+            read.location = header.location
+            anySucceeded = true
+        }
+        if !sections["summary"].isEmpty, let summary = await respond(
+            "Summary section:\n\(sections["summary"].joined(separator: "\n").prefix(2000))", as: SummaryModel.self
+        ) {
+            read.summary = summary.summary
+        }
+        for chunk in chunks(sections["education"]) {
+            guard let list = await respond("Education section:\n\(chunk)", as: EducationListModel.self) else { continue }
+            anySucceeded = true
+            read.education += list.entries.map {
+                // Branch only when the degree doesn't already name one ("B.Tech. (CSE AI-ML)")
+                let degree = $0.degree.contains("(") || $0.fieldOfStudy.isEmpty ? $0.degree : "\($0.degree) (\($0.fieldOfStudy))"
+                let years = [$0.startYear, $0.endYear].filter { !$0.isEmpty }
+                let dates = Set(years).count == 1 ? years[0] : years.joined(separator: " – ")
+                return EducationEntry(institution: $0.institution, degree: degree, location: $0.location,
+                                      dateRange: dates, detail: $0.score.isEmpty ? "" : "CGPA/Score: \($0.score)")
+            }
+        }
+        for chunk in chunks(sections["experience"]) {
+            guard let list = await respond("Experience section:\n\(chunk)", as: ExperienceListModel.self) else { continue }
+            anySucceeded = true
+            read.experience += list.entries.map {
+                ExperienceEntry(title: $0.title, organization: $0.organization, location: $0.location,
+                                dateRange: $0.dateRange, bullets: $0.bullets)
+            }
+        }
+        for chunk in chunks(sections["projects"]) {
+            guard let list = await respond("Projects section:\n\(chunk)", as: ProjectListModel.self) else { continue }
+            anySucceeded = true
+            read.projects += list.entries.map {
+                ProjectEntry(name: $0.name, techStack: $0.techStack, dateRange: $0.dateRange, bullets: $0.bullets)
+            }
+        }
+        if !sections["skills"].isEmpty, let skills = await respond(
+            "Skills section:\n\(sections["skills"].joined(separator: "\n").prefix(2600))", as: SkillsModel.self
+        ) {
+            anySucceeded = true
+            read.skills = skills.groups.map { SkillCategory(label: $0.label, items: $0.items) }.filter { !$0.items.isEmpty }
+        }
+        for chunk in chunks(sections["achievements"] + sections["certifications"]) {
+            guard let list = await respond("Achievements, awards and certifications:\n\(chunk)", as: AchievementListModel.self) else { continue }
+            anySucceeded = true
+            read.achievements += list.entries.map {
+                AchievementItem(
+                    id: UUID().uuidString, title: $0.title, issuer: $0.issuer,
+                    category: AchievementCategory(rawValue: $0.category) ?? .other,
+                    dateEarned: $0.date, descriptionText: $0.details, credentialURL: nil, attachmentName: nil
+                )
+            }
+        }
+        return anySucceeded ? read : nil
+    }
+
+    // MARK: - Model schemas
+
+    @Generable struct HeaderModel {
+        @Guide(description: "The person's full name")
+        var name: String
+        @Guide(description: "City and/or state/country if stated, e.g. 'Chennai, India'. Empty if not stated.")
+        var location: String
+    }
+
+    @Generable struct SummaryModel {
+        @Guide(description: "The summary/objective text, copied as written")
+        var summary: String
+    }
+
+    @Generable struct EducationModel {
+        @Guide(description: "College, university or school name, e.g. 'SRM Institute of Science and Technology'")
+        var institution: String
+        @Guide(description: "Degree or qualification only, e.g. 'B.Tech', 'B.E.', 'M.Sc', 'Class XII (CBSE)'")
+        var degree: String
+        @Guide(description: "Major/branch/specialization if stated, e.g. 'Computer Science and Engineering (AI & ML)'")
+        var fieldOfStudy: String
+        @Guide(description: "Start year, e.g. '2024'. Empty if not stated.")
+        var startYear: String
+        @Guide(description: "End or expected graduation year, e.g. '2028', or 'Present' if ongoing with no year")
+        var endYear: String
+        @Guide(description: "CGPA, GPA or percentage as written, e.g. '9.94' or '95.6%'. Empty if not stated.")
+        var score: String
+        var location: String
+    }
+
+    @Generable struct EducationListModel {
+        @Guide(description: "Every education entry in the section, most recent first")
+        var entries: [EducationModel]
+    }
+
+    @Generable struct ExperienceModel {
+        @Guide(description: "Job title, e.g. 'AI/ML Intern'")
+        var title: String
+        @Guide(description: "Company or organization")
+        var organization: String
+        var location: String
+        @Guide(description: "Dates as written, e.g. 'Jun 2026 – Aug 2026' or 'Jul 2025 – Present'")
+        var dateRange: String
+        @Guide(description: "Each bullet point, verbatim, rejoined if it was broken across lines")
+        var bullets: [String]
+    }
+
+    @Generable struct ExperienceListModel {
+        @Guide(description: "Every role in the section (internships included), most recent first")
+        var entries: [ExperienceModel]
+    }
+
+    @Generable struct ProjectModel {
+        var name: String
+        @Guide(description: "Technologies used, comma separated, e.g. 'React, FastAPI, SQLite'")
+        var techStack: String
+        var dateRange: String
+        @Guide(description: "Each bullet point, verbatim, rejoined if it was broken across lines")
+        var bullets: [String]
+    }
+
+    @Generable struct ProjectListModel {
+        var entries: [ProjectModel]
+    }
+
+    @Generable struct SkillGroupModel {
+        @Guide(description: "Group label as written, e.g. 'Languages', 'Frameworks', 'Tools'. 'Skills' if ungrouped.")
+        var label: String
+        @Guide(description: "Each individual skill, e.g. 'Python', 'React'")
+        var items: [String]
+    }
+
+    @Generable struct SkillsModel {
+        var groups: [SkillGroupModel]
+    }
+
+    @Generable struct AchievementModel {
+        @Guide(description: "Short title, e.g. 'Smart India Hackathon — Finalist' or 'AWS Cloud Practitioner'")
+        var title: String
+        @Guide(description: "Issuer or organizer if stated, e.g. 'Amazon Web Services', 'Coursera'")
+        var issuer: String
+        @Guide(description: "Exactly one of: Certificates, Hackathons, Awards, Internships, Courses, Other")
+        var category: String
+        @Guide(description: "Date or year if stated")
+        var date: String
+        @Guide(description: "One sentence of detail if the resume gives any, otherwise empty")
+        var details: String
+    }
+
+    @Generable struct AchievementListModel {
+        var entries: [AchievementModel]
+    }
+}
+
+// MARK: - Sections
+
+/// The resume split by its headings. Lines before the first heading are the header.
+struct Sections {
+    private(set) var byKey: [String: [String]] = [:]
+    var name: String = ""
+    var location: String = ""
+
+    subscript(key: String) -> [String] { byKey[key] ?? [] }
+
+    private static let headings: [(key: String, names: [String])] = [
+        ("summary", ["summary", "professional summary", "profile", "objective", "career objective", "about me", "about"]),
+        ("education", ["education", "academic background", "academic qualifications", "academics", "educational qualifications", "qualifications", "academic details", "scholastic achievements"]),
+        ("experience", ["experience", "work experience", "professional experience", "employment", "employment history", "internships", "internship", "internship experience", "work history", "industrial experience", "training"]),
+        ("projects", ["projects", "personal projects", "academic projects", "key projects", "technical projects", "project work", "selected projects"]),
+        ("skills", ["skills", "technical skills", "skill set", "core competencies", "technologies", "tech stack", "tools", "skills & tools", "technical expertise", "key skills", "soft skills", "skills and interests"]),
+        ("certifications", ["certifications", "certificates", "certification", "licenses", "licenses & certifications", "courses", "online courses", "coursework", "relevant coursework", "trainings & certifications", "certifications & courses"]),
+        ("achievements", ["achievements", "awards", "honors", "honours", "honors & awards", "awards & achievements", "achievements & awards", "accomplishments", "extracurricular", "extracurricular activities", "extra-curricular activities", "positions of responsibility", "leadership", "leadership & activities", "hackathons", "competitions", "co-curricular activities", "publications", "volunteering", "activities", "certifications & achievements", "achievements & certifications"]),
+        ("other", ["languages", "interests", "hobbies", "references", "declaration", "personal details"]),
+    ]
+
+    init(text: String) {
+        let lines = text.components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+        var current = "header"
+        for line in lines {
+            if let key = Self.headingKey(line) {
+                current = key
+                continue
+            }
+            byKey[current, default: []].append(line)
+        }
+        // Name: first header line that looks like a name (no digits, @, or URL)
+        let header = self["header"]
+        name = header.first { line in
+            let plain = line.components(separatedBy: " | ").first ?? line
+            return plain.range(of: #"[0-9@/:]"#, options: .regularExpression) == nil
+                && (1...5).contains(plain.split(separator: " ").count) && plain.count <= 50
+        }.map { ($0.components(separatedBy: " | ").first ?? $0).trimmingCharacters(in: .whitespaces) } ?? ""
+        location = Self.location(in: header)
+    }
+
+    private static func headingKey(_ line: String) -> String? {
+        let cleaned = line.lowercased()
+            .replacingOccurrences(of: " | ", with: " ")
+            .trimmingCharacters(in: CharacterSet(charactersIn: ":-–—•|_ ").union(.whitespaces))
+        guard !cleaned.isEmpty, cleaned.split(separator: " ").count <= 5 else { return nil }
+        for (key, names) in headings where names.contains(cleaned) {
+            return key
+        }
+        return nil
+    }
+
+    private static let cities = ["Bengaluru", "Bangalore", "Chennai", "Hyderabad", "Mumbai", "Pune", "Delhi", "New Delhi",
+                                 "Noida", "Gurugram", "Gurgaon", "Kolkata", "Ahmedabad", "Jaipur", "Kochi", "Coimbatore",
+                                 "Trivandrum", "Thiruvananthapuram", "Indore", "Bhopal", "Lucknow", "Chandigarh", "Mysuru",
+                                 "Mysore", "Vellore", "Madurai", "Nagpur", "Visakhapatnam", "Bhubaneswar", "Patna"]
+
+    private static func location(in header: [String]) -> String {
+        for line in header.prefix(6) {
+            for part in line.components(separatedBy: CharacterSet(charactersIn: "|•·")) {
+                let trimmed = part.trimmingCharacters(in: .whitespaces)
+                if let city = cities.first(where: { trimmed.localizedCaseInsensitiveContains($0) }),
+                   !trimmed.contains("@"), trimmed.count <= 40 {
+                    return trimmed.range(of: #"\d"#, options: .regularExpression) == nil ? trimmed : city
+                }
+            }
+        }
+        return ""
+    }
+}
+
+// MARK: - Cleanup
+
+enum Cleanup {
+    private static let headerWords: Set<String> = ["degree", "institute", "institution", "board", "cgpa", "gpa",
+                                                   "percentage", "year", "university", "college", "score", "marks", "qualification"]
+
+    /// "2024Present" → "2024 – Present", "2024-2028" → "2024 – 2028"
+    static func dates(_ text: String) -> String {
+        var t = text.replacingOccurrences(of: #"((?:19|20)\d{2})\s*[-–—]?\s*(Present|present|Current|current|Now|now)"#,
+                                          with: "$1 – $2", options: .regularExpression)
+        t = t.replacingOccurrences(of: #"((?:19|20)\d{2})\s*[-–—]\s*((?:19|20)\d{2})"#, with: "$1 – $2", options: .regularExpression)
+        return t.trimmingCharacters(in: .whitespaces)
+    }
+
+    /// Drops values that are really a table's header row ("Degree Institute/Board CGPA …").
+    private static func notHeader(_ text: String) -> String {
+        let words = text.lowercased().components(separatedBy: CharacterSet.alphanumerics.inverted).filter { !$0.isEmpty }
+        guard !words.isEmpty else { return text }
+        let headerish = words.filter { headerWords.contains($0) }.count
+        return headerish >= 2 && Double(headerish) / Double(words.count) >= 0.3 ? "" : text
+    }
+
+    private static func clean(_ text: String) -> String {
+        text.replacingOccurrences(of: " | ", with: " ").replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+            .trimmingCharacters(in: CharacterSet(charactersIn: ",;|-– ").union(.whitespaces))
+    }
+
+    static func education(_ e: EducationEntry) -> EducationEntry {
+        var e = e
+        e.institution = notHeader(clean(e.institution))
+        e.degree = notHeader(clean(e.degree))
+        e.location = clean(e.location)
+        e.dateRange = dates(clean(e.dateRange))
+        e.detail = clean(e.detail)
+        return e
+    }
+
+    /// Clear keywords decide the gallery folder over the model's guess; the issuer and date are
+    /// trimmed off the title when they're repeated there.
+    static func achievement(_ a: AchievementItem) -> AchievementItem {
+        var a = a
+        let lower = (a.title + " " + a.issuer).lowercased()
+        if lower.contains("hackathon") || lower.contains("ideathon") || lower.contains("codeathon") { a.category = .hackathons }
+        else if lower.contains("certif") { a.category = .certificates }
+        else if lower.contains("course") || lower.contains("coursera") || lower.contains("udemy") || lower.contains("nptel") { a.category = .courses }
+        for tail in [a.dateEarned, a.issuer] where !tail.isEmpty {
+            for separator in [", ", " – ", " - ", " — ", " | "] where a.title.hasSuffix(separator + tail) {
+                a.title = String(a.title.dropLast(separator.count + tail.count))
+            }
+        }
+        a.title = a.title.trimmingCharacters(in: CharacterSet(charactersIn: ",–—- ").union(.whitespaces))
+        a.issuer = a.issuer.trimmingCharacters(in: CharacterSet(charactersIn: ",–—- ").union(.whitespaces))
+        return a
+    }
+
+    static func experience(_ e: ExperienceEntry) -> ExperienceEntry {
+        var e = e
+        e.title = clean(e.title); e.organization = clean(e.organization); e.location = clean(e.location)
+        e.dateRange = dates(clean(e.dateRange))
+        e.bullets = e.bullets.map(clean).filter { $0.count > 2 }
+        return e
+    }
+
+    static func project(_ p: ProjectEntry) -> ProjectEntry {
+        var p = p
+        p.name = clean(p.name); p.techStack = clean(p.techStack); p.dateRange = dates(clean(p.dateRange))
+        p.bullets = p.bullets.map(clean).filter { $0.count > 2 }
+        return p
+    }
+
+    /// End year when stated; for an ongoing degree, start year + typical length.
+    static func graduationYear(of e: EducationEntry) -> String {
+        let years = e.dateRange.components(separatedBy: CharacterSet.decimalDigits.inverted).compactMap { $0.count == 4 ? Int($0) : nil }
+        let ongoing = e.dateRange.lowercased().contains("present") || e.dateRange.lowercased().contains("current")
+        if let last = years.last, !(ongoing && years.count == 1) { return String(last) }
+        guard let start = years.first else { return "" }
+        let degree = e.degree.lowercased()
+        let length = degree.contains("m.tech") || degree.contains("m.sc") || degree.contains("mba") || degree.contains("m.e")
+            || degree.contains("master") ? 2 : degree.contains("b.sc") || degree.contains("bca") || degree.contains("b.com") ? 3 : 4
+        return String(start + length)
+    }
+
+    /// "CGPA/Score: 9.94" / "CGPA 9.94/10" / "92%" → "9.94" / "92%"
+    static func score(in text: String) -> String? {
+        if let r = text.range(of: #"\b\d{1,2}\.\d{1,2}\b"#, options: .regularExpression) { return String(text[r]) }
+        if let r = text.range(of: #"\b\d{2}(\.\d+)?\s?%"#, options: .regularExpression) { return String(text[r]) }
+        return nil
+    }
+}
+
+// MARK: - Deterministic fallback (no Apple Intelligence)
+
+enum Heuristics {
+    private static func isBullet(_ line: String) -> Bool {
+        guard let first = line.first else { return false }
+        return "•●◦▪‣·-*➤–".contains(first)
+    }
+
+    private static func stripBullet(_ line: String) -> String {
+        isBullet(line) ? String(line.dropFirst()).trimmingCharacters(in: .whitespaces) : line
+    }
+
+    private static func dateRange(in line: String) -> String? {
+        // Only month names count as the word before a year — "Horizon 2025" isn't a date range
+        let month = #"(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s*"#
+        let pattern = "(\(month))?(19|20)\\d{2}(\\s*(–|-|—|to)?\\s*(\(month))?((19|20)\\d{2}|[Pp]resent|[Cc]urrent))?"
+        return line.range(of: pattern, options: .regularExpression).map { Cleanup.dates(String(line[$0])) }
+    }
+
+    /// Entries: header line(s) followed by bullets; a new non-bullet line with a date after
+    /// bullets starts the next entry. Bullet text broken across lines is rejoined.
+    private static func entries(_ lines: [String]) -> [(header: [String], bullets: [String])] {
+        var result: [(header: [String], bullets: [String])] = []
+        var header: [String] = [], bullets: [String] = []
+        for line in lines {
+            if isBullet(line) {
+                bullets.append(stripBullet(line))
+            } else if !bullets.isEmpty, dateRange(in: line) == nil, line.first?.isLowercase == true {
+                bullets[bullets.count - 1] += " " + line // continuation of a wrapped bullet
+            } else {
+                if !bullets.isEmpty || (dateRange(in: line) != nil && header.contains { dateRange(in: $0) != nil }) {
+                    result.append((header, bullets)); header = []; bullets = []
+                }
+                header.append(line)
+            }
+        }
+        if !header.isEmpty || !bullets.isEmpty { result.append((header, bullets)) }
+        return result
+    }
+
+    private static func cells(_ line: String) -> [String] {
+        line.components(separatedBy: " | ").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+    }
+
+    static func education(_ lines: [String]) -> [EducationEntry] {
+        // Table form: a header row naming the columns, then one row per qualification
+        if let headerIndex = lines.firstIndex(where: { line in
+            let l = line.lowercased()
+            return cells(line).count >= 3 && ["degree", "institut", "board", "cgpa", "year", "percentage", "qualification"].filter { l.contains($0) }.count >= 2
+        }) {
+            let columns = cells(lines[headerIndex]).map { $0.lowercased() }
+            func column(_ keys: [String]) -> Int? { columns.firstIndex { c in keys.contains { c.contains($0) } } }
+            let degreeCol = column(["degree", "qualification", "course"])
+            let instCol = column(["institut", "college", "school", "university", "board"])
+            let scoreCol = column(["cgpa", "gpa", "percent", "score", "marks", "grade"])
+            let yearCol = column(["year", "duration", "period"])
+            return lines[(headerIndex + 1)...].compactMap { row -> EducationEntry? in
+                var c = cells(row)
+                guard c.count >= 2 else { return nil }
+                // Adjacent columns set close together come out as one cell ("… Technology 9.94"):
+                // split a trailing score or year off into its own cell until the row matches the header
+                var i = 0
+                while c.count < columns.count, i < c.count {
+                    if let r = c[i].range(of: #"\s+(\d{1,2}\.\d{1,2}|\d{2}(\.\d+)?%|(19|20)\d{2}\S*)$"#, options: .regularExpression) {
+                        let tail = String(c[i][r]).trimmingCharacters(in: .whitespaces)
+                        c[i] = String(c[i][..<r.lowerBound])
+                        c.insert(tail, at: i + 1)
+                    } else {
+                        i += 1
+                    }
+                }
+                func at(_ i: Int?) -> String { i.flatMap { $0 < c.count ? c[$0] : nil } ?? "" }
+                return EducationEntry(institution: at(instCol), degree: at(degreeCol), location: "",
+                                      dateRange: at(yearCol), detail: at(scoreCol).isEmpty ? "" : "CGPA/Score: \(at(scoreCol))")
+            }
+        }
+        return entries(lines).map { entry in
+            let joined = entry.header.joined(separator: " | ")
+            let parts = cells(joined).flatMap { $0.components(separatedBy: ", ") }.map { $0.trimmingCharacters(in: .whitespaces) }
+            let date = dateRange(in: joined) ?? ""
+            let institution = parts.first { p in ["university", "institute", "college", "school", "iit", "nit", "vidyalaya"].contains { p.lowercased().contains($0) } } ?? parts.first ?? ""
+            let degree = parts.first { p in ["b.tech", "btech", "b.e", "bachelor", "master", "m.tech", "b.sc", "bca", "mca", "class", "xii", "x ", "diploma", "hsc", "ssc"].contains { p.lowercased().contains($0) } } ?? ""
+            let score = Cleanup.score(in: joined + " " + entry.bullets.joined(separator: " "))
+            return EducationEntry(institution: institution, degree: degree, location: "", dateRange: date,
+                                  detail: score.map { "CGPA/Score: \($0)" } ?? entry.bullets.joined(separator: " "))
+        }
+    }
+
+    static func experience(_ lines: [String]) -> [ExperienceEntry] {
+        entries(lines).map { entry in
+            let header = entry.header.joined(separator: " | ")
+            let date = dateRange(in: header) ?? ""
+            var parts = cells(header.replacingOccurrences(of: date, with: ""))
+            if parts.count == 1 {
+                for sep in [" at ", " @ ", " – ", " - ", ", "] where parts[0].contains(sep) {
+                    parts = parts[0].components(separatedBy: sep).map { $0.trimmingCharacters(in: .whitespaces) }
+                    break
+                }
+            }
+            return ExperienceEntry(title: parts.first ?? "", organization: parts.count > 1 ? parts[1] : "",
+                                   location: parts.count > 2 ? parts[2] : "", dateRange: date, bullets: entry.bullets)
+        }
+    }
+
+    static func projects(_ lines: [String]) -> [ProjectEntry] {
+        entries(lines).map { entry in
+            let header = entry.header.joined(separator: " | ")
+            let date = dateRange(in: header) ?? ""
+            let parts = cells(header.replacingOccurrences(of: date, with: ""))
+            let name = parts.first?.components(separatedBy: CharacterSet(charactersIn: "–—(")).first?.trimmingCharacters(in: .whitespaces) ?? ""
+            let stack = parts.dropFirst().first ?? header.range(of: #"\(([^)]+)\)"#, options: .regularExpression).map {
+                String(header[$0]).trimmingCharacters(in: CharacterSet(charactersIn: "()"))
+            } ?? ""
+            return ProjectEntry(name: name, techStack: stack, dateRange: date, bullets: entry.bullets)
+        }
+    }
+
+    static func skills(_ lines: [String]) -> [SkillCategory] {
+        var groups: [SkillCategory] = [], loose: [String] = []
+        for raw in lines {
+            let line = stripBullet(raw).replacingOccurrences(of: " | ", with: ", ")
+            if let colon = line.firstIndex(of: ":"), line.distance(from: line.startIndex, to: colon) <= 32 {
+                let label = String(line[..<colon]).trimmingCharacters(in: .whitespaces)
+                let items = split(String(line[line.index(after: colon)...]))
+                if !items.isEmpty { groups.append(SkillCategory(label: label, items: items)); continue }
+            }
+            loose += split(line)
+        }
+        if !loose.isEmpty { groups.append(SkillCategory(label: groups.isEmpty ? "Skills" : "Other", items: loose)) }
+        return groups
+    }
+
+    private static func split(_ text: String) -> [String] {
+        text.components(separatedBy: CharacterSet(charactersIn: ",•;|"))
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty && $0.count <= 40 }
+    }
+
+    static func achievements(_ lines: [String]) -> [AchievementItem] {
+        var items: [String] = []
+        for line in lines {
+            if isBullet(line) || items.isEmpty || dateRange(in: line) != nil && line.count > 25 {
+                items.append(stripBullet(line))
+            } else {
+                items[items.count - 1] += " " + line
+            }
+        }
+        return items.filter { $0.count > 3 }.map { text in
+            let lower = text.lowercased()
+            let category: AchievementCategory =
+                lower.contains("hackathon") || lower.contains("ideathon") ? .hackathons
+                : lower.contains("certif") ? .certificates
+                : lower.contains("course") || lower.contains("coursera") || lower.contains("udemy") || lower.contains("nptel") ? .courses
+                : lower.contains("intern") ? .internships
+                : lower.contains("award") || lower.contains("winner") || lower.contains("rank") || lower.contains("prize") || lower.contains("medal") ? .awards
+                : .other
+            let date = dateRange(in: text) ?? ""
+            let parts = text.replacingOccurrences(of: date, with: "").components(separatedBy: CharacterSet(charactersIn: "–—|"))
+                .map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+            return AchievementItem(
+                id: UUID().uuidString, title: String((parts.first ?? text).prefix(80)), issuer: parts.count > 1 ? parts[1] : "",
+                category: category, dateEarned: date, descriptionText: text.count > 80 ? text : "", credentialURL: nil, attachmentName: nil
+            )
+        }
+    }
+}

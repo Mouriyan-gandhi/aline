@@ -11,6 +11,9 @@ public struct MainAppView: View {
 
     @State private var isSplashActive: Bool
     @Environment(\.scenePhase) private var scenePhase
+    /// Onboarding's answers and resume, applied once the first backend load has finished —
+    /// applying them earlier raced that load, which could overwrite the autofilled profile
+    @State private var pendingOnboarding: OnboardingAnswers?
     /// Which auth form is open from the welcome screen (nil = welcome screen itself)
     @State private var authEntry: AuthenticationView.AuthMode? = nil
 
@@ -143,12 +146,7 @@ public struct MainAppView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .onboardingDidComplete)) { notif in
             if let answers = notif.object as? OnboardingAnswers {
-                profileViewModel.applyOnboarding(answers)
-                if let resumeURL = answers.resumeURL {
-                    resumeViewModel.importResume(from: resumeURL) { parsed in
-                        profileViewModel.autofill(from: parsed)
-                    }
-                }
+                pendingOnboarding = answers
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .userProfileDidUpdate)) { notif in
@@ -169,6 +167,17 @@ public struct MainAppView: View {
         async let questions: Void = prepViewModel.load()
         _ = await (profile, community, resumes, questions)
         resumeViewModel.syncWithProfile(profileViewModel.profile, achievements: profileViewModel.achievements)
+        // Just finished onboarding: preferences and career stage, then the uploaded resume
+        // becomes both a resume and the profile's content
+        if let answers = pendingOnboarding {
+            pendingOnboarding = nil
+            profileViewModel.applyOnboarding(answers)
+            if let resumeURL = answers.resumeURL {
+                resumeViewModel.importResume(from: resumeURL) { understood in
+                    profileViewModel.autofill(from: understood)
+                }
+            }
+        }
         await navViewModel.refreshNotifications(opportunityIDs: discoverViewModel.newMatchingOpportunities.map(\.id))
     }
 
@@ -441,7 +450,7 @@ public struct NotificationsSheetView: View {
     @ViewBuilder
     private func opportunityNotificationCard(_ targetOpp: Opportunity, oppId: String, time: String, isUnread: Bool) -> some View {
         let showsUnreadDot = navViewModel.isNotificationUnread(oppId, initiallyUnread: isUnread)
-        let shortLocation = targetOpp.location.components(separatedBy: ",").first ?? targetOpp.location
+        let shortLocation = targetOpp.displayLocation
 
         VStack(alignment: .leading, spacing: 12) {
             // Row 1: company (logo + name + unread dot) on the left, match score on the right

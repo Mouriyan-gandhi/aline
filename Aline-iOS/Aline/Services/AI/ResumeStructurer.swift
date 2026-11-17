@@ -58,7 +58,7 @@ enum ResumeStructurerError: Error {
 
 // MARK: - Deterministic fallback
 
-private extension ResumeStructurer {
+extension ResumeStructurer {
     static let sectionKeywords: [(key: String, variants: [String])] = [
         ("summary", ["summary", "objective", "profile"]),
         ("education", ["education", "academic background"]),

@@ -5,8 +5,9 @@ import time
 from typing import Optional
 
 import httpx
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from pydantic import BaseModel, Field
 
 from app.adapters import amazon, ashby, greenhouse, lever, smartrecruiters, workable, workday, workday_sitemap
@@ -37,6 +38,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# The job feed is ~12 MB of JSON uncompressed, ~1.8 MB gzipped — every client refresh paid
+# the full 12 MB before this. URLSession and browsers decompress transparently.
+app.add_middleware(GZipMiddleware, minimum_size=1024)
 
 app.include_router(community_router)
 app.include_router(profile_router)
@@ -245,7 +250,7 @@ async def companies_status():
 
 
 @app.get("/jobs", response_model=list[Job])
-async def get_jobs():
+async def get_jobs(request: Request, response: Response):
     """
     Serves from an in-memory cache, refreshed in the background every CACHE_TTL_SECONDS —
     NOT a live scrape on every request, which would be both slow (100+ companies) and
@@ -259,6 +264,13 @@ async def get_jobs():
         await cache.ready_event.wait()
     elif cache.is_stale():
         asyncio.create_task(refresh_cache())  # serve stale cache, refresh in background
+    # The feed only changes when the cache refreshes (every CACHE_TTL_SECONDS at most), so a
+    # client that already has this version gets a 304 with no body instead of the whole feed.
+    etag = f'"{int(cache.last_refreshed)}-{len(cache.jobs)}"'
+    if request.headers.get("if-none-match") == etag:
+        return Response(status_code=304, headers={"ETag": etag})
+    response.headers["ETag"] = etag
+    response.headers["Cache-Control"] = "no-cache"  # always revalidate, reuse when unchanged
     return cache.jobs
 
 

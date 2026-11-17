@@ -1324,6 +1324,7 @@ struct ProfileSheetScaffold<Content: View>: View {
                     VStack(alignment: .leading, spacing: 16) {
                         content()
                     }
+                    .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 20)
                     .padding(.top, 4)
                     .padding(.bottom, 40)
@@ -1358,6 +1359,9 @@ struct ProfileField: View {
 .alineKeyboardDismissal(.done)
                 }
             }
+            // Take the width offered, never the text's own length: a long imported value
+            // (e.g. a whole table row from a resume) otherwise widened the entire sheet past the screen
+            .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
             .font(.alineBody)
             .foregroundColor(AlineTheme.inkPrimary)
             .keyboardType(isURL ? .URL : .default)
@@ -1829,15 +1833,16 @@ extension EditProfileSheet {
         }
         importMessage = "Reading your resume…"
         Task {
-            let parsed = await ResumeStructurer.structure(resumeText: text)
-            // Identity fields (name, education, links, summary) only where the form is still empty
+            let understood = await ResumeUnderstanding.understand(text)
+            // Identity fields (name, degree, institution, year, links, location, bio) only where the form is still empty
             var identity = draft
-            identity.mergeEmptyFields(from: ResumeProfile(
-                fullName: parsed.fullName, linkedInURL: parsed.linkedInURL, githubURL: parsed.githubURL,
-                portfolioURL: parsed.portfolioURL, summary: parsed.summary, education: parsed.education
-            ))
+            identity.mergeEmptyFields(from: understood, includeEntries: false)
             draft = identity
-            importAlineResume(ResumeDocument(parsed: parsed, fileName: url.lastPathComponent, fileSize: nil))
+            importAlineResume(ResumeDocument(parsed: understood.resume, fileName: url.lastPathComponent, fileSize: nil))
+            let added = viewModel.addAchievements(understood.achievements)
+            if added > 0, let message = importMessage {
+                importMessage = message + " \(added) achievement\(added == 1 ? "" : "s") added to your gallery."
+            }
         }
     }
 }

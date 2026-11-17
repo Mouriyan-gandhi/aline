@@ -391,3 +391,31 @@ struct JobEnrichment {
     var skills: [String]?
     var missingKeywords: [MissingKeyword]?
 }
+
+extension Opportunity {
+    /// The city for cards and chips. Source locations are often office codes
+    /// ("IND-Bangalore Electronic City - S1", "(do not use) Mumbai Nirlon Know. Pk B7"); the full
+    /// text stays on the job detail screen.
+    var displayLocation: String {
+        let lower = location.lowercased()
+        let known: [(names: [String], display: String)] = [
+            (["bengaluru", "bangalore"], "Bengaluru"), (["hyderabad", "secunderabad"], "Hyderabad"),
+            (["chennai"], "Chennai"), (["mumbai", "navi mumbai"], "Mumbai"), (["pune"], "Pune"),
+            (["gurugram", "gurgaon"], "Gurugram"), (["noida"], "Noida"), (["new delhi", "delhi"], "Delhi"),
+            (["kolkata"], "Kolkata"), (["ahmedabad"], "Ahmedabad"), (["kochi", "cochin"], "Kochi"),
+            (["coimbatore"], "Coimbatore"), (["jaipur"], "Jaipur"), (["thiruvananthapuram", "trivandrum"], "Thiruvananthapuram"),
+            (["remote"], "Remote"),
+        ]
+        let found = known.filter { entry in entry.names.contains { lower.contains($0) } }.map(\.display)
+        if found.count == 1 { return found[0] }
+        if found.count > 1 { return "\(found[0]) +\(found.count - 1)" }
+        // Unknown place: drop parenthetical notes and codes, keep the first part
+        let cleaned = location.replacingOccurrences(of: #"\([^)]*\)"#, with: "", options: .regularExpression)
+        return cleaned.components(separatedBy: CharacterSet(charactersIn: ",;|"))
+            .first?.trimmingCharacters(in: .whitespaces).nilIfEmpty ?? location
+    }
+}
+
+private extension String {
+    var nilIfEmpty: String? { isEmpty ? nil : self }
+}

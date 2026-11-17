@@ -510,12 +510,16 @@ public final class DiscoverViewModel: ObservableObject {
             async let marksResult = try? AlineAPI.jobMarks()
             async let recommendationsResult = try? AlineAPI.recommendations()
             do {
-                let fresh = try await AlineAPI.jobs()
-                jobs = fresh
-                lastLoadFailed = false
-                if let data = try? JSONEncoder().encode(fresh) {
-                    try? data.write(to: Self.cacheURL, options: .atomic)
+                // Re-download only when the feed changed; the cached copy needs a matching version tag
+                let cachedTag = jobs.isEmpty ? nil : UserDefaults.standard.string(forKey: "jobsFeedETag")
+                if let (fresh, etag) = try await AlineAPI.jobs(ifChangedSince: cachedTag) {
+                    jobs = fresh
+                    if let data = try? JSONEncoder().encode(fresh) {
+                        try? data.write(to: Self.cacheURL, options: .atomic)
+                        UserDefaults.standard.set(etag, forKey: "jobsFeedETag")
+                    }
                 }
+                lastLoadFailed = false
             } catch {
                 lastLoadFailed = true
             }
@@ -794,7 +798,7 @@ public final class ResumeViewModel: ObservableObject {
 
     /// Reads an uploaded PDF, structures it (on-device model when available, heuristics
     /// otherwise) and adds it as a new resume.
-    func importResume(from url: URL, onParsed: ((ResumeProfile) -> Void)? = nil) {
+    func importResume(from url: URL, onParsed: ((UnderstoodResume) -> Void)? = nil) {
         let hasAccess = url.startAccessingSecurityScopedResource()
         let text = PDFTextExtractor.extractText(from: url)
         let size = (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize).flatMap { $0 }
@@ -807,9 +811,9 @@ public final class ResumeViewModel: ObservableObject {
         }
         isImportingResume = true
         Task {
-            let parsed = await ResumeStructurer.structure(resumeText: text)
-            onParsed?(parsed)
-            var resume = ResumeDocument(parsed: parsed, fileName: fileName, fileSize: size)
+            let understood = await ResumeUnderstanding.understand(text)
+            onParsed?(understood)
+            var resume = ResumeDocument(parsed: understood.resume, fileName: fileName, fileSize: size)
             resume.isDefault = resumes.isEmpty
             resume.cardColor = ResumeRecord.cardPalette[resumes.count % ResumeRecord.cardPalette.count]
             resumes.append(resume)

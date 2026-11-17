@@ -565,8 +565,8 @@ public struct StackedOpportunityCard: View {
 
                     // Location, Internship & Recency chips (Direct HStack, NO ScrollView to prevent cut-off)
                     HStack(spacing: 6) {
-                        let shortLocation = opportunity.location.components(separatedBy: ",").first?.trimmingCharacters(in: .whitespaces) ?? opportunity.location
-                        WhitePillChip(icon: "mappin", text: shortLocation)
+                        // The location gives way ("…") so the card keeps its fixed size
+                        WhitePillChip(icon: "mappin", text: opportunity.displayLocation, truncates: true)
                         WhitePillChip(icon: "briefcase", text: opportunity.opportunityType.rawValue)
                         WhitePillChip(icon: "clock", text: opportunity.recency.isEmpty ? "Recently" : opportunity.recency)
                         Spacer(minLength: 0)
@@ -651,7 +651,7 @@ public struct CompactExploreOpportunityCard: View {
     }
 
     private var shortLocation: String {
-        opportunity.location.components(separatedBy: ",").first ?? opportunity.location
+        opportunity.displayLocation
     }
 
     public var body: some View {
@@ -806,10 +806,14 @@ public struct ViewMoreCard: View {
 public struct WhitePillChip: View {
     public let icon: String?
     public let text: String
+    /// May shrink and end in "…" to keep its row inside the card (used for free text like
+    /// locations); otherwise the chip always shows its full text.
+    public let truncates: Bool
 
-    public init(icon: String? = nil, text: String) {
+    public init(icon: String? = nil, text: String, truncates: Bool = false) {
         self.icon = icon
         self.text = text
+        self.truncates = truncates
     }
 
     public var body: some View {
@@ -821,13 +825,14 @@ public struct WhitePillChip: View {
             Text(text)
                 .font(.system(size: 11, weight: .semibold))
                 .lineLimit(1)
-                .minimumScaleFactor(0.90)
+                .truncationMode(.tail)
+                .minimumScaleFactor(truncates ? 1 : 0.90)
         }
         .foregroundColor(AlineTheme.inkPrimary)
         .padding(.horizontal, 9)
         .padding(.vertical, 5)
         .background(Capsule().fill(Color.black.opacity(0.06)))
-        .fixedSize(horizontal: true, vertical: false)
+        .fixedSize(horizontal: !truncates, vertical: false)
     }
 }
 

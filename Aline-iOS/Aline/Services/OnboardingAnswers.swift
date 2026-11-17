@@ -52,17 +52,30 @@ extension ProfileViewModel {
 }
 
 extension ProfileViewModel {
-    /// Fills whatever the profile is still missing from a parsed resume — never overwrites
-    /// something the user already entered.
-    func autofill(from parsed: ResumeProfile) {
+    /// Fills whatever the profile is still missing from a resume — never overwrites something
+    /// the user already entered — and adds its certifications/awards to the Achievement Gallery.
+    func autofill(from understood: UnderstoodResume) {
         var updated = profile
-        updated.mergeEmptyFields(from: parsed)
+        updated.mergeEmptyFields(from: understood)
         if updated != profile { updateProfile(updated) }
+        addAchievements(understood.achievements)
+    }
+
+    /// Adds gallery items whose titles aren't there yet; returns how many were added.
+    @discardableResult
+    func addAchievements(_ items: [AchievementItem]) -> Int {
+        let existing = Set(achievements.map { $0.title.lowercased() })
+        let new = items.filter { !$0.title.isEmpty && !existing.contains($0.title.lowercased()) }
+        for item in new.reversed() { upsertAchievement(item) }
+        return new.count
     }
 }
 
 extension UserProfile {
-    mutating func mergeEmptyFields(from parsed: ResumeProfile) {
+    /// `includeEntries: false` leaves skills/experience/projects to the caller (Edit Profile
+    /// merges those itself so it can report counts).
+    mutating func mergeEmptyFields(from understood: UnderstoodResume, includeEntries: Bool = true) {
+        let parsed = understood.resume
         func fill(_ field: inout String, _ value: String) {
             if field.trimmingCharacters(in: .whitespaces).isEmpty, !value.isEmpty { field = value }
         }
@@ -71,13 +84,15 @@ extension UserProfile {
         fill(&linkedInURL, parsed.linkedInURL)
         fill(&githubURL, parsed.githubURL)
         fill(&portfolioURL, parsed.portfolioURL)
+        fill(&location, understood.location)
         if let school = parsed.education.first {
             fill(&institution, school.institution)
             fill(&education, school.degree)
-            let years = school.dateRange.components(separatedBy: CharacterSet.decimalDigits.inverted).filter { $0.count == 4 }
-            fill(&graduationYear, years.last ?? "")
             fill(&location, school.location)
         }
+        fill(&graduationYear, understood.graduationYear)
+        fill(&titleOrStage, understood.headline)
+        guard includeEntries else { return }
         for skill in parsed.skillCategories.flatMap(\.items)
         where !skills.contains(where: { $0.caseInsensitiveCompare(skill) == .orderedSame }) {
             skills.append(skill)

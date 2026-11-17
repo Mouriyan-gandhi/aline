@@ -43,6 +43,7 @@
 		EE2A36760722F715B717C4DF /* Aline/Services/Resume/ResumeRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE6D350AC1F4669182193FCA /* Aline/Services/Resume/ResumeRecord.swift */; };
 		F2EFEFBC6922CF10923D3718 /* Aline/Services/Networking/APIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFA6F7939D68752D5C368C92 /* Aline/Services/Networking/APIModels.swift */; };
 		F87B2507CC5B0321489303B2 /* Aline/Services/OnboardingAnswers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63F451A8D37618D086983FCB /* Aline/Services/OnboardingAnswers.swift */; };
+		D1928A6101B5C395EA86684B /* Aline/Services/AI/ResumeUnderstanding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44A35E4C389013EE72F80773 /* Aline/Services/AI/ResumeUnderstanding.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -83,6 +84,7 @@
 		F2C398D776AE4ECBA1EB5D4B /* Aline/Views/Profile/ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Views/Profile/ProfileView.swift; sourceTree = "<group>"; };
 		F938A69DA22041A3B12F37B8 /* Aline.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Aline.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FF6611F93E3F8B88FDD64E26 /* Aline/Services/AI/ResumeProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/AI/ResumeProfile.swift; sourceTree = "<group>"; };
+		44A35E4C389013EE72F80773 /* Aline/Services/AI/ResumeUnderstanding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/AI/ResumeUnderstanding.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -99,6 +101,7 @@
 		21DF6D99A1414587916B3DBF = {
 			isa = PBXGroup;
 			children = (
+				44A35E4C389013EE72F80773 /* Aline/Services/AI/ResumeUnderstanding.swift */,
 				0922B8CCEBA078408CD99ABA /* Aline/Services/AttachmentStore.swift */,
 				48E32ECF8A5FDC88E7745509 /* Aline/Services/JobAlerts.swift */,
 				C2EC1AF6833E57A0778985F5 /* Aline/Services/PreviewFixtures.swift */,
@@ -217,6 +220,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D1928A6101B5C395EA86684B /* Aline/Services/AI/ResumeUnderstanding.swift in Sources */,
 				ED9FC1847D7BDED5B29B11D2 /* Aline/Services/AttachmentStore.swift in Sources */,
 				76A7B1A463A58F847A2BFDDE /* Aline/Services/JobAlerts.swift in Sources */,
 				273425AADC1C1DDB8A9090FC /* Aline/Services/PreviewFixtures.swift in Sources */,
