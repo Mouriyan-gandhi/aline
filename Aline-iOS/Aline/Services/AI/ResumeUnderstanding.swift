@@ -87,18 +87,32 @@ enum ResumeUnderstanding {
         var achievements: [AchievementItem] = []
     }
 
+    /// Shared by every section call. Section-specific direction goes in each prompt's task line.
     private static let rules = """
-    You read one section of a student's or early-career engineer's resume and return its \
-    content as structured fields. Copy facts as written; never invent anything. The text was \
-    extracted from a PDF: " | " separates table cells or a right-aligned date, and lines may \
-    be broken mid-sentence. If a table header row names the columns (e.g. "Degree | Institute \
-    | CGPA | Year"), use it to map the cells of the following rows — never return header words \
-    as values. Leave a field empty when the section doesn't state it.
+    You extract structured data from ONE section of a resume written by a student or \
+    early-career engineer in India.
+
+    About the text in <SECTION>:
+    - It was extracted from a PDF. " | " separates table cells or a right-aligned date, and a \
+    sentence may be broken across lines.
+    - A table may start with a header row naming its columns (e.g. "Degree | Institute/Board \
+    | CGPA/Percentage | Year"). Use it to map the cells of the rows below. Header words are \
+    NEVER values.
+
+    Rules:
+    1. Copy names, titles, dates and numbers exactly as written. DO NOT invent, guess, \
+    translate or improve anything.
+    2. Leave a field empty ("") when the section doesn't state it.
+    3. Rejoin text that was broken across lines. Drop bullet symbols (•, -, ▪).
+    4. Return every entry in the section, in the order they appear.
     """
 
-    private static func respond<T: Generable>(_ prompt: String, as type: T.Type) async -> T? {
-        let session = LanguageModelSession(instructions: rules)
-        return try? await session.respond(to: prompt, generating: type).content
+    /// One section call: extraction is deterministic, data is delimited, and an over-long
+    /// section retries at half length.
+    private static func respond<T: Generable>(_ task: String, _ text: String, as type: T.Type) async -> T? {
+        await OnDeviceAI.generate(type, instructions: rules, options: OnDeviceAI.extracting) { budget in
+            OnDeviceAI.block("SECTION", OnDeviceAI.clip(text, 2600, budget)) + task
+        }
     }
 
     /// Long sections are read in chunks that fit the model's context, then merged.
@@ -120,19 +134,24 @@ enum ResumeUnderstanding {
         var anySucceeded = false
 
         if !sections["header"].isEmpty, let header = await respond(
-            "Resume header:\n\(sections["header"].prefix(8).joined(separator: "\n"))", as: HeaderModel.self
+            "This is the top of the resume, before the first section heading. Extract the person's name and location.",
+            sections["header"].prefix(8).joined(separator: "\n"), as: HeaderModel.self
         ) {
             read.name = header.name
             read.location = header.location
             anySucceeded = true
         }
         if !sections["summary"].isEmpty, let summary = await respond(
-            "Summary section:\n\(sections["summary"].joined(separator: "\n").prefix(2000))", as: SummaryModel.self
+            "This is the summary or objective section. Return its text.",
+            sections["summary"].joined(separator: "\n"), as: SummaryModel.self
         ) {
             read.summary = summary.summary
         }
         for chunk in chunks(sections["education"]) {
-            guard let list = await respond("Education section:\n\(chunk)", as: EducationListModel.self) else { continue }
+            guard let list = await respond(
+                "This is the education section. Extract every qualification: degree programmes and school classes (Class XII, Class X).",
+                chunk, as: EducationListModel.self
+            ) else { continue }
             anySucceeded = true
             read.education += list.entries.map {
                 // Branch only when the degree doesn't already name one ("B.Tech. (CSE AI-ML)")
@@ -144,7 +163,10 @@ enum ResumeUnderstanding {
             }
         }
         for chunk in chunks(sections["experience"]) {
-            guard let list = await respond("Experience section:\n\(chunk)", as: ExperienceListModel.self) else { continue }
+            guard let list = await respond(
+                "This is the experience section. Extract every role, internships included. A line with a title, an organisation and dates starts a new role; the lines under it are its points.",
+                chunk, as: ExperienceListModel.self
+            ) else { continue }
             anySucceeded = true
             read.experience += list.entries.map {
                 ExperienceEntry(title: $0.title, organization: $0.organization, location: $0.location,
@@ -152,25 +174,32 @@ enum ResumeUnderstanding {
             }
         }
         for chunk in chunks(sections["projects"]) {
-            guard let list = await respond("Projects section:\n\(chunk)", as: ProjectListModel.self) else { continue }
+            guard let list = await respond(
+                "This is the projects section. Extract every project. A short line naming a project starts a new one; a 'Tech Stack:' line gives its technologies.",
+                chunk, as: ProjectListModel.self
+            ) else { continue }
             anySucceeded = true
             read.projects += list.entries.map {
                 ProjectEntry(name: $0.name, techStack: $0.techStack, dateRange: $0.dateRange, bullets: $0.bullets)
             }
         }
         if !sections["skills"].isEmpty, let skills = await respond(
-            "Skills section:\n\(sections["skills"].joined(separator: "\n").prefix(2600))", as: SkillsModel.self
+            "This is the skills section. Extract each group of skills with its label, splitting lists into individual skills.",
+            sections["skills"].joined(separator: "\n"), as: SkillsModel.self
         ) {
             anySucceeded = true
             read.skills = skills.groups.map { SkillCategory(label: $0.label, items: $0.items) }.filter { !$0.items.isEmpty }
         }
         for chunk in chunks(sections["achievements"] + sections["certifications"]) {
-            guard let list = await respond("Achievements, awards and certifications:\n\(chunk)", as: AchievementListModel.self) else { continue }
+            guard let list = await respond(
+                "This lists achievements, awards, certifications and activities. Extract each one as a separate item and choose its folder.",
+                chunk, as: AchievementListModel.self
+            ) else { continue }
             anySucceeded = true
             read.achievements += list.entries.map {
                 AchievementItem(
                     id: UUID().uuidString, title: $0.title, issuer: $0.issuer,
-                    category: AchievementCategory(rawValue: $0.category) ?? .other,
+                    category: $0.folder.category,
                     dateEarned: $0.date, descriptionText: $0.details, credentialURL: nil, attachmentName: nil
                 )
             }
@@ -181,52 +210,54 @@ enum ResumeUnderstanding {
     // MARK: - Model schemas
 
     @Generable struct HeaderModel {
-        @Guide(description: "The person's full name")
+        @Guide(description: "The person's full name as written, usually the first line, e.g. 'Aarav Kumar'. Not a job title.")
         var name: String
-        @Guide(description: "City and/or state/country if stated, e.g. 'Chennai, India'. Empty if not stated.")
+        @Guide(description: "City and state or country only if written, e.g. 'Chennai, Tamil Nadu'. Not an email, phone or URL. Empty if not stated.")
         var location: String
     }
 
     @Generable struct SummaryModel {
-        @Guide(description: "The summary/objective text, copied as written")
+        @Guide(description: "The summary or objective text copied as written, without the heading.")
         var summary: String
     }
 
     @Generable struct EducationModel {
-        @Guide(description: "College, university or school name, e.g. 'SRM Institute of Science and Technology'")
-        var institution: String
-        @Guide(description: "Degree or qualification only, e.g. 'B.Tech', 'B.E.', 'M.Sc', 'Class XII (CBSE)'")
+        @Guide(description: "The degree or class exactly as written, e.g. 'B.Tech.', 'B.E.', 'M.Sc.', 'Class XII'. Include a branch only if written inside it, e.g. 'B.Tech. (CSE AI-ML)'.")
         var degree: String
-        @Guide(description: "Major/branch/specialization if stated, e.g. 'Computer Science and Engineering (AI & ML)'")
+        @Guide(description: "The branch or major if written separately from the degree, e.g. 'Computer Science and Engineering'. Empty otherwise.")
         var fieldOfStudy: String
-        @Guide(description: "Start year, e.g. '2024'. Empty if not stated.")
+        @Guide(description: "College, university or school name, e.g. 'SRM Institute of Science and Technology'. For a school class with only a board, the board, e.g. 'CBSE'.")
+        var institution: String
+        @Guide(description: "The first year of the programme as 4 digits, e.g. '2024'. Empty if not stated.")
         var startYear: String
-        @Guide(description: "End or expected graduation year, e.g. '2028', or 'Present' if ongoing with no year")
+        @Guide(description: "The final or expected graduation year as 4 digits, e.g. '2028'. 'Present' only if written as Present/Current with no end year. For a single year, put it here.")
         var endYear: String
-        @Guide(description: "CGPA, GPA or percentage as written, e.g. '9.94' or '95.6%'. Empty if not stated.")
+        @Guide(description: "The CGPA, GPA or percentage exactly as written, e.g. '9.94' or '95.6%'. Empty if not stated.")
         var score: String
+        @Guide(description: "City if written next to the institution. Empty otherwise.")
         var location: String
     }
 
     @Generable struct EducationListModel {
-        @Guide(description: "Every education entry in the section, most recent first")
+        @Guide(description: "Every qualification in the section, most recent first.")
         var entries: [EducationModel]
     }
 
     @Generable struct ExperienceModel {
-        @Guide(description: "Job title, e.g. 'AI/ML Intern'")
+        @Guide(description: "The role title only, e.g. 'AI/ML Intern', 'Software Engineer'. Not the company.")
         var title: String
-        @Guide(description: "Company or organization")
+        @Guide(description: "The company or organisation only, e.g. 'Tagros Chemicals India Pvt. Ltd.'")
         var organization: String
+        @Guide(description: "City, or 'Remote'/'Virtual', if written for this role. Empty otherwise.")
         var location: String
-        @Guide(description: "Dates as written, e.g. 'Jun 2026 – Aug 2026' or 'Jul 2025 – Present'")
+        @Guide(description: "The dates exactly as written, e.g. 'Jun 2026 – Aug 2026' or 'Jul 2025 – Present'. Empty if none.")
         var dateRange: String
-        @Guide(description: "Each bullet point, verbatim, rejoined if it was broken across lines")
+        @Guide(description: "Every point under this role, word for word, each as one complete sentence.")
         var bullets: [String]
     }
 
     @Generable struct ExperienceListModel {
-        @Guide(description: "Every role in the section (internships included), most recent first")
+        @Guide(description: "Every role in the section, internships included, in the order written.")
         var entries: [ExperienceModel]
     }
 
@@ -242,30 +273,48 @@ enum ResumeUnderstanding {
     }
 
     @Generable struct ProjectListModel {
+        @Guide(description: "Every project in the section, in the order written.")
         var entries: [ProjectModel]
     }
 
     @Generable struct SkillGroupModel {
-        @Guide(description: "Group label as written, e.g. 'Languages', 'Frameworks', 'Tools'. 'Skills' if ungrouped.")
+        @Guide(description: "The group's label as written, e.g. 'Languages', 'Frameworks', 'Developer Tools'. 'Skills' when the list has no label.")
         var label: String
-        @Guide(description: "Each individual skill, e.g. 'Python', 'React'")
+        @Guide(description: "Each skill as its own short item exactly as written, e.g. 'Python', 'React', 'Git'. Never a sentence.")
         var items: [String]
     }
 
     @Generable struct SkillsModel {
+        @Guide(description: "Every skill group in the section, in the order written.")
         var groups: [SkillGroupModel]
     }
 
+    /// The Achievement Gallery folders as a fixed choice — the model can't return anything else.
+    @Generable enum Folder {
+        case certificates, hackathons, awards, internships, courses, other
+
+        var category: AchievementCategory {
+            switch self {
+            case .certificates: return .certificates
+            case .hackathons: return .hackathons
+            case .awards: return .awards
+            case .internships: return .internships
+            case .courses: return .courses
+            case .other: return .other
+            }
+        }
+    }
+
     @Generable struct AchievementModel {
-        @Guide(description: "Short title, e.g. 'Smart India Hackathon — Finalist' or 'AWS Cloud Practitioner'")
+        @Guide(description: "What was achieved, under 10 words, e.g. 'Winner, Pitch Perfect Ideathon' or 'AWS Certified Cloud Practitioner'. Without the issuer or date.")
         var title: String
-        @Guide(description: "Issuer or organizer if stated, e.g. 'Amazon Web Services', 'Coursera'")
+        @Guide(description: "Who issued or organised it, e.g. 'Amazon Web Services', 'Coursera', 'Horizon 2025'. Empty if not written.")
         var issuer: String
-        @Guide(description: "Exactly one of: Certificates, Hackathons, Awards, Internships, Courses, Other")
-        var category: String
-        @Guide(description: "Date or year if stated")
+        @Guide(description: "Hackathon/ideathon/coding contest → hackathons; certification or certificate → certificates; online course or NPTEL → courses; prize, rank, scholarship, award → awards; internship → internships; anything else → other.")
+        var folder: Folder
+        @Guide(description: "The date or year exactly as written. Empty if none.")
         var date: String
-        @Guide(description: "One sentence of detail if the resume gives any, otherwise empty")
+        @Guide(description: "One sentence of detail the resume gives (rank, score, team size). Empty if none.")
         var details: String
     }
 

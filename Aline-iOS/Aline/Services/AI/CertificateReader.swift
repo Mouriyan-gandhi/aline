@@ -27,7 +27,7 @@ enum CertificateReader {
             fields.title = model.title
             fields.issuer = model.issuer
             fields.date = parseDate(model.date)
-            fields.category = AchievementCategory(rawValue: model.category)
+            fields.category = model.folder.category
             fields.description = model.description
         }
         let fallback = heuristics(text)
@@ -73,30 +73,44 @@ enum CertificateReader {
 
     // MARK: Model
 
+    /// Ordered so the model identifies the issuer and the kind of document before it writes
+    /// the title and description.
     @Generable
     struct CertificateModel {
-        @Guide(description: "What was earned, e.g. 'Programming in Java', 'AWS Certified Cloud Practitioner', 'Winner — Smart India Hackathon 2025'. Not the person's name, not the issuer.")
-        var title: String
-        @Guide(description: "Who issued it, e.g. 'NPTEL (IIT Kharagpur)', 'Coursera', 'Amazon Web Services', 'Google'")
+        @Guide(description: "The organisation that granted it, as written, e.g. 'NPTEL (IIT Kharagpur)', 'Coursera', 'Amazon Web Services', 'Smart India Hackathon'. For a course run with a university, include it in brackets. Not a signatory's name.")
         var issuer: String
-        @Guide(description: "Date it was issued or completed, as written (e.g. '17 November 2025' or 'Jul–Oct 2025'). Empty if none.")
+        @Guide(description: "Course or online certification programme → courses; professional certification or exam → certificates; hackathon, ideathon or coding contest → hackathons; prize, rank, scholarship or award → awards; internship letter or certificate → internships; anything else → other.")
+        var folder: ResumeUnderstanding.Folder
+        @Guide(description: "The course, exam or event name, under 10 words, as written — usually the line after 'for successfully completing the course', 'in' or 'for', e.g. 'Programming in Java', 'AWS Certified Cloud Practitioner', 'Winner — Smart India Hackathon 2025'. NOT a grade or medal such as 'Elite', 'Silver', 'Gold', 'with distinction' (those go in description). NOT 'Certificate of Completion', the person's name or the issuer.")
+        var title: String
+        @Guide(description: "The completion or issue date as written, e.g. '17 November 2025' or 'Jul–Oct 2025'. If several dates appear, the latest. Empty if none.")
         var date: String
-        @Guide(description: "Exactly one of: Certificates, Hackathons, Awards, Internships, Courses, Other")
-        var category: String
-        @Guide(description: "One short sentence about what was achieved, with any score, grade or rank stated, e.g. 'Completed the 12-week course with a score of 84% (Elite + Silver).' Never include the person's name. Empty if nothing beyond the title.")
+        @Guide(description: "One sentence under 25 words about what was achieved, including any score, grade, rank or duration written on it, e.g. 'Completed the 12-week course with a score of 84% (Elite + Silver).' NEVER the person's name. Empty if nothing beyond the title.")
         var description: String
     }
 
+    private static let certificateInstructions = """
+    You read the text of one certificate, award or completion letter and fill an achievement \
+    record for the person who earned it.
+
+    About the text in <CERTIFICATE>:
+    - It was extracted from a PDF or read from a photo, so lines may be out of order and a \
+    few characters may be wrong.
+    - It contains boilerplate ("This is to certify that", "has successfully completed"), the \
+    person's name, signatories, roll numbers and verification links. None of these are the \
+    title.
+
+    Rules:
+    1. Copy the title, issuer and date as written. DO NOT invent or estimate a score, grade, \
+    date or issuer.
+    2. Leave a field empty ("") when the certificate doesn't state it.
+    3. DO NOT include the person's name in any field.
+    """
+
     private static func readWithModel(_ text: String) async -> CertificateModel? {
-        guard OnDeviceAI.isAvailable else { return nil }
-        let session = LanguageModelSession(instructions: """
-        You read the text of a certificate, award or completion letter (extracted from a PDF or \
-        a photo, so it may be out of order or contain OCR mistakes) and report what it certifies. \
-        Copy names as written; never invent a score, date or issuer.
-        """)
-        return try? await session.respond(
-            to: "Certificate text:\n\(String(text.prefix(3000)))", generating: CertificateModel.self
-        ).content
+        await OnDeviceAI.generate(CertificateModel.self, instructions: certificateInstructions, options: OnDeviceAI.extracting) { budget in
+            OnDeviceAI.block("CERTIFICATE", OnDeviceAI.clip(text, 3000, budget)) + "Fill the achievement record from this certificate."
+        }
     }
 
     // MARK: Heuristics

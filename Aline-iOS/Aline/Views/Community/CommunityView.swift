@@ -5237,7 +5237,7 @@ public struct ContributeQuestionModalView: View {
         Task {
             // On-device model; the contributor reviews the draft before posting it
             if let solution = await OnDeviceAI.solve(question: trimmed, topic: topic.rawValue, company: company, role: role) {
-                solutionText = solution.answer
+                solutionText = solution.fullAnswer
                 if hintText.isEmpty { hintText = solution.hint }
                 if approachText.isEmpty { approachText = solution.approach }
             }

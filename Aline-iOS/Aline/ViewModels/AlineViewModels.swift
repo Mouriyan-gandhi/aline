@@ -1848,7 +1848,7 @@ public final class InterviewPrepViewModel: ObservableObject {
                 question: question.questionText, topic: question.topic.rawValue,
                 company: question.companyName, role: question.role
             )
-            let text = solution.map { "\($0.approach)\n\n\($0.answer)" } ?? OnDeviceAI.unavailableMessage
+            let text = solution.map { "\($0.approach)\n\n\($0.fullAnswer)" } ?? OnDeviceAI.unavailableMessage
             if let index = questions.firstIndex(where: { $0.id == id }) {
                 questions[index] = questions[index].withAIAnswer(text)
             }
