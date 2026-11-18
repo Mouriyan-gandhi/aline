@@ -33,7 +33,6 @@
 		B10000000000000000000003 /* splash_animation.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000003 /* splash_animation.mp4 */; };
 		B6651D466815433CB7A1DA9F /* AlineApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97051675D3A6449F993DF523 /* AlineApp.swift */; };
 		B6995522BFF71E37ACBFA0EE /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E4C751F9361771B96AAC37 /* APIClient.swift */; };
-		BDB664A0AE63EEC6B0942773 /* ResumeStructurer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E4746B9D6B5646A442BD025 /* ResumeStructurer.swift */; };
 		C5CB9B53F5234F7F87ACB580 /* Resume.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4752CC24650747F09AD66CF4 /* Resume.swift */; };
 		D35E79245B7742C2A7B97F52 /* ResumeDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07868B1165B74217869F856E /* ResumeDashboardView.swift */; };
 		D9E6922F20BA7C8F32E10946 /* AlineAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01628F377938C4BF34F4DD5F /* AlineAPI.swift */; };
@@ -59,7 +58,6 @@
 		38E4C751F9361771B96AAC37 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		4752CC24650747F09AD66CF4 /* Resume.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Resume.swift; sourceTree = "<group>"; };
 		48E32ECF8A5FDC88E7745509 /* JobAlerts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobAlerts.swift; sourceTree = "<group>"; };
-		4E4746B9D6B5646A442BD025 /* ResumeStructurer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeStructurer.swift; sourceTree = "<group>"; };
 		63F451A8D37618D086983FCB /* OnboardingAnswers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingAnswers.swift; sourceTree = "<group>"; };
 		65DCA2E5B466DA104C02D384 /* MatchEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchEngine.swift; sourceTree = "<group>"; };
 		7257AD19AE225598B557689A /* PDFTextExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFTextExtractor.swift; sourceTree = "<group>"; };
@@ -146,7 +144,6 @@
 				D66AF08BA701C737DC40BDE7 /* OnDeviceAI.swift */,
 				7257AD19AE225598B557689A /* PDFTextExtractor.swift */,
 				FF6611F93E3F8B88FDD64E26 /* ResumeProfile.swift */,
-				4E4746B9D6B5646A442BD025 /* ResumeStructurer.swift */,
 				44A35E4C389013EE72F80773 /* ResumeUnderstanding.swift */,
 				ADC8DCA1D4484D6E81C2B74B /* SkillVocabulary.swift */,
 			);
@@ -387,7 +384,6 @@
 				D9E6922F20BA7C8F32E10946 /* AlineAPI.swift in Sources */,
 				F87B2507CC5B0321489303B2 /* OnboardingAnswers.swift in Sources */,
 				584ED128B6EC908D8D838199 /* SkillVocabulary.swift in Sources */,
-				BDB664A0AE63EEC6B0942773 /* ResumeStructurer.swift in Sources */,
 				1424EC19848A56333FF3C03D /* ResumeProfile.swift in Sources */,
 				731498E128E1435AF6436E60 /* PDFTextExtractor.swift in Sources */,
 				ACB1F7C98F7E9E5F21980FC9 /* OnDeviceAI.swift in Sources */,

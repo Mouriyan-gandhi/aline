@@ -29,7 +29,7 @@ struct UnderstoodResume {
 enum ResumeUnderstanding {
     static func understand(_ text: String) async -> UnderstoodResume {
         let sections = Sections(text: text)
-        let contact = ResumeStructurer.extractContactInfo(from: text)
+        let contact = extractContactInfo(from: text)
         var resume = ResumeProfile(
             fullName: sections.name, phone: contact.phone, email: contact.email,
             linkedInURL: contact.linkedIn, githubURL: contact.github, portfolioURL: contact.portfolio
@@ -704,5 +704,34 @@ enum Heuristics {
                 category: category, dateEarned: date, descriptionText: text.count > 80 ? text : "", credentialURL: nil, attachmentName: nil
             )
         }
+    }
+}
+
+extension ResumeUnderstanding {
+    /// Email, phone and links from the whole text, found by Foundation's data detector.
+    static func extractContactInfo(from text: String) -> (email: String, phone: String, linkedIn: String, github: String, portfolio: String) {
+        var email = "", phone = "", linkedIn = "", github = "", portfolio = ""
+        guard let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue | NSTextCheckingResult.CheckingType.phoneNumber.rawValue) else {
+            return (email, phone, linkedIn, github, portfolio)
+        }
+        let matches = detector.matches(in: text, range: NSRange(text.startIndex..., in: text))
+        for match in matches {
+            guard let range = Range(match.range, in: text) else { continue }
+            let matchedText = String(text[range])
+            if let phoneNumber = match.phoneNumber {
+                if phone.isEmpty { phone = phoneNumber }
+            } else if let url = match.url {
+                if url.scheme == "mailto" {
+                    if email.isEmpty { email = url.absoluteString.replacingOccurrences(of: "mailto:", with: "") }
+                } else if matchedText.lowercased().contains("linkedin.com") {
+                    if linkedIn.isEmpty { linkedIn = matchedText }
+                } else if matchedText.lowercased().contains("github.com") {
+                    if github.isEmpty { github = matchedText }
+                } else if portfolio.isEmpty {
+                    portfolio = matchedText
+                }
+            }
+        }
+        return (email, phone, linkedIn, github, portfolio)
     }
 }

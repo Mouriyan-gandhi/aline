@@ -35,13 +35,9 @@ curl https://aline-backend.onrender.com/companies
 
 ## 4. Point the iOS app at it
 
-In `ios/Aline/Networking/JobsAPI.swift`, change:
-
-```swift
-static let baseURL = URL(string: "http://127.0.0.1:8000")!
-```
-
-to your Render URL. (I'll do this part once you have the live URL — just paste it back to me.)
+The app already points at the live service (`https://aline-backend-wdp6.onrender.com`) in
+`Aline-iOS/Aline/Services/Networking/APIClient.swift` (`baseURL`). To use a local backend
+instead, set the scheme's environment variable `ALINE_API_BASE_URL=http://127.0.0.1:8000`.
 
 ## Known trade-off on the free tier
 

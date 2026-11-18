@@ -91,16 +91,6 @@ public struct ResumeProject: Identifiable, Hashable {
     public var bullets: [String]
 }
 
-public struct AISuggestion: Identifiable, Hashable {
-    public let id: String
-    public let targetSection: String
-    public let originalText: String
-    public let suggestedText: String
-    public let reason: String
-    public let includesPlaceholders: Bool
-    public var isApplied: Bool
-}
-
 public struct AIChatMessage: Identifiable, Hashable {
     public let id: String
     public let sender: Sender

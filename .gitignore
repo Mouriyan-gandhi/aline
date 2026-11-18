@@ -8,14 +8,8 @@ __pycache__/
 *.egg-info/
 
 # Xcode / iOS
-ios/Aline.xcodeproj/xcuserdata/
-ios/Aline.xcodeproj/project.xcworkspace/xcuserdata/
-ios/build/
-ios/DerivedData/
+Aline-iOS/Aline.xcodeproj/xcuserdata/
+Aline-iOS/Aline.xcodeproj/project.xcworkspace/xcuserdata/
+Aline-iOS/build/
+DerivedData/
 *.xcuserstate
-
-# old_version (Node) — not part of the active build, keep out of tracking
-old_version/node_modules/
-old_version/db/*.db
-old_version/db/*.db-wal
-old_version/db/*.db-shm

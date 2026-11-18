@@ -13,7 +13,7 @@ for interview experiences and interview questions.
 │                                   ├─ OnDeviceAI         (Foundation     │      │   (460 companies, 6 ATS platforms)
 │                                   │                      Models)        │      ├─ recommender (per-user ranking)
 │                                   │                                     │      └─ SQLite: users, community,
-│                                   ├─ ResumeStructurer / PDF export      │          interview Qs, resumes, marks, files
+│                                   ├─ ResumeUnderstanding / PDF export   │          interview Qs, resumes, marks, files
 │                                   └─ JobAlerts (local notifications)    │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
@@ -26,8 +26,6 @@ for interview experiences and interview questions.
 |---|---|
 | `Aline-iOS/` | **The iOS app** — the final frontend, integrated with the backend. Open this one. |
 | `backend/` | FastAPI backend: job scraping, community, interview questions, profile, resumes, files. |
-| `ios/` | The previous iOS app. Kept for reference; it still works against the same backend. |
-| `old_version/` | The original Node.js prototype (JobPulse). Historical only. |
 
 ---
 
@@ -97,8 +95,8 @@ Aline/
 │  ├─ Networking/            APIClient (HTTP + device identity), AlineAPI (endpoints),
 │  │                         APIModels (wire DTOs), ModelMapping (DTO → frontend models)
 │  ├─ Matching/              MatchEngine: % Match, done on device
-│  ├─ AI/                    OnDeviceAI (Foundation Models), ResumeStructurer (PDF → resume),
-│  │                         PDFTextExtractor, SkillVocabulary
+│  ├─ AI/                    OnDeviceAI (Foundation Models), ResumeUnderstanding (PDF → resume),
+│  │                         CertificateReader, PDFTextExtractor, SkillVocabulary
 │  ├─ Resume/                ResumeRecord (stored form of a resume), ResumePDFExporter (real PDF output)
 │  ├─ JobAlerts.swift        Opportunity Alerts (local notifications + background refresh)
 │  ├─ AttachmentStore.swift  achievement files (upload, local cache, Quick Look)
@@ -145,7 +143,7 @@ feature shows a plain "not available" message rather than placeholder text.
 - Resume chat: rewrites a selected point, or answers questions about the whole resume.
 - Job tailoring: uses the selected resume, full profile, achievement gallery and target job to write a role-specific summary, point out profile items missing from the resume, and rewrite points to show missing skills and keywords.
 - Interview questions: generates solutions, and the contribute sheet's "Give Answer with AI".
-- Resume upload: turns a PDF into resume sections (`ResumeStructurer`, with a heuristic fallback).
+- Resume upload: turns a PDF into resume sections (`ResumeUnderstanding`: layout-aware sections, one model call per section, heuristic fallback).
 
 ---
 
@@ -220,3 +218,5 @@ The production state before the frontend integration is tagged `pre-frontend-int
 | Profile (incl. achievements, attachments, preferences) | Live data |
 | Sign in / sign up | Local stand-in; real auth not built yet |
 | Persistent storage in production | Not yet; see the known limitation above |
+
+The previous iOS app (`ios/`) and the Node.js prototype (`old_version/`) were removed from the tree; both are in git history and under the `pre-frontend-integration` tag.

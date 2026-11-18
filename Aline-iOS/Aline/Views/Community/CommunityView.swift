@@ -863,26 +863,6 @@ public struct CommunityView: View {
         .buttonStyle(.plain)
     }
 
-    @ViewBuilder
-    private func activeFilterPill(text: String, onRemove: @escaping () -> Void) -> some View {
-        HStack(spacing: 6) {
-            Text(text)
-                .font(.system(size: 12, weight: .bold))
-                .foregroundColor(AlineTheme.pillDark)
-            Button {
-                onRemove()
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundColor(AlineTheme.pillDark)
-            }
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(AlineTheme.cardMint.opacity(0.45))
-        .clipShape(Capsule())
-    }
-
     // Live Search Overlay Screen (Item 13)
     private var interviewSearchOverlayContent: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -3504,32 +3484,6 @@ public struct CreateDiscussionPostView: View {
             }
         }
         .environment(\.colorScheme, .light)
-    }
-}
-
-// MARK: - Filter Tag Pill
-public struct FilterTagPill: View {
-    public let text: String
-    public let onRemove: () -> Void
-
-    public var body: some View {
-        HStack(spacing: 6) {
-            Text(text)
-                .font(.system(size: 12, weight: .bold))
-                .foregroundColor(AlineTheme.pillDark)
-            Button {
-                onRemove()
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundColor(AlineTheme.pillDark)
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(AlineTheme.cardMint.opacity(0.55))
-        .clipShape(Capsule())
     }
 }
 
