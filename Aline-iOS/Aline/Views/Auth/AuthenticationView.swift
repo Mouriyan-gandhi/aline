@@ -614,12 +614,9 @@ public struct AuthenticationView: View {
                             .font(.system(size: 24, weight: .heavy, design: .default))
                             .foregroundColor(AlineTheme.inkPrimary)
 
-                        Text("We've sent a 6-digit confirmation code to\n")
+                        Text("We've sent a 6-digit confirmation code to\n\(Text(pendingEmail).font(.system(size: 14, weight: .bold)).foregroundColor(AlineTheme.inkPrimary))")
                             .font(.system(size: 14, weight: .regular))
                             .foregroundColor(AlineTheme.inkSecondary)
-                        + Text(pendingEmail)
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(AlineTheme.inkPrimary)
                     }
                     .multilineTextAlignment(.center)
                     .lineSpacing(2)
@@ -734,7 +731,7 @@ public struct AuthenticationView: View {
                 .foregroundColor(.clear)
                 .frame(width: 1, height: 1)
                 .opacity(0.01)
-                .onChange(of: otpCode) { newValue in
+                .onChange(of: otpCode) { _, newValue in
                     let filtered = newValue.filter { $0.isNumber }
                     if filtered.count > 6 {
                         otpCode = String(filtered.prefix(6))

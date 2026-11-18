@@ -61,7 +61,7 @@ enum OnDeviceAI {
             let session = LanguageModelSession(instructions: instructions)
             do {
                 return try await session.respond(to: prompt(budget), generating: type, options: options).content
-            } catch LanguageModelSession.GenerationError.exceededContextWindowSize {
+            } catch LanguageModelError.contextSizeExceeded {
                 continue
             } catch {
                 return nil
