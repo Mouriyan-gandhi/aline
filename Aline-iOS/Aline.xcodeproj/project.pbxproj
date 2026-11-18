@@ -7,88 +7,88 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0609F9CBE9004603BDD65E00 /* Aline/Models/Community.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03B991633F764CD494EFC7B6 /* Aline/Models/Community.swift */; };
-		1424EC19848A56333FF3C03D /* Aline/Services/AI/ResumeProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF6611F93E3F8B88FDD64E26 /* Aline/Services/AI/ResumeProfile.swift */; };
-		19592236D7CEB79A05F8C7AA /* Aline/Services/Networking/ModelMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0C510D83F0BB198D95F217C /* Aline/Services/Networking/ModelMapping.swift */; };
-		1F2E23C12F14481C88DF2D74 /* Aline/Models/UserProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = A104B9BC10464959940AE8CD /* Aline/Models/UserProfile.swift */; };
-		2449FBE904904FA69BFD3EBD /* Aline/Models/Opportunity.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD30B896F43442A0B5D2A6A4 /* Aline/Models/Opportunity.swift */; };
-		270AA8CDDC104AC3B1D80BD3 /* Aline/Views/Discover/DiscoverFeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B49354C2C7B9462DB92CCC9A /* Aline/Views/Discover/DiscoverFeedView.swift */; };
-		273425AADC1C1DDB8A9090FC /* Aline/Services/PreviewFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2EC1AF6833E57A0778985F5 /* Aline/Services/PreviewFixtures.swift */; };
-		3009CF782C7F4A20BAB59D70 /* Aline/Views/Profile/ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2C398D776AE4ECBA1EB5D4B /* Aline/Views/Profile/ProfileView.swift */; };
-		386B38F23F34618DCC17718A /* Aline/Services/Matching/MatchEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65DCA2E5B466DA104C02D384 /* Aline/Services/Matching/MatchEngine.swift */; };
-		3A63B297F47444FF8264931C /* Aline/Theme/AlineTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC747BCF2024443C9971F581 /* Aline/Theme/AlineTheme.swift */; };
-		3D9133347CCB4882822B540F /* Aline/Resources/Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBD21F70416B4AF2A1C32405 /* Aline/Resources/Assets.xcassets */; };
-		561FA692CD3C472B9A56DF7E /* Aline/Models/InterviewQuestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ADF508ECF5D4767934F80A8 /* Aline/Models/InterviewQuestion.swift */; };
-		584ED128B6EC908D8D838199 /* Aline/Services/AI/SkillVocabulary.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADC8DCA1D4484D6E81C2B74B /* Aline/Services/AI/SkillVocabulary.swift */; };
-		731498E128E1435AF6436E60 /* Aline/Services/AI/PDFTextExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7257AD19AE225598B557689A /* Aline/Services/AI/PDFTextExtractor.swift */; };
-		76A7B1A463A58F847A2BFDDE /* Aline/Services/JobAlerts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48E32ECF8A5FDC88E7745509 /* Aline/Services/JobAlerts.swift */; };
-		7CCBB104DC49C4D8BA7F92C2 /* Aline/Services/Resume/ResumePDFExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5C4E6D916D5FD0B56CC2C57 /* Aline/Services/Resume/ResumePDFExporter.swift */; };
-		819931301FB24F30A3B29D01 /* Aline/Views/Discover/JobDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24586C5AFED24E709DC6B53A /* Aline/Views/Discover/JobDetailView.swift */; };
-		852F2E02C0C64C57AE71FA72 /* Aline/ViewModels/AlineViewModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E828F52CE84C4D22BAC7D125 /* Aline/ViewModels/AlineViewModels.swift */; };
-		A0FAF261D8E54A719501BC4D /* Aline/Views/Onboarding/OnboardingFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E96005F78244F4991577EE9 /* Aline/Views/Onboarding/OnboardingFlowView.swift */; };
-		A18791E2345448B8BE411622 /* Aline/Views/MainAppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2443720300224449B27CB46E /* Aline/Views/MainAppView.swift */; };
-		ACB1F7C98F7E9E5F21980FC9 /* Aline/Services/AI/OnDeviceAI.swift in Sources */ = {isa = PBXBuildFile; fileRef = D66AF08BA701C737DC40BDE7 /* Aline/Services/AI/OnDeviceAI.swift */; };
-		B10000000000000000000001 /* Aline/Views/Splash/SplashScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000001 /* Aline/Views/Splash/SplashScreenView.swift */; };
-		B10000000000000000000002 /* Aline/Views/Auth/AuthenticationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000002 /* Aline/Views/Auth/AuthenticationView.swift */; };
-		B10000000000000000000003 /* Aline/Resources/splash_animation.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000003 /* Aline/Resources/splash_animation.mp4 */; };
-		B6651D466815433CB7A1DA9F /* Aline/AlineApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97051675D3A6449F993DF523 /* Aline/AlineApp.swift */; };
-		B6995522BFF71E37ACBFA0EE /* Aline/Services/Networking/APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E4C751F9361771B96AAC37 /* Aline/Services/Networking/APIClient.swift */; };
-		BDB664A0AE63EEC6B0942773 /* Aline/Services/AI/ResumeStructurer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E4746B9D6B5646A442BD025 /* Aline/Services/AI/ResumeStructurer.swift */; };
-		C5CB9B53F5234F7F87ACB580 /* Aline/Models/Resume.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4752CC24650747F09AD66CF4 /* Aline/Models/Resume.swift */; };
-		D35E79245B7742C2A7B97F52 /* Aline/Views/Resume/ResumeDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07868B1165B74217869F856E /* Aline/Views/Resume/ResumeDashboardView.swift */; };
-		D9E6922F20BA7C8F32E10946 /* Aline/Services/Networking/AlineAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01628F377938C4BF34F4DD5F /* Aline/Services/Networking/AlineAPI.swift */; };
-		DCF951042F6A4FF9B41A5CDE /* Aline/Views/Community/CommunityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C304DDCD63DF4DFA81DCFECD /* Aline/Views/Community/CommunityView.swift */; };
-		E4C4D3DB3DA0414AB8A8E76E /* Aline/Views/Components/AlineComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89BBBCC110504BD990BCBE73 /* Aline/Views/Components/AlineComponents.swift */; };
-		ED9FC1847D7BDED5B29B11D2 /* Aline/Services/AttachmentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0922B8CCEBA078408CD99ABA /* Aline/Services/AttachmentStore.swift */; };
-		EE2A36760722F715B717C4DF /* Aline/Services/Resume/ResumeRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE6D350AC1F4669182193FCA /* Aline/Services/Resume/ResumeRecord.swift */; };
-		F2EFEFBC6922CF10923D3718 /* Aline/Services/Networking/APIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFA6F7939D68752D5C368C92 /* Aline/Services/Networking/APIModels.swift */; };
-		F87B2507CC5B0321489303B2 /* Aline/Services/OnboardingAnswers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63F451A8D37618D086983FCB /* Aline/Services/OnboardingAnswers.swift */; };
-		D1928A6101B5C395EA86684B /* Aline/Services/AI/ResumeUnderstanding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44A35E4C389013EE72F80773 /* Aline/Services/AI/ResumeUnderstanding.swift */; };
-		EF711A39A8157F2A47CAB58C /* Aline/Views/Profile/AttachmentThumbnail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09EB8560E895E02E03F35D7F /* Aline/Views/Profile/AttachmentThumbnail.swift */; };
-		6284F756F2DA4C38E4100D56 /* Aline/Services/AI/CertificateReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BA9B2129A9269B7256306E7 /* Aline/Services/AI/CertificateReader.swift */; };
+		0609F9CBE9004603BDD65E00 /* Community.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03B991633F764CD494EFC7B6 /* Community.swift */; };
+		1424EC19848A56333FF3C03D /* ResumeProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF6611F93E3F8B88FDD64E26 /* ResumeProfile.swift */; };
+		19592236D7CEB79A05F8C7AA /* ModelMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0C510D83F0BB198D95F217C /* ModelMapping.swift */; };
+		1F2E23C12F14481C88DF2D74 /* UserProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = A104B9BC10464959940AE8CD /* UserProfile.swift */; };
+		2449FBE904904FA69BFD3EBD /* Opportunity.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD30B896F43442A0B5D2A6A4 /* Opportunity.swift */; };
+		270AA8CDDC104AC3B1D80BD3 /* DiscoverFeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B49354C2C7B9462DB92CCC9A /* DiscoverFeedView.swift */; };
+		273425AADC1C1DDB8A9090FC /* PreviewFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2EC1AF6833E57A0778985F5 /* PreviewFixtures.swift */; };
+		3009CF782C7F4A20BAB59D70 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2C398D776AE4ECBA1EB5D4B /* ProfileView.swift */; };
+		386B38F23F34618DCC17718A /* MatchEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65DCA2E5B466DA104C02D384 /* MatchEngine.swift */; };
+		3A63B297F47444FF8264931C /* AlineTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC747BCF2024443C9971F581 /* AlineTheme.swift */; };
+		3D9133347CCB4882822B540F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBD21F70416B4AF2A1C32405 /* Assets.xcassets */; };
+		561FA692CD3C472B9A56DF7E /* InterviewQuestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ADF508ECF5D4767934F80A8 /* InterviewQuestion.swift */; };
+		584ED128B6EC908D8D838199 /* SkillVocabulary.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADC8DCA1D4484D6E81C2B74B /* SkillVocabulary.swift */; };
+		731498E128E1435AF6436E60 /* PDFTextExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7257AD19AE225598B557689A /* PDFTextExtractor.swift */; };
+		76A7B1A463A58F847A2BFDDE /* JobAlerts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48E32ECF8A5FDC88E7745509 /* JobAlerts.swift */; };
+		7CCBB104DC49C4D8BA7F92C2 /* ResumePDFExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5C4E6D916D5FD0B56CC2C57 /* ResumePDFExporter.swift */; };
+		819931301FB24F30A3B29D01 /* JobDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24586C5AFED24E709DC6B53A /* JobDetailView.swift */; };
+		852F2E02C0C64C57AE71FA72 /* AlineViewModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E828F52CE84C4D22BAC7D125 /* AlineViewModels.swift */; };
+		A0FAF261D8E54A719501BC4D /* OnboardingFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E96005F78244F4991577EE9 /* OnboardingFlowView.swift */; };
+		A18791E2345448B8BE411622 /* MainAppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2443720300224449B27CB46E /* MainAppView.swift */; };
+		ACB1F7C98F7E9E5F21980FC9 /* OnDeviceAI.swift in Sources */ = {isa = PBXBuildFile; fileRef = D66AF08BA701C737DC40BDE7 /* OnDeviceAI.swift */; };
+		B10000000000000000000001 /* SplashScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000001 /* SplashScreenView.swift */; };
+		B10000000000000000000002 /* AuthenticationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000002 /* AuthenticationView.swift */; };
+		B10000000000000000000003 /* splash_animation.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000003 /* splash_animation.mp4 */; };
+		B6651D466815433CB7A1DA9F /* AlineApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97051675D3A6449F993DF523 /* AlineApp.swift */; };
+		B6995522BFF71E37ACBFA0EE /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E4C751F9361771B96AAC37 /* APIClient.swift */; };
+		BDB664A0AE63EEC6B0942773 /* ResumeStructurer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E4746B9D6B5646A442BD025 /* ResumeStructurer.swift */; };
+		C5CB9B53F5234F7F87ACB580 /* Resume.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4752CC24650747F09AD66CF4 /* Resume.swift */; };
+		D35E79245B7742C2A7B97F52 /* ResumeDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07868B1165B74217869F856E /* ResumeDashboardView.swift */; };
+		D9E6922F20BA7C8F32E10946 /* AlineAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01628F377938C4BF34F4DD5F /* AlineAPI.swift */; };
+		DCF951042F6A4FF9B41A5CDE /* CommunityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C304DDCD63DF4DFA81DCFECD /* CommunityView.swift */; };
+		E4C4D3DB3DA0414AB8A8E76E /* AlineComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89BBBCC110504BD990BCBE73 /* AlineComponents.swift */; };
+		ED9FC1847D7BDED5B29B11D2 /* AttachmentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0922B8CCEBA078408CD99ABA /* AttachmentStore.swift */; };
+		EE2A36760722F715B717C4DF /* ResumeRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE6D350AC1F4669182193FCA /* ResumeRecord.swift */; };
+		F2EFEFBC6922CF10923D3718 /* APIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFA6F7939D68752D5C368C92 /* APIModels.swift */; };
+		F87B2507CC5B0321489303B2 /* OnboardingAnswers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63F451A8D37618D086983FCB /* OnboardingAnswers.swift */; };
+		D1928A6101B5C395EA86684B /* ResumeUnderstanding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44A35E4C389013EE72F80773 /* ResumeUnderstanding.swift */; };
+		EF711A39A8157F2A47CAB58C /* AttachmentThumbnail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09EB8560E895E02E03F35D7F /* AttachmentThumbnail.swift */; };
+		6284F756F2DA4C38E4100D56 /* CertificateReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BA9B2129A9269B7256306E7 /* CertificateReader.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		01628F377938C4BF34F4DD5F /* Aline/Services/Networking/AlineAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/Networking/AlineAPI.swift; sourceTree = "<group>"; };
-		03B991633F764CD494EFC7B6 /* Aline/Models/Community.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Models/Community.swift; sourceTree = "<group>"; };
-		07868B1165B74217869F856E /* Aline/Views/Resume/ResumeDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Views/Resume/ResumeDashboardView.swift; sourceTree = "<group>"; };
-		0922B8CCEBA078408CD99ABA /* Aline/Services/AttachmentStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/AttachmentStore.swift; sourceTree = "<group>"; };
-		0ADF508ECF5D4767934F80A8 /* Aline/Models/InterviewQuestion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Models/InterviewQuestion.swift; sourceTree = "<group>"; };
-		2443720300224449B27CB46E /* Aline/Views/MainAppView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Views/MainAppView.swift; sourceTree = "<group>"; };
-		24586C5AFED24E709DC6B53A /* Aline/Views/Discover/JobDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Views/Discover/JobDetailView.swift; sourceTree = "<group>"; };
-		38E4C751F9361771B96AAC37 /* Aline/Services/Networking/APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/Networking/APIClient.swift; sourceTree = "<group>"; };
-		4752CC24650747F09AD66CF4 /* Aline/Models/Resume.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Models/Resume.swift; sourceTree = "<group>"; };
-		48E32ECF8A5FDC88E7745509 /* Aline/Services/JobAlerts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/JobAlerts.swift; sourceTree = "<group>"; };
-		4E4746B9D6B5646A442BD025 /* Aline/Services/AI/ResumeStructurer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/AI/ResumeStructurer.swift; sourceTree = "<group>"; };
-		63F451A8D37618D086983FCB /* Aline/Services/OnboardingAnswers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/OnboardingAnswers.swift; sourceTree = "<group>"; };
-		65DCA2E5B466DA104C02D384 /* Aline/Services/Matching/MatchEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/Matching/MatchEngine.swift; sourceTree = "<group>"; };
-		7257AD19AE225598B557689A /* Aline/Services/AI/PDFTextExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/AI/PDFTextExtractor.swift; sourceTree = "<group>"; };
-		89BBBCC110504BD990BCBE73 /* Aline/Views/Components/AlineComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Views/Components/AlineComponents.swift; sourceTree = "<group>"; };
-		8E96005F78244F4991577EE9 /* Aline/Views/Onboarding/OnboardingFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Views/Onboarding/OnboardingFlowView.swift; sourceTree = "<group>"; };
-		97051675D3A6449F993DF523 /* Aline/AlineApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/AlineApp.swift; sourceTree = "<group>"; };
-		A104B9BC10464959940AE8CD /* Aline/Models/UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Models/UserProfile.swift; sourceTree = "<group>"; };
-		ADC8DCA1D4484D6E81C2B74B /* Aline/Services/AI/SkillVocabulary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/AI/SkillVocabulary.swift; sourceTree = "<group>"; };
-		AFA6F7939D68752D5C368C92 /* Aline/Services/Networking/APIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/Networking/APIModels.swift; sourceTree = "<group>"; };
-		B49354C2C7B9462DB92CCC9A /* Aline/Views/Discover/DiscoverFeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Views/Discover/DiscoverFeedView.swift; sourceTree = "<group>"; };
-		BC747BCF2024443C9971F581 /* Aline/Theme/AlineTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Theme/AlineTheme.swift; sourceTree = "<group>"; };
-		BD30B896F43442A0B5D2A6A4 /* Aline/Models/Opportunity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Models/Opportunity.swift; sourceTree = "<group>"; };
-		C0C510D83F0BB198D95F217C /* Aline/Services/Networking/ModelMapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/Networking/ModelMapping.swift; sourceTree = "<group>"; };
-		C10000000000000000000001 /* Aline/Views/Splash/SplashScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Views/Splash/SplashScreenView.swift; sourceTree = "<group>"; };
-		C10000000000000000000002 /* Aline/Views/Auth/AuthenticationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Views/Auth/AuthenticationView.swift; sourceTree = "<group>"; };
-		C10000000000000000000003 /* Aline/Resources/splash_animation.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = Aline/Resources/splash_animation.mp4; sourceTree = "<group>"; };
-		C2EC1AF6833E57A0778985F5 /* Aline/Services/PreviewFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/PreviewFixtures.swift; sourceTree = "<group>"; };
-		C304DDCD63DF4DFA81DCFECD /* Aline/Views/Community/CommunityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Views/Community/CommunityView.swift; sourceTree = "<group>"; };
-		D5C4E6D916D5FD0B56CC2C57 /* Aline/Services/Resume/ResumePDFExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/Resume/ResumePDFExporter.swift; sourceTree = "<group>"; };
-		D66AF08BA701C737DC40BDE7 /* Aline/Services/AI/OnDeviceAI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/AI/OnDeviceAI.swift; sourceTree = "<group>"; };
-		DBD21F70416B4AF2A1C32405 /* Aline/Resources/Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Aline/Resources/Assets.xcassets; sourceTree = "<group>"; };
-		DE6D350AC1F4669182193FCA /* Aline/Services/Resume/ResumeRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/Resume/ResumeRecord.swift; sourceTree = "<group>"; };
-		E828F52CE84C4D22BAC7D125 /* Aline/ViewModels/AlineViewModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/ViewModels/AlineViewModels.swift; sourceTree = "<group>"; };
-		F2C398D776AE4ECBA1EB5D4B /* Aline/Views/Profile/ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Views/Profile/ProfileView.swift; sourceTree = "<group>"; };
+		01628F377938C4BF34F4DD5F /* AlineAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlineAPI.swift; sourceTree = "<group>"; };
+		03B991633F764CD494EFC7B6 /* Community.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Community.swift; sourceTree = "<group>"; };
+		07868B1165B74217869F856E /* ResumeDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeDashboardView.swift; sourceTree = "<group>"; };
+		0922B8CCEBA078408CD99ABA /* AttachmentStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentStore.swift; sourceTree = "<group>"; };
+		0ADF508ECF5D4767934F80A8 /* InterviewQuestion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterviewQuestion.swift; sourceTree = "<group>"; };
+		2443720300224449B27CB46E /* MainAppView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainAppView.swift; sourceTree = "<group>"; };
+		24586C5AFED24E709DC6B53A /* JobDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobDetailView.swift; sourceTree = "<group>"; };
+		38E4C751F9361771B96AAC37 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		4752CC24650747F09AD66CF4 /* Resume.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Resume.swift; sourceTree = "<group>"; };
+		48E32ECF8A5FDC88E7745509 /* JobAlerts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobAlerts.swift; sourceTree = "<group>"; };
+		4E4746B9D6B5646A442BD025 /* ResumeStructurer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeStructurer.swift; sourceTree = "<group>"; };
+		63F451A8D37618D086983FCB /* OnboardingAnswers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingAnswers.swift; sourceTree = "<group>"; };
+		65DCA2E5B466DA104C02D384 /* MatchEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchEngine.swift; sourceTree = "<group>"; };
+		7257AD19AE225598B557689A /* PDFTextExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFTextExtractor.swift; sourceTree = "<group>"; };
+		89BBBCC110504BD990BCBE73 /* AlineComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlineComponents.swift; sourceTree = "<group>"; };
+		8E96005F78244F4991577EE9 /* OnboardingFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlowView.swift; sourceTree = "<group>"; };
+		97051675D3A6449F993DF523 /* AlineApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlineApp.swift; sourceTree = "<group>"; };
+		A104B9BC10464959940AE8CD /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfile.swift; sourceTree = "<group>"; };
+		ADC8DCA1D4484D6E81C2B74B /* SkillVocabulary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillVocabulary.swift; sourceTree = "<group>"; };
+		AFA6F7939D68752D5C368C92 /* APIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIModels.swift; sourceTree = "<group>"; };
+		B49354C2C7B9462DB92CCC9A /* DiscoverFeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoverFeedView.swift; sourceTree = "<group>"; };
+		BC747BCF2024443C9971F581 /* AlineTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlineTheme.swift; sourceTree = "<group>"; };
+		BD30B896F43442A0B5D2A6A4 /* Opportunity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Opportunity.swift; sourceTree = "<group>"; };
+		C0C510D83F0BB198D95F217C /* ModelMapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelMapping.swift; sourceTree = "<group>"; };
+		C10000000000000000000001 /* SplashScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreenView.swift; sourceTree = "<group>"; };
+		C10000000000000000000002 /* AuthenticationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationView.swift; sourceTree = "<group>"; };
+		C10000000000000000000003 /* splash_animation.mp4 */ = {isa = PBXFileReference; lastKnownFileType = video.mp4; path = splash_animation.mp4; sourceTree = "<group>"; };
+		C2EC1AF6833E57A0778985F5 /* PreviewFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewFixtures.swift; sourceTree = "<group>"; };
+		C304DDCD63DF4DFA81DCFECD /* CommunityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityView.swift; sourceTree = "<group>"; };
+		D5C4E6D916D5FD0B56CC2C57 /* ResumePDFExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumePDFExporter.swift; sourceTree = "<group>"; };
+		D66AF08BA701C737DC40BDE7 /* OnDeviceAI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnDeviceAI.swift; sourceTree = "<group>"; };
+		DBD21F70416B4AF2A1C32405 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		DE6D350AC1F4669182193FCA /* ResumeRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeRecord.swift; sourceTree = "<group>"; };
+		E828F52CE84C4D22BAC7D125 /* AlineViewModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlineViewModels.swift; sourceTree = "<group>"; };
+		F2C398D776AE4ECBA1EB5D4B /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		F938A69DA22041A3B12F37B8 /* Aline.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Aline.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		FF6611F93E3F8B88FDD64E26 /* Aline/Services/AI/ResumeProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/AI/ResumeProfile.swift; sourceTree = "<group>"; };
-		44A35E4C389013EE72F80773 /* Aline/Services/AI/ResumeUnderstanding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/AI/ResumeUnderstanding.swift; sourceTree = "<group>"; };
-		09EB8560E895E02E03F35D7F /* Aline/Views/Profile/AttachmentThumbnail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Views/Profile/AttachmentThumbnail.swift; sourceTree = "<group>"; };
-		6BA9B2129A9269B7256306E7 /* Aline/Services/AI/CertificateReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aline/Services/AI/CertificateReader.swift; sourceTree = "<group>"; };
+		FF6611F93E3F8B88FDD64E26 /* ResumeProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeProfile.swift; sourceTree = "<group>"; };
+		44A35E4C389013EE72F80773 /* ResumeUnderstanding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeUnderstanding.swift; sourceTree = "<group>"; };
+		09EB8560E895E02E03F35D7F /* AttachmentThumbnail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentThumbnail.swift; sourceTree = "<group>"; };
+		6BA9B2129A9269B7256306E7 /* CertificateReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificateReader.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -105,45 +105,7 @@
 		21DF6D99A1414587916B3DBF = {
 			isa = PBXGroup;
 			children = (
-				6BA9B2129A9269B7256306E7 /* Aline/Services/AI/CertificateReader.swift */,
-				09EB8560E895E02E03F35D7F /* Aline/Views/Profile/AttachmentThumbnail.swift */,
-				44A35E4C389013EE72F80773 /* Aline/Services/AI/ResumeUnderstanding.swift */,
-				0922B8CCEBA078408CD99ABA /* Aline/Services/AttachmentStore.swift */,
-				48E32ECF8A5FDC88E7745509 /* Aline/Services/JobAlerts.swift */,
-				C2EC1AF6833E57A0778985F5 /* Aline/Services/PreviewFixtures.swift */,
-				01628F377938C4BF34F4DD5F /* Aline/Services/Networking/AlineAPI.swift */,
-				63F451A8D37618D086983FCB /* Aline/Services/OnboardingAnswers.swift */,
-				ADC8DCA1D4484D6E81C2B74B /* Aline/Services/AI/SkillVocabulary.swift */,
-				4E4746B9D6B5646A442BD025 /* Aline/Services/AI/ResumeStructurer.swift */,
-				FF6611F93E3F8B88FDD64E26 /* Aline/Services/AI/ResumeProfile.swift */,
-				7257AD19AE225598B557689A /* Aline/Services/AI/PDFTextExtractor.swift */,
-				D66AF08BA701C737DC40BDE7 /* Aline/Services/AI/OnDeviceAI.swift */,
-				DE6D350AC1F4669182193FCA /* Aline/Services/Resume/ResumeRecord.swift */,
-				D5C4E6D916D5FD0B56CC2C57 /* Aline/Services/Resume/ResumePDFExporter.swift */,
-				C0C510D83F0BB198D95F217C /* Aline/Services/Networking/ModelMapping.swift */,
-				AFA6F7939D68752D5C368C92 /* Aline/Services/Networking/APIModels.swift */,
-				38E4C751F9361771B96AAC37 /* Aline/Services/Networking/APIClient.swift */,
-				65DCA2E5B466DA104C02D384 /* Aline/Services/Matching/MatchEngine.swift */,
-				C10000000000000000000001 /* Aline/Views/Splash/SplashScreenView.swift */,
-				C10000000000000000000002 /* Aline/Views/Auth/AuthenticationView.swift */,
-				C10000000000000000000003 /* Aline/Resources/splash_animation.mp4 */,
-				97051675D3A6449F993DF523 /* Aline/AlineApp.swift */,
-				E828F52CE84C4D22BAC7D125 /* Aline/ViewModels/AlineViewModels.swift */,
-				4752CC24650747F09AD66CF4 /* Aline/Models/Resume.swift */,
-				A104B9BC10464959940AE8CD /* Aline/Models/UserProfile.swift */,
-				BD30B896F43442A0B5D2A6A4 /* Aline/Models/Opportunity.swift */,
-				0ADF508ECF5D4767934F80A8 /* Aline/Models/InterviewQuestion.swift */,
-				03B991633F764CD494EFC7B6 /* Aline/Models/Community.swift */,
-				BC747BCF2024443C9971F581 /* Aline/Theme/AlineTheme.swift */,
-				2443720300224449B27CB46E /* Aline/Views/MainAppView.swift */,
-				24586C5AFED24E709DC6B53A /* Aline/Views/Discover/JobDetailView.swift */,
-				B49354C2C7B9462DB92CCC9A /* Aline/Views/Discover/DiscoverFeedView.swift */,
-				07868B1165B74217869F856E /* Aline/Views/Resume/ResumeDashboardView.swift */,
-				89BBBCC110504BD990BCBE73 /* Aline/Views/Components/AlineComponents.swift */,
-				F2C398D776AE4ECBA1EB5D4B /* Aline/Views/Profile/ProfileView.swift */,
-				C304DDCD63DF4DFA81DCFECD /* Aline/Views/Community/CommunityView.swift */,
-				8E96005F78244F4991577EE9 /* Aline/Views/Onboarding/OnboardingFlowView.swift */,
-				DBD21F70416B4AF2A1C32405 /* Aline/Resources/Assets.xcassets */,
+				FEEB8C3B9F6C373C721096B7 /* Aline */,
 				B184B83848DC48998933B26B /* Products */,
 			);
 			sourceTree = "<group>";
@@ -154,6 +116,196 @@
 				F938A69DA22041A3B12F37B8 /* Aline.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		E19F332FF4939FA7957AE6D5 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				03B991633F764CD494EFC7B6 /* Community.swift */,
+				0ADF508ECF5D4767934F80A8 /* InterviewQuestion.swift */,
+				BD30B896F43442A0B5D2A6A4 /* Opportunity.swift */,
+				4752CC24650747F09AD66CF4 /* Resume.swift */,
+				A104B9BC10464959940AE8CD /* UserProfile.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		B3FECE3216021D571E59A18A /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				DBD21F70416B4AF2A1C32405 /* Assets.xcassets */,
+				C10000000000000000000003 /* splash_animation.mp4 */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		B7A995B2666A5F5E93F6DDCA /* AI */ = {
+			isa = PBXGroup;
+			children = (
+				6BA9B2129A9269B7256306E7 /* CertificateReader.swift */,
+				D66AF08BA701C737DC40BDE7 /* OnDeviceAI.swift */,
+				7257AD19AE225598B557689A /* PDFTextExtractor.swift */,
+				FF6611F93E3F8B88FDD64E26 /* ResumeProfile.swift */,
+				4E4746B9D6B5646A442BD025 /* ResumeStructurer.swift */,
+				44A35E4C389013EE72F80773 /* ResumeUnderstanding.swift */,
+				ADC8DCA1D4484D6E81C2B74B /* SkillVocabulary.swift */,
+			);
+			path = AI;
+			sourceTree = "<group>";
+		};
+		436DD4F63E1F0140A524C93F /* Matching */ = {
+			isa = PBXGroup;
+			children = (
+				65DCA2E5B466DA104C02D384 /* MatchEngine.swift */,
+			);
+			path = Matching;
+			sourceTree = "<group>";
+		};
+		F79F6F2748F4BB667FFB0F5F /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				01628F377938C4BF34F4DD5F /* AlineAPI.swift */,
+				38E4C751F9361771B96AAC37 /* APIClient.swift */,
+				AFA6F7939D68752D5C368C92 /* APIModels.swift */,
+				C0C510D83F0BB198D95F217C /* ModelMapping.swift */,
+			);
+			path = Networking;
+			sourceTree = "<group>";
+		};
+		A1D481A9977E5669FE68B416 /* Resume */ = {
+			isa = PBXGroup;
+			children = (
+				D5C4E6D916D5FD0B56CC2C57 /* ResumePDFExporter.swift */,
+				DE6D350AC1F4669182193FCA /* ResumeRecord.swift */,
+			);
+			path = Resume;
+			sourceTree = "<group>";
+		};
+		925496BDB5A64988E338C169 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				B7A995B2666A5F5E93F6DDCA /* AI */,
+				436DD4F63E1F0140A524C93F /* Matching */,
+				F79F6F2748F4BB667FFB0F5F /* Networking */,
+				A1D481A9977E5669FE68B416 /* Resume */,
+				0922B8CCEBA078408CD99ABA /* AttachmentStore.swift */,
+				48E32ECF8A5FDC88E7745509 /* JobAlerts.swift */,
+				63F451A8D37618D086983FCB /* OnboardingAnswers.swift */,
+				C2EC1AF6833E57A0778985F5 /* PreviewFixtures.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		02D90BA75B6D6F37125F353F /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				BC747BCF2024443C9971F581 /* AlineTheme.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+		ED023D786E5CE6B6A2C95160 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				E828F52CE84C4D22BAC7D125 /* AlineViewModels.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		3A26E89F21776B65D5F0B5B9 /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				C10000000000000000000002 /* AuthenticationView.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		30C449B9757ABB6BF55BFC2B /* Community */ = {
+			isa = PBXGroup;
+			children = (
+				C304DDCD63DF4DFA81DCFECD /* CommunityView.swift */,
+			);
+			path = Community;
+			sourceTree = "<group>";
+		};
+		7B9FD48DC3A5851CE7563C77 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				89BBBCC110504BD990BCBE73 /* AlineComponents.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		30EF67CCDAAC0C9E0185198F /* Discover */ = {
+			isa = PBXGroup;
+			children = (
+				B49354C2C7B9462DB92CCC9A /* DiscoverFeedView.swift */,
+				24586C5AFED24E709DC6B53A /* JobDetailView.swift */,
+			);
+			path = Discover;
+			sourceTree = "<group>";
+		};
+		CE17ED4844A60B5D5B3031C8 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				8E96005F78244F4991577EE9 /* OnboardingFlowView.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		2D95DFFBEE832FE20E64A266 /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				09EB8560E895E02E03F35D7F /* AttachmentThumbnail.swift */,
+				F2C398D776AE4ECBA1EB5D4B /* ProfileView.swift */,
+			);
+			path = Profile;
+			sourceTree = "<group>";
+		};
+		C0D805F90015DE6B0F997531 /* Resume */ = {
+			isa = PBXGroup;
+			children = (
+				07868B1165B74217869F856E /* ResumeDashboardView.swift */,
+			);
+			path = Resume;
+			sourceTree = "<group>";
+		};
+		6C6FE9C7F376C876E5E505A7 /* Splash */ = {
+			isa = PBXGroup;
+			children = (
+				C10000000000000000000001 /* SplashScreenView.swift */,
+			);
+			path = Splash;
+			sourceTree = "<group>";
+		};
+		3314FF629A3E02C429402A36 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				3A26E89F21776B65D5F0B5B9 /* Auth */,
+				30C449B9757ABB6BF55BFC2B /* Community */,
+				7B9FD48DC3A5851CE7563C77 /* Components */,
+				30EF67CCDAAC0C9E0185198F /* Discover */,
+				CE17ED4844A60B5D5B3031C8 /* Onboarding */,
+				2D95DFFBEE832FE20E64A266 /* Profile */,
+				C0D805F90015DE6B0F997531 /* Resume */,
+				6C6FE9C7F376C876E5E505A7 /* Splash */,
+				2443720300224449B27CB46E /* MainAppView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		FEEB8C3B9F6C373C721096B7 /* Aline */ = {
+			isa = PBXGroup;
+			children = (
+				E19F332FF4939FA7957AE6D5 /* Models */,
+				B3FECE3216021D571E59A18A /* Resources */,
+				925496BDB5A64988E338C169 /* Services */,
+				02D90BA75B6D6F37125F353F /* Theme */,
+				ED023D786E5CE6B6A2C95160 /* ViewModels */,
+				3314FF629A3E02C429402A36 /* Views */,
+				97051675D3A6449F993DF523 /* AlineApp.swift */,
+			);
+			path = Aline;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -214,8 +366,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B10000000000000000000003 /* Aline/Resources/splash_animation.mp4 in Resources */,
-				3D9133347CCB4882822B540F /* Aline/Resources/Assets.xcassets in Resources */,
+				B10000000000000000000003 /* splash_animation.mp4 in Resources */,
+				3D9133347CCB4882822B540F /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -226,43 +378,43 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6284F756F2DA4C38E4100D56 /* Aline/Services/AI/CertificateReader.swift in Sources */,
-				EF711A39A8157F2A47CAB58C /* Aline/Views/Profile/AttachmentThumbnail.swift in Sources */,
-				D1928A6101B5C395EA86684B /* Aline/Services/AI/ResumeUnderstanding.swift in Sources */,
-				ED9FC1847D7BDED5B29B11D2 /* Aline/Services/AttachmentStore.swift in Sources */,
-				76A7B1A463A58F847A2BFDDE /* Aline/Services/JobAlerts.swift in Sources */,
-				273425AADC1C1DDB8A9090FC /* Aline/Services/PreviewFixtures.swift in Sources */,
-				D9E6922F20BA7C8F32E10946 /* Aline/Services/Networking/AlineAPI.swift in Sources */,
-				F87B2507CC5B0321489303B2 /* Aline/Services/OnboardingAnswers.swift in Sources */,
-				584ED128B6EC908D8D838199 /* Aline/Services/AI/SkillVocabulary.swift in Sources */,
-				BDB664A0AE63EEC6B0942773 /* Aline/Services/AI/ResumeStructurer.swift in Sources */,
-				1424EC19848A56333FF3C03D /* Aline/Services/AI/ResumeProfile.swift in Sources */,
-				731498E128E1435AF6436E60 /* Aline/Services/AI/PDFTextExtractor.swift in Sources */,
-				ACB1F7C98F7E9E5F21980FC9 /* Aline/Services/AI/OnDeviceAI.swift in Sources */,
-				EE2A36760722F715B717C4DF /* Aline/Services/Resume/ResumeRecord.swift in Sources */,
-				7CCBB104DC49C4D8BA7F92C2 /* Aline/Services/Resume/ResumePDFExporter.swift in Sources */,
-				19592236D7CEB79A05F8C7AA /* Aline/Services/Networking/ModelMapping.swift in Sources */,
-				F2EFEFBC6922CF10923D3718 /* Aline/Services/Networking/APIModels.swift in Sources */,
-				B6995522BFF71E37ACBFA0EE /* Aline/Services/Networking/APIClient.swift in Sources */,
-				386B38F23F34618DCC17718A /* Aline/Services/Matching/MatchEngine.swift in Sources */,
-				B10000000000000000000001 /* Aline/Views/Splash/SplashScreenView.swift in Sources */,
-				B10000000000000000000002 /* Aline/Views/Auth/AuthenticationView.swift in Sources */,
-				B6651D466815433CB7A1DA9F /* Aline/AlineApp.swift in Sources */,
-				852F2E02C0C64C57AE71FA72 /* Aline/ViewModels/AlineViewModels.swift in Sources */,
-				C5CB9B53F5234F7F87ACB580 /* Aline/Models/Resume.swift in Sources */,
-				1F2E23C12F14481C88DF2D74 /* Aline/Models/UserProfile.swift in Sources */,
-				2449FBE904904FA69BFD3EBD /* Aline/Models/Opportunity.swift in Sources */,
-				561FA692CD3C472B9A56DF7E /* Aline/Models/InterviewQuestion.swift in Sources */,
-				0609F9CBE9004603BDD65E00 /* Aline/Models/Community.swift in Sources */,
-				3A63B297F47444FF8264931C /* Aline/Theme/AlineTheme.swift in Sources */,
-				A18791E2345448B8BE411622 /* Aline/Views/MainAppView.swift in Sources */,
-				819931301FB24F30A3B29D01 /* Aline/Views/Discover/JobDetailView.swift in Sources */,
-				270AA8CDDC104AC3B1D80BD3 /* Aline/Views/Discover/DiscoverFeedView.swift in Sources */,
-				D35E79245B7742C2A7B97F52 /* Aline/Views/Resume/ResumeDashboardView.swift in Sources */,
-				E4C4D3DB3DA0414AB8A8E76E /* Aline/Views/Components/AlineComponents.swift in Sources */,
-				3009CF782C7F4A20BAB59D70 /* Aline/Views/Profile/ProfileView.swift in Sources */,
-				DCF951042F6A4FF9B41A5CDE /* Aline/Views/Community/CommunityView.swift in Sources */,
-				A0FAF261D8E54A719501BC4D /* Aline/Views/Onboarding/OnboardingFlowView.swift in Sources */,
+				6284F756F2DA4C38E4100D56 /* CertificateReader.swift in Sources */,
+				EF711A39A8157F2A47CAB58C /* AttachmentThumbnail.swift in Sources */,
+				D1928A6101B5C395EA86684B /* ResumeUnderstanding.swift in Sources */,
+				ED9FC1847D7BDED5B29B11D2 /* AttachmentStore.swift in Sources */,
+				76A7B1A463A58F847A2BFDDE /* JobAlerts.swift in Sources */,
+				273425AADC1C1DDB8A9090FC /* PreviewFixtures.swift in Sources */,
+				D9E6922F20BA7C8F32E10946 /* AlineAPI.swift in Sources */,
+				F87B2507CC5B0321489303B2 /* OnboardingAnswers.swift in Sources */,
+				584ED128B6EC908D8D838199 /* SkillVocabulary.swift in Sources */,
+				BDB664A0AE63EEC6B0942773 /* ResumeStructurer.swift in Sources */,
+				1424EC19848A56333FF3C03D /* ResumeProfile.swift in Sources */,
+				731498E128E1435AF6436E60 /* PDFTextExtractor.swift in Sources */,
+				ACB1F7C98F7E9E5F21980FC9 /* OnDeviceAI.swift in Sources */,
+				EE2A36760722F715B717C4DF /* ResumeRecord.swift in Sources */,
+				7CCBB104DC49C4D8BA7F92C2 /* ResumePDFExporter.swift in Sources */,
+				19592236D7CEB79A05F8C7AA /* ModelMapping.swift in Sources */,
+				F2EFEFBC6922CF10923D3718 /* APIModels.swift in Sources */,
+				B6995522BFF71E37ACBFA0EE /* APIClient.swift in Sources */,
+				386B38F23F34618DCC17718A /* MatchEngine.swift in Sources */,
+				B10000000000000000000001 /* SplashScreenView.swift in Sources */,
+				B10000000000000000000002 /* AuthenticationView.swift in Sources */,
+				B6651D466815433CB7A1DA9F /* AlineApp.swift in Sources */,
+				852F2E02C0C64C57AE71FA72 /* AlineViewModels.swift in Sources */,
+				C5CB9B53F5234F7F87ACB580 /* Resume.swift in Sources */,
+				1F2E23C12F14481C88DF2D74 /* UserProfile.swift in Sources */,
+				2449FBE904904FA69BFD3EBD /* Opportunity.swift in Sources */,
+				561FA692CD3C472B9A56DF7E /* InterviewQuestion.swift in Sources */,
+				0609F9CBE9004603BDD65E00 /* Community.swift in Sources */,
+				3A63B297F47444FF8264931C /* AlineTheme.swift in Sources */,
+				A18791E2345448B8BE411622 /* MainAppView.swift in Sources */,
+				819931301FB24F30A3B29D01 /* JobDetailView.swift in Sources */,
+				270AA8CDDC104AC3B1D80BD3 /* DiscoverFeedView.swift in Sources */,
+				D35E79245B7742C2A7B97F52 /* ResumeDashboardView.swift in Sources */,
+				E4C4D3DB3DA0414AB8A8E76E /* AlineComponents.swift in Sources */,
+				3009CF782C7F4A20BAB59D70 /* ProfileView.swift in Sources */,
+				DCF951042F6A4FF9B41A5CDE /* CommunityView.swift in Sources */,
+				A0FAF261D8E54A719501BC4D /* OnboardingFlowView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
