@@ -7,9 +7,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app ./app
 
-# Fly's volume mounts at /app/data (see fly.toml) — community_db.py already resolves its DB
-# path relative to the app package, so no code change needed, just make sure the directory
-# exists before the volume is mounted over it.
+# SQLite lives in /app/data (community_db.py resolves it relative to the app package). On
+# Render's free plan this disk is ephemeral: it is wiped on every restart or deploy.
 RUN mkdir -p /app/data
 
 EXPOSE 8080
